@@ -138,7 +138,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     if (proxy_resolver->resolver == NULL) {
         proxy_resolver->error = ENOMEM;
         printf("Unable to create resolver object (%d)\n", proxy_resolver->error);
-        return gnome3_error;
+        goto gnome3_error;
     }
 
     // Create cancellable object in case we need to cancel operation
