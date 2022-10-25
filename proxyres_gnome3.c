@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <errno.h>
+#include <dlfcn.h>
 #include <gio/gio.h>
 
 #include "proxyres.h"
