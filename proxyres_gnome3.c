@@ -101,10 +101,10 @@ void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncRe
         if (proxies[i] == NULL)
             continue;
 
-        if (strchr(proxies[i], "direct") == proxies[i]) {
+        if (strstr(proxies[i], "direct") == proxies[i]) {
             strncat(proxy_resolver->list, "DIRECT", max_list - list_len);
             list_len += 6;
-        } else if (strchr(proxies[i], "http") == proxies[i]) {
+        } else if (strstr(proxies[i], "http") == proxies[i]) {
             strncat(proxy_resolver->list, "PROXY ", max_list - list_len);
             proxy_resolver->list[max_list - 1] = 0;
             list_len += 6;
