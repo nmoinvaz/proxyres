@@ -7,6 +7,9 @@ Cross-platform support for linux, macOS, & Windows.
 * Support for macOS
 * Unit tests with Google Test
 * Test integration
+* PAC execution (WebKitJS & WinInet Pre-Win11)
+* Cross-platform Proxy Configuration reading/writing
+* Resolver from scratch with WPAD and DHCP
 
 ## Build
 
