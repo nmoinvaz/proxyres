@@ -30,3 +30,7 @@ endif()
 
 add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
+
+if(WIN32)
+    target_link_libraries(proxyres PRIVATE winhttp)
+endif()
