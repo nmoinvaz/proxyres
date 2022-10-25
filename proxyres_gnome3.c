@@ -45,7 +45,7 @@ typedef struct proxy_resolver_gnome3_s {
     char *list;
 } proxy_resolver_gnome3_s;
 
-static void proxy_resolver_gnome3_reset(proxy_resolver_gnome_s *proxy_resolver) {
+static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver) {
     proxy_resolver->pending = false;
     proxy_resolver->error = 0;
 
@@ -55,7 +55,7 @@ static void proxy_resolver_gnome3_reset(proxy_resolver_gnome_s *proxy_resolver) 
     }
 }
 
-static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome_s *proxy_resolver) {
+static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolver) {
     if (proxy_resolver->cancellable != NULL) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
         proxy_resolver->cancellable = NULL;
