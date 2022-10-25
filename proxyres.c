@@ -14,8 +14,6 @@
 #  include "proxyres_win8.h"
 #endif
 
-typedef void (*proxy_resolver_resolved_cb)(void *ctx, void *user_data, int32_t error, const char *list);
-
 typedef struct g_proxy_resolver_s {
     // Proxy resolver interface
     proxy_resolver_i_s *proxy_resolver_i;
