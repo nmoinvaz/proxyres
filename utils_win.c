@@ -16,7 +16,7 @@ wchar_t *wstrdup(const char *src) {
 // Create a UTF-8 string from a wide char string
 char *utf8strdup(const wchar_t *src) {
     int32_t len = WideCharToMultiByte(CP_UTF8, 0, src, -1, NULL, 0, NULL, NULL);
-    char *dup = (wchar_t *)calloc(len, sizeof(char));
+    char *dup = (char *)calloc(len, sizeof(char));
     if (dup == NULL)
         return NULL;
     WideCharToMultiByte(CP_UTF8, 0, src, -1, dup, len, NULL, NULL);
