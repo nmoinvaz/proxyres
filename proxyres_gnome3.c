@@ -210,7 +210,7 @@ bool proxy_resolver_gnome3_set_resolved_callback(void *ctx, void *user_data, pro
 }
 
 bool proxy_resolver_gnome3_create(void **ctx) {
-    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)calloc(1, sizeof(proxy_resolver_s));
+    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)calloc(1, sizeof(proxy_resolver_gnome3_s));
     if (proxy_resolver == NULL)
         return false;
     *ctx = proxy_resolver;
