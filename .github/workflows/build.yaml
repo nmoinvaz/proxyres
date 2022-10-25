@@ -1,0 +1,49 @@
+name: Build
+on: [workflow_dispatch, push, pull_request]
+env:
+  TERM: xterm-256color
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Build - macOS Xcode
+            runs-on: macos-latest
+            compiler: clang
+            cmake-args: -G Xcode
+
+          - name: Build - Ubuntu Clang
+            runs-on: ubuntu-latest
+            compiler: clang
+            cmake-args: -G Ninja
+
+          - name: Build - Windows Win32
+            runs-on: windows-latest
+            compiler: cl
+            cmake-args: -A Win32
+
+          - name: Build - Windows Win64
+            runs-on: windows-latest
+            compiler: cl
+
+    steps:
+    - name: Install packages (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y ninja-build
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Generate project
+      run: cmake -S . -B build ${{ matrix.cmake-args }}
+      env:
+        CC: ${{ matrix.compiler }}
+
+    - name: Build project
+      run: cmake --build build
