@@ -1,0 +1,30 @@
+name: Lint
+on: [push, pull_request]
+env:
+  TERM: xterm-256color
+
+jobs:
+  clang-format:
+    name: Clang-Format
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install clang-format
+      run: |
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main'
+        sudo apt update
+        sudo apt install -y clang-format-14
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Run clang-format
+      run: |
+        output=$(git clang-format-14 --binary=clang-format-14 --diff --commit=master)
+        grep '^no modified files to format$' <<< "$output" && exit 0
+        grep '^clang-format did not modify any files$' <<< "$output" && exit 0
+        echo "$output"
+        echo -e "\033[1;31mCode style does not match clang-format"
+        exit 1

@@ -1,0 +1,15 @@
+---
+BasedOnStyle: Google
+
+AccessModifierOffset: -2
+AlignConsecutiveMacros: AcrossEmptyLines
+AlignOperands: DontAlign
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+ColumnLimit: 120
+DerivePointerAlignment: false
+IndentCaseLabels: false
+IndentWidth: 4
+PointerAlignment: Right
+SortIncludes: Never
