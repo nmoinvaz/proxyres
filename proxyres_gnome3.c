@@ -68,7 +68,7 @@ static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolve
     }
 }
 
-void proxy_resolver_gnome3_g_async_ready_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
+void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)user_data;
     char *list = NULL;
     char **proxies;
@@ -154,7 +154,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     // Start async proxy resolution
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async(proxy_resolver->resolver, url, proxy_resolver->cancellable,
-                                                          proxy_resolver_g_async_ready_callback, proxy_resolver);
+                                                          proxy_resolver_gnome3_async_ready_callback, proxy_resolver);
 
     return true;
 
