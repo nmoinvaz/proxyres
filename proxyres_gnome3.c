@@ -248,7 +248,7 @@ bool proxy_resolver_gnome3_init(void) {
     if (g_proxy_resolver_gnome3.g_strv_length == NULL)
         return false;
     g_proxy_resolver_gnome3.g_strfreev = dlsym(g_proxy_resolver_gnome3.gio_module, "g_strfreev");
-    if (proxy_resolver_gnome3.g_strfreev == NULL)
+    if (g_proxy_resolver_gnome3.g_strfreev == NULL)
         return false;
 
     // GIO cancellable functions
