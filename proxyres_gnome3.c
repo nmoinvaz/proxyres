@@ -36,6 +36,8 @@ g_proxy_resolver_gnome3_s g_proxy_resolver_gnome3;
 typedef struct proxy_resolver_gnome3_s {
     // GProxy resolver
     GProxyResolver *resolver;
+    // Last system error
+    int32_t error;
     // Resolution pending
     bool pending;
     // Cancellable object
