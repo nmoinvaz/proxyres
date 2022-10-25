@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(cproxyres)
+project(proxyres)
 
 set(PROXYRES_HDRS
     proxyres.h
@@ -28,6 +28,5 @@ if(WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
 endif()
 
-add_library(cproxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
-
-set_property(TARGET cproxyres PROPERTY C_STANDARD 99)
+add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
+set_property(TARGET proxyres PROPERTY C_STANDARD 99)
