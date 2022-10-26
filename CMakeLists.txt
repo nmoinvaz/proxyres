@@ -3,25 +3,35 @@ cmake_minimum_required(VERSION 3.12)
 project(proxyres)
 
 set(PROXYRES_HDRS
-    proxyres.h
-    proxyres_i.h)
+    config.h
+    resolver.h
+    resolver_i.h)
 set(PROXYRES_SRCS
-    proxyres.c)
+    config.c
+    resolver.c)
 if(WIN32)
     list(APPEND PROXYRES_HDRS
-        utils_win.h
-        proxyres_win8.c
-        proxyres_winxp.h)
+        config_win.h
+        resolver_win8.h
+        resolver_winxp.h
+        utils_win.h)
     list(APPEND PROXYRES_SRCS
-        proxyres_win8.c
-        proxyres_winxp.c
+        config_win.c
+        resolver_win8.c
+        resolver_winxp.c
         utils_win.c)
 elseif(APPLE)
+    list(APPEND PROXYRES_HDRS
+        config_mac.h
+        resolver_mac.h)
+    list(APPEND PROXYRES_SRCS
+        config_mac.c
+        resolver_mac.c)
 elseif(UNIX)
     list(APPEND PROXYRES_HDRS
-        proxyres_gnome3.h)
+        resolver_gnome3.h)
     list(APPEND PROXYRES_SRCS
-        proxyres_gnome3.c)
+        resolver_gnome3.c)
 endif()
 
 if(WIN32)
