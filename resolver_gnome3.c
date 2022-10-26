@@ -8,9 +8,9 @@
 #include <dlfcn.h>
 #include <gio/gio.h>
 
-#include "proxyres.h"
-#include "proxyres_i.h"
-#include "proxyres_gnome3.h"
+#include "resolver.h"
+#include "resolver_i.h"
+#include "resolver_gnome3.h"
 
 typedef struct g_proxy_resolver_gnome3_s {
     // GIO module handle

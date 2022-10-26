@@ -6,9 +6,9 @@
 #include <windows.h>
 #include <winhttp.h>
 
-#include "proxyres.h"
-#include "proxyres_i.h"
-#include "proxyres_winxp.h"
+#include "resolver.h"
+#include "resolver_i.h"
+#include "resolver_winxp.h"
 
 #include "utils_win.h"
 

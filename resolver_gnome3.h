@@ -1,5 +1,4 @@
-#include "proxyres.h"
-#include "proxyres_i.h"
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {

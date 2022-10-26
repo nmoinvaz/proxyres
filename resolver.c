@@ -4,14 +4,16 @@
 
 #include <errno.h>
 
-#include "proxyres.h"
-#include "proxyres_i.h"
+#include "resolver.h"
+#include "resolver_i.h"
 
-#ifdef __linux__
-#  include "proxyres_gnome3.h"
+#if defined(__APPLE__)
+#  include "resolver_mac.h"
+#elif defined(__linux__)
+#  include "resolver_gnome3.h"
 #elif defined(_WIN32)
-#  include "proxyres_winxp.h"
-#  include "proxyres_win8.h"
+#  include "resolver_winxp.h"
+#  include "resolver_win8.h"
 #endif
 
 typedef struct g_proxy_resolver_s {
@@ -89,7 +91,10 @@ bool proxy_resolver_delete(void **ctx) {
 }
 
 bool proxy_resolver_init(void) {
-#ifdef __linux__
+#if defined(__APPLE__)
+    if (proxy_resolver_mac_init() == true)
+        g_proxy_resolver.proxy_resolver_i = proxy_resolver_mac_get_interface();
+#elif defined(__linux__)
     if (proxy_resolver_gnome3_init() == true)
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();
 #elif defined(_WIN32)
