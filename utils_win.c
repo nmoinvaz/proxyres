@@ -4,7 +4,7 @@
 #include <windows.h>
 
 // Create a wide char string from a UTF-8 string
-const wchar_t *wstrdup(const char *src) {
+wchar_t *wstrdup(const char *src) {
     int32_t len = MultiByteToWideChar(CP_UTF8, 0, src, -1, NULL, 0);
     wchar_t *dup = (wchar_t *)calloc(len, sizeof(wchar_t));
     if (dup == NULL)
@@ -14,7 +14,7 @@ const wchar_t *wstrdup(const char *src) {
 }
 
 // Create a UTF-8 string from a wide char string
-const char *utf8strdup(const wchar_t *src) {
+char *utf8strdup(const wchar_t *src) {
     int32_t len = WideCharToMultiByte(CP_UTF8, 0, src, -1, NULL, 0, NULL, NULL);
     char *dup = (char *)calloc(len, sizeof(char));
     if (dup == NULL)

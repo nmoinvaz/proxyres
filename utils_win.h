@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-const wchar_t *wstrdup(const char *src);
-const char *utf8strdup(const wchar_t *src);
+wchar_t *wstrdup(const char *src);
+char *utf8strdup(const wchar_t *src);
 
 #ifdef __cplusplus
 }
