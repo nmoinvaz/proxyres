@@ -28,38 +28,36 @@ bool proxy_config_mac_get_auto_discover(void) {
     return auto_discover;
 }
 
-bool proxy_config_get_auto_config_url(char *url, int32_t max_url) {
+const char *proxy_config_get_auto_config_url(void) {
     CFDictionaryRef proxy_settings = NULL;
     CFStringRef AutoConfigURL = NULL;
-    bool has_value = false;
-
-    if (url == NULL || max_url <= 0)
-        return false;
-
-    *url = 0;
+    const char *url = NULL;
 
     proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
-        return false;
+        return NULL;
 
     // Check to see if auto-config url is enabled
     if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoConfigEnable) == true) {
         // Get the auto-config url
         CFStringRef auto_config_url = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);
         if (auto_config_url != NULL) {
-            CFStringGetCString(auto_config_url, url, max_url, kCFStringEncodingUTF8);
-            has_value = true;
+            const char *auto_config_url_p = CFStringGetCStringPtr(auto_config_url, kCFStringEncodingUTF8);
+            if (auto_config_url_p) {
+                url = strdup(auto_config_url_p);
+            }
         }
     }
 
     CFRelease(proxy_settings);
-    return has_value;
+    return url;
 }
 
-bool proxy_config_mac_get_proxy(char *protocol, char *proxy, int32_t max_proxy) {
+const char *proxy_config_mac_get_proxy(const char *protocol) {
     CFDictionaryRef proxy_settings = NULL;
     CFStringRef AutoConfigURL = NULL;
-    bool has_value = false;
+    char *proxy = NULL;
+    int32_t max_proxy = 0;
 
     // Determine the indexes to retrieve from the system proxy settings to get the value
     // for the proxy list we want
@@ -75,22 +73,26 @@ bool proxy_config_mac_get_proxy(char *protocol, char *proxy, int32_t max_proxy) 
 
     proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
-        return false;
+        return NULL;
 
     if (get_cf_dictionary_bool(proxy_settings, enable_index) == true) {
         // Get the proxy url associated with the protocol
         CFStringRef proxy_url = CFDictionaryGetValue(proxy_settings, url_index);
         if (proxy_url != NULL) {
-            CFStringGetCString(proxy_url, proxy, max_proxy, kCFStringEncodingUTF8);
-            has_value = true;
+            const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, proxy, max_proxy, kCFStringEncodingUTF8);
+            if (proxy_url_p) {
+                max_proxy = strlen(proxy_url_p) + 32; // Allow enough room for port number
+                proxy = calloc(max_proxy, sizeof(char));
+                strncat(proxy, proxy_url_p, max_proxy);
+            }
         }
 
         // Get the proxy port associated with the protocol
         CFStringRef proxy_port = CFDictionaryGetValue(proxy_settings, port_index);
         if (proxy_port != NULL) {
-            int32_t proxy_len = strlen(proxy);
             // Append the proxy port to the proxy url
-            strncat(proxy, ":", max_proxy - proxy_len - 1);
+            int32_t proxy_len = strlen(proxy);
+            strncat(proxy + proxy_len, ":", max_proxy - proxy_len - 1);
             proxy_len++;
             proxy[max_proxy - 1] = 0;
 
@@ -99,25 +101,27 @@ bool proxy_config_mac_get_proxy(char *protocol, char *proxy, int32_t max_proxy) 
     }
 
     CFRelease(proxy_settings);
-    return has_value;
+    return proxy;
 }
 
-bool proxy_config_mac_get_bypass_list(char *bypass_list, int32_t max_bypass_list) {
+const char *proxy_config_mac_get_bypass_list(void) {
     CFDictionaryRef proxy_settings = NULL;
     CFStringRef AutoConfigURL = NULL;
-    bool has_value = false;
+    const char *bypass_list = NULL;
 
     proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
-        return false;
+        return NULL;
 
     // Get proxy bypass list
     CFStringRef exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
     if (exceptions_list != NULL) {
-        CFStringGetCString(exceptions_list, bypass_list, max_bypass_list, kCFStringEncodingUTF8);
-        has_value = true;
+        const char *exceptions_list_p = CFStringGetCStringPtr(exceptions_list, kCFStringEncodingUTF8);
+        if (exceptions_list_p) {
+            bypass_list = strdup(exceptions_list_p);
+        }
     }
 
     CFRelease(proxy_settings);
-    return has_value;
+    return bypass_list;
 }

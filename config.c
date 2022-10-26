@@ -20,32 +20,32 @@ bool proxy_config_get_auto_discover(void) {
 #endif
 }
 
-bool proxy_config_get_auto_config_url(char *url, int32_t max_url) {
+const char *proxy_config_get_auto_config_url(void) {
 #if defined(__APPLE__)
-    return proxy_config_get_auto_config_url(url, max_url);
+    return proxy_config_get_auto_config_url();
 #elif defined(__linux__)
-    return proxy_config_get_auto_config_url(url, max_url);
+    return proxy_config_get_auto_config_url();
 #elif defined(_WIN32)
-    return proxy_config_get_auto_config_url(url, max_url);
+    return proxy_config_get_auto_config_url();
 #endif
 }
 
-bool proxy_config_get_proxy(char *protocol, char *proxy, int32_t max_proxy) {
+const char *proxy_config_get_proxy(const char *protocol) {
 #if defined(__APPLE__)
-    return proxy_config_mac_get_proxy(protocol, proxy, max_proxy);
+    return proxy_config_mac_get_proxy(protocol);
 #elif defined(__linux__)
-    return proxy_config_linux_get_proxy(protocol, proxy, max_proxy);
+    return proxy_config_linux_get_proxy(protocol);
 #elif defined(_WIN32)
-    return proxy_config_win_get_proxy(protocol, proxy, max_proxy);
+    return proxy_config_win_get_proxy(protocol);
 #endif
 }
 
-bool proxy_config_get_bypass_list(char *bypass_list, int32_t max_bypass_list) {
+const char *proxy_config_get_bypass_list(void) {
 #if defined(__APPLE__)
-    return proxy_config_mac_get_bypass_list(bypass_list, max_bypass_list);
+    return proxy_config_mac_get_bypass_list();
 #elif defined(__linux__)
-    return proxy_config_linux_get_bypass_list(bypass_list, max_bypass_list);
+    return proxy_config_linux_get_bypass_list();
 #elif defined(_WIN32)
-    return proxy_config_win_get_bypass_list(bypass_list, max_bypass_list);
+    return proxy_config_win_get_bypass_list();
 #endif
 }

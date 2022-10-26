@@ -5,9 +5,9 @@ extern "C" {
 #endif
 
 bool proxy_config_mac_get_auto_discover(void);
-bool proxy_config_mac_get_auto_config_url(char *url, int32_t max_url);
-bool proxy_config_mac_get_proxy(char *protocol, char *proxy, int32_t max_proxy);
-bool proxy_config_mac_get_bypass_list(char *bypass_list, int32_t max_bypass_list);
+const char *proxy_config_mac_get_auto_config_url(void);
+const char *proxy_config_mac_get_proxy(const char *protocol);
+const char *proxy_config_mac_get_bypass_list(void);
 
 #ifdef __cplusplus
 }
