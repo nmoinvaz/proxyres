@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <windows.h>
 #include <winhttp.h>
 
 #include "utils_win.h"
