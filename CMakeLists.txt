@@ -40,6 +40,7 @@ endif()
 
 add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
+target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(WIN32)
     target_link_libraries(proxyres PRIVATE winhttp)
@@ -49,3 +50,5 @@ elseif(UNIX)
     pkg_check_modules(deps REQUIRED IMPORTED_TARGET glib-2.0)
     target_link_libraries(proxyres PkgConfig::deps)
 endif()
+
+add_subdirectory(test)
