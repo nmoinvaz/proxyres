@@ -44,13 +44,13 @@ char *proxy_config_get_bypass_list(void) {
 
 bool proxy_config_init(void) {
 #if defined(__APPLE__)
-    if (proxy_config_mac_init()) {
+    if (proxy_config_mac_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
 #elif defined(__linux__)
-    if (proxy_config_gnome2_init()) {
+    if (proxy_config_gnome2_init())
         g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
 #elif defined(_WIN32)
-    if (proxy_config_win_init()) {
+    if (proxy_config_win_init())
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
 #endif
     if (!g_proxy_config.proxy_config_i)
