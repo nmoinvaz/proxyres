@@ -85,7 +85,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         if (proxy_url != NULL) {
             const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, proxy, max_proxy, kCFStringEncodingUTF8);
             if (proxy_url_p) {
-                max_proxy = strlen(proxy_url_p) + 32; // Allow enough room for port number
+                max_proxy = strlen(proxy_url_p) + 32;  // Allow enough room for port number
                 proxy = calloc(max_proxy, sizeof(char));
                 strncat(proxy, proxy_url_p, max_proxy);
             }
@@ -96,7 +96,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         if (proxy_port != NULL) {
             // Append the proxy port to the proxy url
             int32_t proxy_len = strlen(proxy);
-            strncat(proxy + proxy_len, ":", max_proxy - proxy_len - 1);
+            strncat(proxy, ":", max_proxy - proxy_len - 1);
             proxy_len++;
             proxy[max_proxy - 1] = 0;
 
