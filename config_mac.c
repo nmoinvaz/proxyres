@@ -3,6 +3,10 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CFNetwork/CFNetwork.h>
 
+#include "config.h"
+#include "config_i.h"
+#include "config_mac.h"
+
 static bool get_cf_dictionary_bool(CFDictionaryRef dictionary, CFStringRef key) {
     CFNumberRef item = NULL;
     int value = 0;
@@ -124,4 +128,22 @@ char *proxy_config_mac_get_bypass_list(void) {
 
     CFRelease(proxy_settings);
     return bypass_list;
+}
+
+bool proxy_config_mac_init(void) {
+    return true;
+}
+
+bool proxy_config_mac_uninit(void) {
+    return true;
+}
+
+proxy_config_i_s *proxy_config_mac_get_interface(void) {
+    static proxy_config_i_s proxy_config_mac_i = {proxy_config_mac_get_auto_discover,
+                                                  proxy_config_mac_get_auto_config_url,
+                                                  proxy_config_mac_get_proxy,
+                                                  proxy_config_mac_get_bypass_list,
+                                                  proxy_config_mac_init,
+                                                  proxy_config_mac_uninit};
+    return &proxy_config_mac_i;
 }

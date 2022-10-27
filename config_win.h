@@ -9,6 +9,11 @@ char *proxy_config_win_get_auto_config_url(void);
 char *proxy_config_win_get_proxy(const char *protocol);
 char *proxy_config_win_get_bypass_list(void);
 
+bool proxy_config_win_init(void);
+bool proxy_config_win_uninit(void);
+
+proxy_config_i_s *proxy_config_win_get_interface(void);
+
 #ifdef __cplusplus
 }
 #endif

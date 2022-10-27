@@ -4,6 +4,10 @@
 #include <windows.h>
 #include <winhttp.h>
 
+#include "config.h"
+#include "config_i.h"
+#include "config_win.h"
+
 #include "utils_win.h"
 
 static void free_winhttp_ie_proxy_config(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG *ie_config) {
@@ -66,4 +70,22 @@ char *proxy_config_win_get_bypass_list(void) {
 
     free_winhttp_ie_proxy_config(&ie_config);
     return list;
+}
+
+bool proxy_config_win_init(void) {
+    return true;
+}
+
+bool proxy_config_win_uninit(void) {
+    return true;
+}
+
+proxy_config_i_s *proxy_config_win_get_interface(void) {
+    static proxy_config_i_s proxy_config_win_i = {proxy_config_win_get_auto_discover,
+                                                  proxy_config_win_get_auto_config_url,
+                                                  proxy_config_win_get_proxy,
+                                                  proxy_config_win_get_bypass_list,
+                                                  proxy_config_win_init,
+                                                  proxy_config_win_uninit};
+    return &proxy_config_win_i;
 }
