@@ -22,11 +22,11 @@ bool proxy_config_get_auto_discover(void) {
 
 char *proxy_config_get_auto_config_url(void) {
 #if defined(__APPLE__)
-    return proxy_config_get_auto_config_url();
+    return proxy_config_mac_get_auto_config_url();
 #elif defined(__linux__)
-    return proxy_config_get_auto_config_url();
+    return proxy_config_linux_get_auto_config_url();
 #elif defined(_WIN32)
-    return proxy_config_get_auto_config_url();
+    return proxy_config_win_get_auto_config_url();
 #endif
 }
 
