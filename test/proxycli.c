@@ -12,10 +12,10 @@ static void print_proxy_config(void) {
 
     char *auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
-        printf("  Auto Config Url: %s\n", auto_config_url);
+        printf("  Auto config url: %s\n", auto_config_url);
         free(auto_config_url);
     } else {
-        printf("  Auto Config Url: not set\n");
+        printf("  Auto config url: not set\n");
     }
 
     char *proxy = proxy_config_get_proxy("http");
@@ -28,10 +28,10 @@ static void print_proxy_config(void) {
 
     char *bypass_list = proxy_config_get_bypass_list();
     if (bypass_list) {
-        printf("  Proxy Bypass: %s\n", bypass_list);
+        printf("  Proxy bypass: %s\n", bypass_list);
         free(bypass_list);
     } else {
-        printf("  Proxy Bypass: not set\n");
+        printf("  Proxy bypass: not set\n");
     }
 }
 #include <windows.h>
