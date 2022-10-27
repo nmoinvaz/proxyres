@@ -133,9 +133,11 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         }
 
         // Separate each proxy url with a semicolon
-        strncat(proxy_resolver->list, ";", max_list - list_len);
-        proxy_resolver->list[max_list - 1] = 0;
-        list_len++;
+        if (i != proxy_result.cEntries - 1) {
+            strncat(proxy_resolver->list, ";", max_list - list_len);
+            proxy_resolver->list[max_list - 1] = 0;
+            list_len++;
+        }
     }
 
 win8_complete:
