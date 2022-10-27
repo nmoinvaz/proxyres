@@ -28,7 +28,7 @@ bool proxy_config_mac_get_auto_discover(void) {
     return auto_discover;
 }
 
-const char *proxy_config_get_auto_config_url(void) {
+char *proxy_config_get_auto_config_url(void) {
     CFDictionaryRef proxy_settings = NULL;
     CFStringRef AutoConfigURL = NULL;
     const char *url = NULL;
@@ -53,7 +53,7 @@ const char *proxy_config_get_auto_config_url(void) {
     return url;
 }
 
-const char *proxy_config_mac_get_proxy(const char *protocol) {
+char *proxy_config_mac_get_proxy(const char *protocol) {
     CFDictionaryRef proxy_settings = NULL;
     CFStringRef AutoConfigURL = NULL;
     char *proxy = NULL;
@@ -104,7 +104,7 @@ const char *proxy_config_mac_get_proxy(const char *protocol) {
     return proxy;
 }
 
-const char *proxy_config_mac_get_bypass_list(void) {
+char *proxy_config_mac_get_bypass_list(void) {
     CFDictionaryRef proxy_settings = NULL;
     CFStringRef AutoConfigURL = NULL;
     const char *bypass_list = NULL;

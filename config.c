@@ -20,7 +20,7 @@ bool proxy_config_get_auto_discover(void) {
 #endif
 }
 
-const char *proxy_config_get_auto_config_url(void) {
+char *proxy_config_get_auto_config_url(void) {
 #if defined(__APPLE__)
     return proxy_config_get_auto_config_url();
 #elif defined(__linux__)
@@ -30,7 +30,7 @@ const char *proxy_config_get_auto_config_url(void) {
 #endif
 }
 
-const char *proxy_config_get_proxy(const char *protocol) {
+char *proxy_config_get_proxy(const char *protocol) {
 #if defined(__APPLE__)
     return proxy_config_mac_get_proxy(protocol);
 #elif defined(__linux__)
@@ -40,7 +40,7 @@ const char *proxy_config_get_proxy(const char *protocol) {
 #endif
 }
 
-const char *proxy_config_get_bypass_list(void) {
+char *proxy_config_get_bypass_list(void) {
 #if defined(__APPLE__)
     return proxy_config_mac_get_bypass_list();
 #elif defined(__linux__)

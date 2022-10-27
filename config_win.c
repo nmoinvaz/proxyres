@@ -25,7 +25,7 @@ bool proxy_config_win_get_auto_discover(void) {
     return auto_discover;
 }
 
-const char *proxy_config_win_get_auto_config_url(void) {
+char *proxy_config_win_get_auto_config_url(void) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     bool has_value = false;
 
@@ -37,7 +37,7 @@ const char *proxy_config_win_get_auto_config_url(void) {
     return auto_config_url;
 }
 
-const char *proxy_config_win_get_proxy(const char *protocol) {
+char *proxy_config_win_get_proxy(const char *protocol) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
 
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
@@ -48,7 +48,7 @@ const char *proxy_config_win_get_proxy(const char *protocol) {
     return list;
 }
 
-const char *proxy_config_win_get_bypass_list(void) {
+char *proxy_config_win_get_bypass_list(void) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
 
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
