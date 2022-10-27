@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
-#include "resolver.h"
+#include "proxyres.h"
 
 static void print_proxy_config(void) {
     printf("Proxy configuration\n");
@@ -54,17 +53,18 @@ int main(int argc, char *argv[]) {
     if (argc <= 1) {
         printf("config  - dumps all proxy configuration values\n");
         printf("resolve - resolves proxy for urls\n");
+        return 1;
     }
+
+    proxyres_init();
+
     const char *cmd = argv[1];
     if (strcmp(cmd, "config") == 0) {
         print_proxy_config();
     } else if (strcmp(cmd, "resolve") == 0) {
-        proxy_resolver_init();
-
         for (int arg = 2; arg < argc; arg++)
             resolve_proxy_for_url(argv[arg]);
-
-        proxy_resolver_uninit();
     }
+    proxyres_uninit();
     return 0;
 }
