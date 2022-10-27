@@ -4,10 +4,13 @@ project(proxyres)
 
 set(PROXYRES_HDRS
     config.h
+    config_i.h
+    proxyres.h
     resolver.h
     resolver_i.h)
 set(PROXYRES_SRCS
     config.c
+    proxyres.h
     resolver.c)
 if(WIN32)
     list(APPEND PROXYRES_HDRS
@@ -29,8 +32,12 @@ elseif(APPLE)
         resolver_mac.c)
 elseif(UNIX)
     list(APPEND PROXYRES_HDRS
+        config_gnome2.h
+        config_gnome3.h
         resolver_gnome3.h)
     list(APPEND PROXYRES_SRCS
+        config_gnome2.c
+        config_gnome3.c
         resolver_gnome3.c)
 endif()
 
