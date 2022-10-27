@@ -160,7 +160,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
-    char *proxy_wide = NULL;
+    char *proxy = NULL;
     bool is_ok = false;
     int32_t error = 0;
 
@@ -240,8 +240,8 @@ win8_done:
         goto win8_ok;
 
     // Copy proxy list to proxy resolver
-    proxy_wide = utf8strdup(proxy_info.lpszProxy);
-    size_t max_list = strlen(proxy_wide) + 1;
+    proxy = utf8strdup(proxy_info.lpszProxy);
+    size_t max_list = strlen(proxy) + 1;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
 
     if (proxy_resolver->list == NULL) {
@@ -250,7 +250,7 @@ win8_done:
         goto win8_error;
     }
 
-    strncat(proxy_resolver->list, proxy_wide, max_list);
+    strncat(proxy_resolver->list, proxy, max_list);
     proxy_resolver->list[max_list - 1] = 0;
 
 win8_error:

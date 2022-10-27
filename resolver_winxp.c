@@ -49,7 +49,7 @@ static bool proxy_resolver_winxp_get_proxies_for_url_thread(proxy_resolver_winxp
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
-    char *proxy_wide = NULL;
+    char *proxy = NULL;
     bool is_ok = false;
 
     proxy_resolver_winxp_reset(proxy_resolver);
@@ -105,17 +105,18 @@ winxp_done:
         goto winxp_ok;
 
     // Copy proxy list to proxy resolver
-    proxy_wide = utf8strdup(proxy_info.lpszProxy);
-    size_t max_list = strlen(proxy_wide) + 1;
+    proxy = utf8strdup(proxy_info.lpszProxy);
+    size_t max_list = strlen(proxy) + 8;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-
     if (proxy_resolver->list == NULL) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
         printf("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
         goto winxp_error;
     }
-
-    strncat(proxy_resolver->list, proxy_wide, max_list);
+    
+    strncat(proxy_resolver->list, "PROXY ", max_list);
+    proxy_resolver->list[max_list - 1] = 0;
+    strncat(proxy_resolver->list + 6, proxy, max_list - 7);
     proxy_resolver->list[max_list - 1] = 0;
 
 winxp_error:
@@ -128,7 +129,7 @@ winxp_ok:
         proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
                                  proxy_resolver->list);
 
-    free(proxy_wide);
+    free(proxy);
     free(url_wide);
 
     // Free proxy info
