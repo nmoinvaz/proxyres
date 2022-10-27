@@ -60,12 +60,12 @@ static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver)
 }
 
 static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolver) {
-    if (proxy_resolver->cancellable != NULL) {
+    if (proxy_resolver->cancellable) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
         proxy_resolver->cancellable = NULL;
     }
 
-    if (proxy_resolver->resolver != NULL) {
+    if (proxy_resolver->resolver) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->resolver);
         proxy_resolver->resolver = NULL;
     }
@@ -89,7 +89,7 @@ void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncRe
 
     // Allocate memory for proxy list
     proxy_resolver->list = calloc(max_list, sizeof(char));
-    if (proxy_resolver->list == NULL) {
+    if (!proxy_resolver->list) {
         proxy_resolver->error = ENOMEM;
         printf("Unable to allocate memory for list (%d)\n", proxy_resolver->error);
         goto gnome3_done;
@@ -98,7 +98,7 @@ void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncRe
     int32_t list_len = 0;
 
     for (int32_t i = 0; i < proxy_count; i++) {
-        if (proxies[i] == NULL)
+        if (!proxies[i])
             continue;
 
         if (strstr(proxies[i], "direct") == proxies[i]) {
@@ -139,7 +139,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     // Get reference to the default proxy resolver
     proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
-    if (proxy_resolver->resolver == NULL) {
+    if (proxy_resolver->resolver) {
         proxy_resolver->error = ENOMEM;
         printf("Unable to create resolver object (%d)\n", proxy_resolver->error);
         goto gnome3_error;
@@ -147,7 +147,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     // Create cancellable object in case we need to cancel operation
     proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
-    if (proxy_resolver->cancellable == NULL) {
+    if (proxy_resolver->cancellable) {
         proxy_resolver->error = ENOMEM;
         printf("Unable to create cancellable object (%d)\n", proxy_resolver->error);
         goto gnome3_error;
@@ -174,7 +174,7 @@ gnome3_error:
 
 bool proxy_resolver_gnome3_get_list(void *ctx, char **list) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (proxy_resolver == NULL || list == NULL)
+    if (!proxy_resolver || !list)
         return false;
     *list = proxy_resolver->list;
     return (*list != NULL);
@@ -182,7 +182,7 @@ bool proxy_resolver_gnome3_get_list(void *ctx, char **list) {
 
 bool proxy_resolver_gnome3_get_error(void *ctx, int32_t *error) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (proxy_resolver == NULL || error == NULL)
+    if (!proxy_resolver || !error)
         return false;
     *error = proxy_resolver->error;
     return true;
@@ -190,14 +190,14 @@ bool proxy_resolver_gnome3_get_error(void *ctx, int32_t *error) {
 
 bool proxy_resolver_gnome3_is_pending(void *ctx) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     return proxy_resolver->pending;
 }
 
 bool proxy_resolver_gnome3_cancel(void *ctx) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     if (proxy_resolver->cancellable)
         g_proxy_resolver_gnome3.g_cancellable_cancel(proxy_resolver->cancellable);
@@ -206,7 +206,7 @@ bool proxy_resolver_gnome3_cancel(void *ctx) {
 
 bool proxy_resolver_gnome3_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver->user_data = user_data;
     proxy_resolver->callback = callback;
@@ -215,7 +215,7 @@ bool proxy_resolver_gnome3_set_resolved_callback(void *ctx, void *user_data, pro
 
 bool proxy_resolver_gnome3_create(void **ctx) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)calloc(1, sizeof(proxy_resolver_gnome3_s));
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     *ctx = proxy_resolver;
     return true;
@@ -226,7 +226,7 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
     if (ctx == NULL)
         return false;
     proxy_resolver = (proxy_resolver_gnome3_s *)*ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver_cancel(ctx);
     free(proxy_resolver);
@@ -235,49 +235,53 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
 
 bool proxy_resolver_gnome3_init(void) {
     g_proxy_resolver_gnome3.gio_module = dlopen("libgio-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (g_proxy_resolver_gnome3.gio_module == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.gio_module)
+        goto gnome3_init_error;
 
     // GIO object functions
     g_proxy_resolver_gnome3.g_object_unref = dlsym(g_proxy_resolver_gnome3.gio_module, "g_object_unref");
-    if (g_proxy_resolver_gnome3.g_object_unref == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_object_unref)
+        goto gnome3_init_error;
 
     // GIO string vector functions
     g_proxy_resolver_gnome3.g_strv_length = dlsym(g_proxy_resolver_gnome3.gio_module, "g_strv_length");
-    if (g_proxy_resolver_gnome3.g_strv_length == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_strv_length)
+        goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_strfreev = dlsym(g_proxy_resolver_gnome3.gio_module, "g_strfreev");
-    if (g_proxy_resolver_gnome3.g_strfreev == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_strfreev)
+        goto gnome3_init_error;
 
     // GIO cancellable functions
     g_proxy_resolver_gnome3.g_cancellable_new = dlsym(g_proxy_resolver_gnome3.gio_module, "g_cancellable_new");
-    if (g_proxy_resolver_gnome3.g_cancellable_new == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_cancellable_new)
+        goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_cancellable_cancel = dlsym(g_proxy_resolver_gnome3.gio_module, "g_cancellable_cancel");
-    if (g_proxy_resolver_gnome3.g_cancellable_cancel == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_cancellable_cancel)
+        goto gnome3_init_error;
 
     // GProxyResolver functions
     g_proxy_resolver_gnome3.g_proxy_resolver_is_supported =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_is_supported");
-    if (g_proxy_resolver_gnome3.g_proxy_resolver_is_supported == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_proxy_resolver_is_supported)
+        goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_proxy_resolver_get_default =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_get_default");
-    if (g_proxy_resolver_gnome3.g_proxy_resolver_get_default == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_proxy_resolver_get_default)
+        goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup_async");
-    if (g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async)
+        goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup_finish");
-    if (g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish == NULL)
-        return false;
+    if (!g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish)
+        goto gnome3_init_error;
 
     return true;
+
+gnome3_init_error:
+    proxy_resolver_gnome3_unit();
+    return false;
 }
 
 bool proxy_resolver_gnome3_unit(void) {
@@ -297,6 +301,7 @@ proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
                                                          proxy_resolver_gnome3_set_resolved_callback,
                                                          proxy_resolver_gnome3_create,
                                                          proxy_resolver_gnome3_delete,
+                                                         proxy_resolver_gnome3_init,
                                                          proxy_resolver_gnome3_uninit};
     return &proxy_resolver_gnome3_i;
 }

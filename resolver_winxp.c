@@ -101,19 +101,19 @@ static bool proxy_resolver_winxp_get_proxies_for_url_thread(proxy_resolver_winxp
 winxp_done:
 
     // If proxy is null then no proxy is used
-    if (proxy_info.lpszProxy == NULL)
+    if (!proxy_info.lpszProxy)
         goto winxp_ok;
 
     // Copy proxy list to proxy resolver
     proxy = utf8strdup(proxy_info.lpszProxy);
     size_t max_list = strlen(proxy) + 8;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-    if (proxy_resolver->list == NULL) {
+    if (proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
         printf("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
         goto winxp_error;
     }
-    
+
     strncat(proxy_resolver->list, "PROXY ", max_list);
     proxy_resolver->list[max_list - 1] = 0;
     strncat(proxy_resolver->list + 6, proxy, max_list - 7);
@@ -151,7 +151,7 @@ winxp_ok:
 
 bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (proxy_resolver == NULL || url == NULL)
+    if (!proxy_resolver || !url)
         return false;
 
     // TODO: Add threading
@@ -160,7 +160,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
 bool proxy_resolver_winxp_get_list(void *ctx, char **list) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (proxy_resolver == NULL || list == NULL)
+    if (!proxy_resolver || !list)
         return false;
     *list = proxy_resolver->list;
     return (*list != NULL);
@@ -168,7 +168,7 @@ bool proxy_resolver_winxp_get_list(void *ctx, char **list) {
 
 bool proxy_resolver_winxp_get_error(void *ctx, int32_t *error) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (proxy_resolver == NULL || error == NULL)
+    if (!proxy_resolver || !error)
         return false;
     *error = proxy_resolver->error;
     return true;
@@ -176,14 +176,14 @@ bool proxy_resolver_winxp_get_error(void *ctx, int32_t *error) {
 
 bool proxy_resolver_winxp_is_pending(void *ctx) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     return proxy_resolver->pending;
 }
 
 bool proxy_resolver_winxp_cancel(void *ctx) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     if (proxy_resolver->resolver) {
         WinHttpCloseHandle(proxy_resolver->resolver);
@@ -194,7 +194,7 @@ bool proxy_resolver_winxp_cancel(void *ctx) {
 
 bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver->user_data = user_data;
     proxy_resolver->callback = callback;
@@ -203,7 +203,7 @@ bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, prox
 
 bool proxy_resolver_winxp_create(void **ctx) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)calloc(1, sizeof(proxy_resolver_winxp_s));
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     *ctx = proxy_resolver;
     return true;
@@ -214,7 +214,7 @@ bool proxy_resolver_winxp_delete(void **ctx) {
     if (ctx == NULL)
         return false;
     proxy_resolver = (proxy_resolver_winxp_s *)*ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver_winxp_cancel(ctx);
     free(proxy_resolver);
@@ -222,18 +222,16 @@ bool proxy_resolver_winxp_delete(void **ctx) {
 }
 
 bool proxy_resolver_winxp_init(void) {
-    memset(&g_proxy_resolver_winxp, 0, sizeof(g_proxy_resolver_winxp));
-
     g_proxy_resolver_winxp.session =
         WinHttpOpen(L"cproxyres", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 
-    if (g_proxy_resolver_winxp.session == NULL)
+    if (!g_proxy_resolver_winxp.session)
         return false;
     return true;
 }
 
 bool proxy_resolver_winxp_uninit(void) {
-    if (g_proxy_resolver_winxp.session != NULL)
+    if (g_proxy_resolver_winxp.session)
         WinHttpCloseHandle(g_proxy_resolver_winxp.session);
 
     memset(&g_proxy_resolver_winxp, 0, sizeof(g_proxy_resolver_winxp));
@@ -249,6 +247,7 @@ proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
                                                         proxy_resolver_winxp_set_resolved_callback,
                                                         proxy_resolver_winxp_create,
                                                         proxy_resolver_winxp_delete,
+                                                        proxy_resolver_winxp_init,
                                                         proxy_resolver_winxp_uninit};
     return &proxy_resolver_winxp_i;
 }

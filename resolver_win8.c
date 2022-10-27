@@ -78,7 +78,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     // Allocate string to construct the proxy list into
     int32_t max_list = proxy_result.cEntries * MAX_PROXY_URL;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-    if (proxy_resolver->list == NULL) {
+    if (proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
         printf("Unable to allocate memory for proxy list\n");
         goto win8_complete;
@@ -89,7 +89,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     // Construct proxy list string from WinHTTP proxy result
     for (uint32_t i = 0; i < proxy_result.cEntries; i++) {
         WINHTTP_PROXY_RESULT_ENTRY *entry = &proxy_result.pEntries[i];
-        if (entry == NULL)
+        if (!entry)
             continue;
 
         // Prefix each URL with the proxy type
@@ -164,7 +164,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     bool is_ok = false;
     int32_t error = 0;
 
-    if (proxy_resolver == NULL || url == NULL)
+    if (!proxy_resolver || !url)
         return false;
 
     proxy_resolver_win8_reset(proxy_resolver);
@@ -194,7 +194,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     g_proxy_resolver_win8.winhttp_create_proxy_resolver(g_proxy_resolver_win8.session, &proxy_resolver->resolver);
-    if (proxy_resolver->resolver == NULL) {
+    if (!proxy_resolver->resolver) {
         proxy_resolver->error = GetLastError();
         printf("Unable to create proxy resolver (%d)", proxy_resolver->error);
         goto win8_error;
@@ -236,7 +236,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
 win8_done:
     // If proxy is null then no proxy is used
-    if (proxy_info.lpszProxy == NULL)
+    if (!proxy_info.lpszProxy)
         goto win8_ok;
 
     // Copy proxy list to proxy resolver
@@ -244,7 +244,7 @@ win8_done:
     size_t max_list = strlen(proxy) + 1;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
 
-    if (proxy_resolver->list == NULL) {
+    if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
         printf("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
         goto win8_error;
@@ -286,7 +286,7 @@ win8_cleanup:
 
 bool proxy_resolver_win8_get_list(void *ctx, char **list) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (proxy_resolver == NULL || list == NULL)
+    if (!proxy_resolver || !list)
         return false;
     *list = proxy_resolver->list;
     return (*list != NULL);
@@ -294,7 +294,7 @@ bool proxy_resolver_win8_get_list(void *ctx, char **list) {
 
 bool proxy_resolver_win8_get_error(void *ctx, int32_t *error) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (proxy_resolver == NULL || error == NULL)
+    if (!proxy_resolver || !error)
         return false;
     *error = proxy_resolver->error;
     return true;
@@ -302,14 +302,14 @@ bool proxy_resolver_win8_get_error(void *ctx, int32_t *error) {
 
 bool proxy_resolver_win8_is_pending(void *ctx) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     return proxy_resolver->pending;
 }
 
 bool proxy_resolver_win8_cancel(void *ctx) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     if (proxy_resolver->resolver) {
         WinHttpCloseHandle(proxy_resolver->resolver);
@@ -320,7 +320,7 @@ bool proxy_resolver_win8_cancel(void *ctx) {
 
 bool proxy_resolver_win8_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver->user_data = user_data;
     proxy_resolver->callback = callback;
@@ -329,7 +329,7 @@ bool proxy_resolver_win8_set_resolved_callback(void *ctx, void *user_data, proxy
 
 bool proxy_resolver_win8_create(void **ctx) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)calloc(1, sizeof(proxy_resolver_win8_s));
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     *ctx = proxy_resolver;
     return true;
@@ -340,7 +340,7 @@ bool proxy_resolver_win8_delete(void **ctx) {
     if (ctx == NULL)
         return false;
     proxy_resolver = (proxy_resolver_win8_s *)*ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver_win8_cancel(ctx);
     free(proxy_resolver);
@@ -348,28 +348,35 @@ bool proxy_resolver_win8_delete(void **ctx) {
 }
 
 bool proxy_resolver_win8_init(void) {
-    memset(&g_proxy_resolver_win8, 0, sizeof(g_proxy_resolver_win8));
-
     // Dynamically load WinHTTP and CreateProxyResolver which is only avaialble on Windows 8 or higher
     g_proxy_resolver_win8.win_http = LoadLibraryExA("winhttp.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-    if (g_proxy_resolver_win8.win_http == NULL)
-        return false;
+    if (!g_proxy_resolver_win8.win_http)
+        goto win8_init_error;
 
     g_proxy_resolver_win8.winhttp_create_proxy_resolver =
         (LPWINHTTPCREATEPROXYRESOLVER)GetProcAddress(g_proxy_resolver_win8.win_http, "WinHttpCreateProxyResolver");
+    if (!g_proxy_resolver_win8.winhttp_create_proxy_resolver)
+        goto win8_init_error;
     g_proxy_resolver_win8.winhttp_get_proxy_for_url_ex =
         (LPWINHTTPGETPROXYFORURLEX)GetProcAddress(g_proxy_resolver_win8.win_http, "WinHttpGetProxyForUrlEx");
+    if (!g_proxy_resolver_win8.winhttp_get_proxy_for_url_ex)
+        goto win8_init_error;
     g_proxy_resolver_win8.winhttp_get_proxy_result =
         (LPWINHTTPGETPROXYRESULT)GetProcAddress(g_proxy_resolver_win8.win_http, "WinHttpGetProxyResult");
+    if (!g_proxy_resolver_win8.winhttp_get_proxy_result)
+        goto win8_init_error;
     g_proxy_resolver_win8.winhttp_free_proxy_result =
         (LPWINHTTPFREEPROXYRESULT)GetProcAddress(g_proxy_resolver_win8.win_http, "WinHttpFreeProxyResult");
+    if (!g_proxy_resolver_win8.winhttp_free_proxy_result)
+        goto win8_init_error;
 
-    if (g_proxy_resolver_win8.winhttp_create_proxy_resolver != NULL) {
+    if (g_proxy_resolver_win8.winhttp_create_proxy_resolver) {
         g_proxy_resolver_win8.session = WinHttpOpen(L"cproxyres", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
                                                     WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
     }
 
-    if (g_proxy_resolver_win8.session == NULL) {
+    if (!g_proxy_resolver_win8.session) {
+    win8_init_error:
         FreeLibrary(g_proxy_resolver_win8.win_http);
         g_proxy_resolver_win8.win_http = NULL;
         return false;
@@ -379,9 +386,9 @@ bool proxy_resolver_win8_init(void) {
 }
 
 bool proxy_resolver_win8_uninit(void) {
-    if (g_proxy_resolver_win8.session != NULL)
+    if (g_proxy_resolver_win8.session)
         WinHttpCloseHandle(g_proxy_resolver_win8.session);
-    if (g_proxy_resolver_win8.win_http != NULL)
+    if (g_proxy_resolver_win8.win_http)
         FreeLibrary(g_proxy_resolver_win8.win_http);
 
     memset(&g_proxy_resolver_win8, 0, sizeof(g_proxy_resolver_win8));
@@ -397,6 +404,7 @@ proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
                                                        proxy_resolver_win8_set_resolved_callback,
                                                        proxy_resolver_win8_create,
                                                        proxy_resolver_win8_delete,
+                                                       proxy_resolver_win8_init,
                                                        proxy_resolver_win8_uninit};
     return &proxy_resolver_win8_i;
 }

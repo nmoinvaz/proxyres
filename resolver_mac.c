@@ -43,10 +43,10 @@ static void proxy_resolver_mac_auto_config_result_callback(UnsafeMutableRawPoint
                                                            CFError error) {
     proxy_resolver_mac_s *proxy_resolver;
     CFStreamClientContext *context = (CFStreamClientContext *)client;
-    if (context == NULL)
+    if (!context)
         return;
     proxy_resolver = (proxy_resolver_mac_s *)context->info;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return;
 
     return;
@@ -58,7 +58,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     CFURLRef url_ref = NULL;
     bool is_ok = false;
 
-    if (proxy_resolver == NULL || url == NULL)
+    if (!proxy_resolver || !url)
         return false;
 
     proxy_resolver_mac_reset(proxy_resolver);
@@ -115,7 +115,7 @@ mac_cleanup:
 
 bool proxy_resolver_mac_get_list(void *ctx, char **list) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (proxy_resolver == NULL || list == NULL)
+    if (!proxy_resolver || !list)
         return false;
     *list = proxy_resolver->list;
     return (*list != NULL);
@@ -123,7 +123,7 @@ bool proxy_resolver_mac_get_list(void *ctx, char **list) {
 
 bool proxy_resolver_mac_get_error(void *ctx, int32_t *error) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (proxy_resolver == NULL || error == NULL)
+    if (!proxy_resolver || !error)
         return false;
     *error = proxy_resolver->error;
     return true;
@@ -131,14 +131,14 @@ bool proxy_resolver_mac_get_error(void *ctx, int32_t *error) {
 
 bool proxy_resolver_mac_is_pending(void *ctx) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     return proxy_resolver->pending;
 }
 
 bool proxy_resolver_mac_cancel(void *ctx) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     if (proxy_resolver->resolver) {
         WinHttpCloseHandle(proxy_resolver->resolver);
@@ -149,7 +149,7 @@ bool proxy_resolver_mac_cancel(void *ctx) {
 
 bool proxy_resolver_mac_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver->user_data = user_data;
     proxy_resolver->callback = callback;
@@ -158,7 +158,7 @@ bool proxy_resolver_mac_set_resolved_callback(void *ctx, void *user_data, proxy_
 
 bool proxy_resolver_mac_create(void **ctx) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)calloc(1, sizeof(proxy_resolver_mac_s));
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     *ctx = proxy_resolver;
     return true;
@@ -169,7 +169,7 @@ bool proxy_resolver_mac_delete(void **ctx) {
     if (ctx == NULL)
         return false;
     proxy_resolver = (proxy_resolver_mac_s *)*ctx;
-    if (proxy_resolver == NULL)
+    if (!proxy_resolver)
         return false;
     proxy_resolver_mac_cancel(ctx);
     free(proxy_resolver);
@@ -177,7 +177,6 @@ bool proxy_resolver_mac_delete(void **ctx) {
 }
 
 bool proxy_resolver_mac_init(void) {
-    memset(&g_proxy_resolver_mac, 0, sizeof(g_proxy_resolver_mac));
     return true;
 }
 
@@ -195,6 +194,7 @@ proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
                                                       proxy_resolver_mac_set_resolved_callback,
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,
+                                                      proxy_resolver_mac_init,
                                                       proxy_resolver_mac_uninit};
     return &proxy_resolver_mac_i;
 }
