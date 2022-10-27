@@ -10,7 +10,7 @@ set(PROXYRES_HDRS
     resolver_i.h)
 set(PROXYRES_SRCS
     config.c
-    proxyres.h
+    proxyres.c
     resolver.c)
 if(WIN32)
     list(APPEND PROXYRES_HDRS
