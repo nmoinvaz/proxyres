@@ -78,7 +78,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     // Allocate string to construct the proxy list into
     int32_t max_list = proxy_result.cEntries * MAX_PROXY_URL;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-    if (proxy_resolver->list) {
+    if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
         printf("Unable to allocate memory for proxy list\n");
         goto win8_complete;

@@ -108,7 +108,7 @@ winxp_done:
     proxy = utf8strdup(proxy_info.lpszProxy);
     size_t max_list = strlen(proxy) + 8;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-    if (proxy_resolver->list) {
+    if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
         printf("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
         goto winxp_error;
