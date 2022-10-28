@@ -1,8 +1,10 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <dlfcn.h>
 #include <glib.h>
+#include <gio/gio.h>
 #include <gconf/gconf.h>
 
 #include "config.h"
@@ -18,10 +20,13 @@ typedef struct g_proxy_config_gnome3_s {
     gint (*g_settings_get_int)(GSettings *settings, const gchar *key);
     gchar **(*g_settings_get_strv)(GSettings *settings, const gchar *key);
     gboolean (*g_settings_get_boolean)(GSettings *settings, const gchar *key);
+    // GConf default instance
+    GSettings *settings_default;
     // Glib module handle
     void *glib_module;
     // Glib memory functions
     void (*g_free)(gpointer Mem);
+    void (*g_strfreev)(gchar **str_array);
 } g_proxy_config_gnome3_s;
 
 g_proxy_config_gnome3_s g_proxy_config_gnome3;
@@ -31,7 +36,7 @@ bool proxy_config_gnome3_get_auto_discover(void) {
     bool auto_discover = false;
 
     mode = g_proxy_config_gnome3.g_settings_get_string(g_proxy_config_gnome3.settings_default, "mode");
-    if (mode != NULL) {
+    if (mode) {
         auto_discover = strcmp(mode, "auto");
         g_proxy_config_gnome3.g_free(mode);
     }
@@ -40,9 +45,10 @@ bool proxy_config_gnome3_get_auto_discover(void) {
 
 char *proxy_config_gnome3_get_auto_config_url(void) {
     char *auto_config_url = NULL;
+    char *url = NULL;
 
-    url = g_proxy_config_gnome3.g_settings_get_string(g_proxy_config_gnome3.settings_default, "autoconfig_url", NULL);
-    if (url != NULL) {
+    url = g_proxy_config_gnome3.g_settings_get_string(g_proxy_config_gnome3.settings_default, "autoconfig_url");
+    if (url) {
         if (*url != 0)
             auto_config_url = strdup(url);
         g_proxy_config_gnome3.g_free(url);
@@ -61,13 +67,13 @@ char *proxy_config_gnome3_get_proxy(const char *protocol) {
     snprintf(host_key, sizeof(host_key), "%s.host", protocol);
     snprintf(port_key, sizeof(port_key), "%s.port", protocol);
 
-    host = g_proxy_config_gnome3.g_settings_get_string(g_proxy_config_gnome3.gconf_default, host_key);
+    host = g_proxy_config_gnome3.g_settings_get_string(g_proxy_config_gnome3.settings_default, host_key);
     if (host) {
         // Allocate space for host:port
         int32_t max_proxy = strlen(host) + 32;
         proxy = (char *)malloc(max_proxy);
         if (proxy) {
-            port = g_proxy_config_gnome3.g_settings_get_int(g_proxy_config_gnome3.gconf_default, port_key);
+            port = g_proxy_config_gnome3.g_settings_get_int(g_proxy_config_gnome3.settings_default, port_key);
             if (port == 0)
                 snprintf(proxy, max_proxy, "%s", host);
             else
@@ -80,22 +86,21 @@ char *proxy_config_gnome3_get_proxy(const char *protocol) {
 }
 
 char *proxy_config_gnome3_get_bypass_list(void) {
-    GSList *hosts = NULL;
-    g_slist_for_each_bypass_s enum_bypass = {0};
+    char **hosts = NULL;
     char *bypass_list = NULL;
 
-    hosts = g_proxy_config_gnome3.g_settings_get_strv(g_proxy_config_gnome3.gconf_default, "ignore_hosts");
-    if (hosts != NULL) {
+    hosts = g_proxy_config_gnome3.g_settings_get_strv(g_proxy_config_gnome3.settings_default, "ignore-hosts");
+    if (hosts) {
         int32_t max_value = 0;
         // Enumerate the list to get the size of the bypass list
-        for (int32_t i = 0; hosts[i] != NULL; i++)
+        for (int32_t i = 0; hosts[i]; i++)
             max_value = strlen(hosts[i]) + 2;
 
         // Allocate space for the bypass list
         bypass_list = calloc(max_value, sizeof(char));
         if (bypass_list) {
             // Enumerate hosts and copy them to the bypass list
-            for (int32_t i = 0; hosts[i] != NULL; i++) {
+            for (int32_t i = 0; hosts[i]; i++) {
                 int32_t bypass_list_len = strlen(bypass_list);
                 snprintf(bypass_list + bypass_list_len, max_value - bypass_list_len, "%s,", hosts[i]);
             }
@@ -106,27 +111,30 @@ char *proxy_config_gnome3_get_bypass_list(void) {
                 bypass_list[bypass_list_len - 1] = 0;
         }
 
-        g_proxy_config_gnome3.g_slist_free_full(hosts, g_proxy_config_gnome3.g_free);
+        g_proxy_config_gnome3.g_strfreev(hosts);
     }
 
-    return Result;
+    return bypass_list;
 }
 
 bool proxy_config_gnome3_init(void) {
-    g_proxy_resolver_gnome3.gio_module = dlopen("libgio-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (!g_proxy_resolver_gnome3.gio_module)
+    g_proxy_config_gnome3.gio_module = dlopen("libgio-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if (!g_proxy_config_gnome3.gio_module)
         goto gnome3_init_error;
-    g_proxy_resolver_gnome3.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (!g_proxy_resolver_gnome3.glib_module)
-        goto gnome2_init_error;
+    g_proxy_config_gnome3.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if (!g_proxy_config_gnome3.glib_module)
+        goto gnome3_init_error;
 
     // Glib functions
-    g_proxy_resolver_gnome3.g_free = dlopen(g_proxy_config_gnome2.glib_module, "g_free");
-    if (!g_proxy_resolver_gnome3.g_free)
-        goto gnome2_init_error;
+    g_proxy_config_gnome3.g_free = dlsym(g_proxy_config_gnome3.glib_module, "g_free");
+    if (!g_proxy_config_gnome3.g_free)
+        goto gnome3_init_error;
+    g_proxy_config_gnome3.g_strfreev = dlsym(g_proxy_config_gnome3.glib_module, "g_strfreev");
+    if (!g_proxy_config_gnome3.g_strfreev)
+        goto gnome3_init_error;
 
     // Glib functions
-    g_proxy_config_gnome3.g_settings_new = dlopen(g_proxy_config_gnome3.gio_module, "g_settings_new");
+    g_proxy_config_gnome3.g_settings_new = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_new");
     if (!g_proxy_config_gnome3.g_settings_new)
         goto gnome3_init_error;
     g_proxy_config_gnome3.g_settings_get_string = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_string");
@@ -142,7 +150,7 @@ bool proxy_config_gnome3_init(void) {
     if (!g_proxy_config_gnome3.g_settings_get_boolean)
         goto gnome3_init_error;
 
-    g_proxy_config_gnome3.settings_default = g_proxy_config_gnome3.settings_new("org.gnome.system.proxy");
+    g_proxy_config_gnome3.settings_default = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     return true;
 
 gnome3_init_error:

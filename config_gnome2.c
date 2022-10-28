@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <dlfcn.h>
 #include <glib.h>
@@ -37,7 +38,7 @@ bool proxy_config_gnome2_get_auto_discover(void) {
 
     mode =
         g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default, "/system/proxy/mode", NULL);
-    if (mode != NULL) {
+    if (mode) {
         auto_discover = strcmp(mode, "auto");
         g_proxy_config_gnome2.g_free(mode);
     }
@@ -46,10 +47,11 @@ bool proxy_config_gnome2_get_auto_discover(void) {
 
 char *proxy_config_gnome2_get_auto_config_url(void) {
     char *auto_config_url = NULL;
+    char *url = NULL;
 
     url = g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default,
                                                         "/system/proxy/autoconfig_url", NULL);
-    if (url != NULL) {
+    if (url) {
         if (*url != 0)
             auto_config_url = strdup(url);
         g_proxy_config_gnome2.g_free(url);
@@ -101,11 +103,11 @@ typedef struct g_slist_for_each_bypass_s {
 
 static void gs_list_for_each_func(gpointer data, gpointer user_data) {
     g_slist_for_each_bypass_s *bypass = (g_slist_for_each_bypass_s *)user_data;
-    if (value == NULL) {
+    if (bypass->value == NULL) {
         bypass->max_value += strlen((char *)data) + 2;
     } else {
         int32_t bypass_len = strlen(bypass->value);
-        sprintf(bypass->value + bypass_len, bypass->max_value - bypass_len, "%s,", (char *)data);
+        snprintf(bypass->value + bypass_len, bypass->max_value - bypass_len, "%s,", (char *)data);
     }
 }
 
@@ -116,7 +118,7 @@ char *proxy_config_gnome2_get_bypass_list(void) {
 
     hosts = g_proxy_config_gnome2.gconf_engine_get_list(g_proxy_config_gnome2.gconf_default,
                                                         "/system/http_proxy/ignore_hosts", GCONF_VALUE_STRING, NULL);
-    if (hosts != NULL) {
+    if (hosts) {
         // Enumerate the list to get the size of the bypass list
         g_proxy_config_gnome2.g_slist_foreach(hosts, gs_list_for_each_func, &enum_bypass);
         enum_bypass.max_value++;
@@ -138,7 +140,7 @@ char *proxy_config_gnome2_get_bypass_list(void) {
         g_proxy_config_gnome2.g_slist_free_full(hosts, g_proxy_config_gnome2.g_free);
     }
 
-    return Result;
+    return bypass_list;
 }
 
 bool proxy_config_gnome2_init(void) {
@@ -150,7 +152,7 @@ bool proxy_config_gnome2_init(void) {
         goto gnome2_init_error;
 
     // Glib functions
-    g_proxy_config_gnome2.g_free = dlopen(g_proxy_config_gnome2.glib_module, "g_free");
+    g_proxy_config_gnome2.g_free = dlsym(g_proxy_config_gnome2.glib_module, "g_free");
     if (!g_proxy_config_gnome2.g_free)
         goto gnome2_init_error;
     g_proxy_config_gnome2.g_slist_free_full = dlsym(g_proxy_config_gnome2.glib_module, "g_slist_free_full");

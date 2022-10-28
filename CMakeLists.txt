@@ -60,11 +60,10 @@ elseif(UNIX)
     target_link_libraries(proxyres PkgConfig::deps)
 
     pkg_check_modules(GConf REQUIRED gconf-2.0)
-    # Don't set libraries since we are dynamically linking against them instead
+    # Don't set libraries since we are dynamically linking against them
     unset(GConf_LDFLAGS CACHE)
     unset(GConf_LIBRARIES CACHE)
     target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
-    target_link_libraries(proxyres GConf)
 endif()
 
 add_subdirectory(test)

@@ -17,9 +17,6 @@ typedef struct g_proxy_resolver_gnome3_s {
     void *gio_module;
     // GIO object functions
     void (*g_object_unref)(gpointer object);
-    // GIO string vector functions
-    gint (*g_strv_length)(gchar **StrArray);
-    void (*g_strfreev)(gchar **StrArray);
     // GIO cancellable functions
     GCancellable *(*g_cancellable_new)(void);
     void (*g_cancellable_cancel)(GCancellable *cancellable);
@@ -29,6 +26,12 @@ typedef struct g_proxy_resolver_gnome3_s {
     gchar **(*g_proxy_resolver_lookup_async)(GProxyResolver *resolver, const gchar *uri, GCancellable *cancellable,
                                              GAsyncReadyCallback callback, gpointer user_data);
     gchar **(*g_proxy_resolver_lookup_finish)(GProxyResolver *resolver, GAsyncResult *result, GError **error);
+    // Glib module handle
+    void *glib_module;
+    // Glib functions
+    gint (*g_strv_length)(gchar **StrArray);
+    void (*g_strfreev)(gchar **StrArray);
+    void (*g_error_free)(GError *error);
 } g_proxy_resolver_gnome3_s;
 
 g_proxy_resolver_gnome3_s g_proxy_resolver_gnome3;
@@ -73,14 +76,17 @@ static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolve
 
 void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)user_data;
+    GError *error = NULL;
     char *list = NULL;
     char **proxies;
 
     // Get list of proxies from resolver
     proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish(proxy_resolver->resolver, res, &error);
     if (proxies == NULL) {
-        proxy_resolver->error = ENOENT;
-        printf("Unable to get proxies for list (%d)\n", proxy_resolver->error);
+        proxy_resolver->error = error->code;
+        printf("Unable to get proxies for list (%d:%s)\n", proxy_resolver->error, error->message);
+        if (error)
+            g_proxy_resolver_gnome3.g_error_free(error);
         goto gnome3_done;
     }
 
@@ -237,17 +243,23 @@ bool proxy_resolver_gnome3_init(void) {
     g_proxy_resolver_gnome3.gio_module = dlopen("libgio-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_resolver_gnome3.gio_module)
         goto gnome3_init_error;
+    g_proxy_resolver_gnome3.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if (!g_proxy_resolver_gnome3.glib_module)
+        goto gnome3_init_error;
 
     // GIO object functions
     g_proxy_resolver_gnome3.g_object_unref = dlsym(g_proxy_resolver_gnome3.gio_module, "g_object_unref");
     if (!g_proxy_resolver_gnome3.g_object_unref)
         goto gnome3_init_error;
 
-    // GIO string vector functions
-    g_proxy_resolver_gnome3.g_strv_length = dlsym(g_proxy_resolver_gnome3.gio_module, "g_strv_length");
+    // Glib functions
+    g_proxy_resolver_gnome3.g_error_free = dlsym(g_proxy_resolver_gnome3.glib_module, "g_error_free");
+    if (!g_proxy_resolver_gnome3.g_error_free)
+        goto gnome3_init_error;
+    g_proxy_resolver_gnome3.g_strv_length = dlsym(g_proxy_resolver_gnome3.glib_module, "g_strv_length");
     if (!g_proxy_resolver_gnome3.g_strv_length)
         goto gnome3_init_error;
-    g_proxy_resolver_gnome3.g_strfreev = dlsym(g_proxy_resolver_gnome3.gio_module, "g_strfreev");
+    g_proxy_resolver_gnome3.g_strfreev = dlsym(g_proxy_resolver_gnome3.glib_module, "g_strfreev");
     if (!g_proxy_resolver_gnome3.g_strfreev)
         goto gnome3_init_error;
 
@@ -280,13 +292,15 @@ bool proxy_resolver_gnome3_init(void) {
     return true;
 
 gnome3_init_error:
-    proxy_resolver_gnome3_unit();
+    proxy_resolver_gnome3_uninit();
     return false;
 }
 
-bool proxy_resolver_gnome3_unit(void) {
+bool proxy_resolver_gnome3_uninit(void) {
     if (g_proxy_resolver_gnome3.gio_module)
         dlclose(g_proxy_resolver_gnome3.gio_module);
+    if (g_proxy_resolver_gnome3.glib_module)
+        dlclose(g_proxy_resolver_gnome3.glib_module);
 
     memset(&g_proxy_resolver_gnome3, 0, sizeof(g_proxy_resolver_gnome3));
     return true;
