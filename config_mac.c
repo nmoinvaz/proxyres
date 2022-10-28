@@ -47,7 +47,7 @@ char *proxy_config_get_auto_config_url(void) {
     if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoConfigEnable) == true) {
         // Get the auto-config url
         CFStringRef auto_config_url = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);
-        if (auto_config_url != NULL) {
+        if (auto_config_url) {
             const char *auto_config_url_p = CFStringGetCStringPtr(auto_config_url, kCFStringEncodingUTF8);
             if (auto_config_url_p) {
                 url = strdup(auto_config_url_p);
@@ -84,8 +84,8 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
     if (get_cf_dictionary_bool(proxy_settings, enable_index) == true) {
         // Get the proxy url associated with the protocol
         CFStringRef proxy_url = CFDictionaryGetValue(proxy_settings, url_index);
-        if (proxy_url != NULL) {
-            const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, proxy, kCFStringEncodingUTF8);
+        if (proxy_url) {
+            const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, kCFStringEncodingUTF8);
             if (proxy_url_p) {
                 max_proxy = strlen(proxy_url_p) + 32;  // Allow enough room for port number
                 proxy = calloc(max_proxy, sizeof(char));
@@ -95,7 +95,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
 
         // Get the proxy port associated with the protocol
         CFStringRef proxy_port = CFDictionaryGetValue(proxy_settings, port_index);
-        if (proxy_port != NULL) {
+        if (proxy_port) {
             // Append the proxy port to the proxy url
             int32_t proxy_len = strlen(proxy);
             strncat(proxy, ":", max_proxy - proxy_len - 1);
@@ -121,7 +121,7 @@ char *proxy_config_mac_get_bypass_list(void) {
 
     // Get proxy bypass list
     CFStringRef exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
-    if (exceptions_list != NULL) {
+    if (exceptions_list) {
         const char *exceptions_list_p = CFStringGetCStringPtr(exceptions_list, kCFStringEncodingUTF8);
         if (exceptions_list_p) {
             bypass_list = strdup(exceptions_list_p);

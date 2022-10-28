@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <Carbon/Carbon.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <CFNetwork/CFNetwork.h>
 
@@ -39,7 +40,7 @@ static void proxy_resolver_mac_reset(proxy_resolver_mac_s *proxy_resolver) {
     }
 }
 
-static void proxy_resolver_mac_auto_config_result_callback(UnsafeMutableRawPointer client, CFArray proxy_list,
+static void proxy_resolver_mac_auto_config_result_callback(CFUnsafeMutableRawPointer client, CFArray proxy_list,
                                                            CFError error) {
     proxy_resolver_mac_s *proxy_resolver;
     CFStreamClientContext *context = (CFStreamClientContext *)client;
@@ -71,7 +72,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         goto mac_done;
     }
 
-    target_url_ref = CFURLCreateWithBytes(NULL, url, strlen(url), kCFStringEncodingUTF8, NULL);
+    target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
     if (target_url_ref == NULL) {
         proxy_resolver->error = ENOMEM;
         printf("Unable to create target url reference (%d)\n", proxy_resolver->error);
@@ -80,7 +81,8 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
     auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url != NULL) {
-        url_ref = CFURLCreateWithBytes(NULL, auto_config_url, strlen(auto_config_url), kCFStringEncodingUTF8, NULL);
+        url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)auto_config_url, strlen(auto_config_url),
+                                       kCFStringEncodingUTF8, NULL);
 
         if (url_ref == NULL) {
             proxy_resolver->error = ENOMEM;
@@ -88,7 +90,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
             goto mac_error;
         }
 
-        CFStreamClientContext context = {0, proxyresolver, NULL, NULL, NULL};
+        CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
         CFNetworkExecuteProxyAutoConfigurationURL(url_ref, target_url_ref,
                                                   proxy_resolver_mac_auto_config_result_callback, &context);
     }
