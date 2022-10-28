@@ -130,6 +130,7 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
 }
 
 #ifndef HAVE_PTHREADS
+// g_proxy_resolver_lookup_async requires g_main_loop to be running in the main thread
 void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)user_data;
     GError *error = NULL;
@@ -178,7 +179,6 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     proxy_resolver->pending = true;
-    g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, url, proxy_resolver->cancellable, NULL);
 
     // Start async proxy resolution
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async(proxy_resolver->resolver, url, proxy_resolver->cancellable,
