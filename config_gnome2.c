@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <dlfcn.h>
 #include <glib.h>
@@ -38,7 +39,7 @@ bool proxy_config_gnome2_get_auto_discover(void) {
         g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default, "/system/proxy/mode", NULL);
     if (mode != NULL) {
         auto_discover = strcmp(mode, "auto");
-        g_proxy_config_gnome2.free(mode);
+        g_proxy_config_gnome2.g_free(mode);
     }
     return auto_discover;
 }
@@ -51,7 +52,7 @@ char *proxy_config_gnome2_get_auto_config_url(void) {
     if (url != NULL) {
         if (*url != 0)
             auto_config_url = strdup(url);
-        g_proxy_config_gnome2.free(url);
+        g_proxy_config_gnome2.g_free(url);
     }
 
     return auto_config_url;
@@ -88,7 +89,7 @@ char *proxy_config_gnome2_get_proxy(const char *protocol) {
                 snprintf(proxy, max_proxy, "%s:%u", host, port);
         }
 
-        g_proxy_config_gnome2.free(host);
+        g_proxy_config_gnome2.g_free(host);
     }
     return proxy;
 }
@@ -134,23 +135,23 @@ char *proxy_config_gnome2_get_bypass_list(void) {
                 bypass_list[bypass_list_len - 1] = 0;
         }
 
-        g_proxy_config_gnome2.g_slist_free_full(hosts, g_proxy_config_gnome2.free);
+        g_proxy_config_gnome2.g_slist_free_full(hosts, g_proxy_config_gnome2.g_free);
     }
 
     return Result;
 }
 
 bool proxy_config_gnome2_init(void) {
-    g_proxy_resolver_gnome2.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (!g_proxy_resolver_gnome2.glib_module)
+    g_proxy_config_gnome2.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if (!g_proxy_config_gnome2.glib_module)
         goto gnome2_init_error;
     g_proxy_config_gnome2.gconf_module = dlopen("libgconf-2.so.4", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_config_gnome2.gconf_module)
         goto gnome2_init_error;
 
     // Glib functions
-    g_proxy_config_gnome2.free = dlopen(g_proxy_config_gnome2.glib_module, "g_free");
-    if (!g_proxy_config_gnome2.free)
+    g_proxy_config_gnome2.g_free = dlopen(g_proxy_config_gnome2.glib_module, "g_free");
+    if (!g_proxy_config_gnome2.g_free)
         goto gnome2_init_error;
     g_proxy_config_gnome2.g_slist_free_full = dlsym(g_proxy_config_gnome2.glib_module, "g_slist_free_full");
     if (!g_proxy_config_gnome2.g_slist_free_full)

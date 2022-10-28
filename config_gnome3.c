@@ -33,7 +33,7 @@ bool proxy_config_gnome3_get_auto_discover(void) {
     mode = g_proxy_config_gnome3.g_settings_get_string(g_proxy_config_gnome3.settings_default, "mode");
     if (mode != NULL) {
         auto_discover = strcmp(mode, "auto");
-        g_proxy_config_gnome3.free(mode);
+        g_proxy_config_gnome3.g_free(mode);
     }
     return auto_discover;
 }
@@ -45,7 +45,7 @@ char *proxy_config_gnome3_get_auto_config_url(void) {
     if (url != NULL) {
         if (*url != 0)
             auto_config_url = strdup(url);
-        g_proxy_config_gnome3.free(url);
+        g_proxy_config_gnome3.g_free(url);
     }
 
     return auto_config_url;
@@ -74,7 +74,7 @@ char *proxy_config_gnome3_get_proxy(const char *protocol) {
                 snprintf(proxy, max_proxy, "%s:%u", host, port);
         }
 
-        g_proxy_config_gnome3.free(host);
+        g_proxy_config_gnome3.g_free(host);
     }
     return proxy;
 }
@@ -106,7 +106,7 @@ char *proxy_config_gnome3_get_bypass_list(void) {
                 bypass_list[bypass_list_len - 1] = 0;
         }
 
-        g_proxy_config_gnome3.g_slist_free_full(hosts, g_proxy_config_gnome3.free);
+        g_proxy_config_gnome3.g_slist_free_full(hosts, g_proxy_config_gnome3.g_free);
     }
 
     return Result;
@@ -121,8 +121,8 @@ bool proxy_config_gnome3_init(void) {
         goto gnome2_init_error;
 
     // Glib functions
-    g_proxy_resolver_gnome3.free = dlopen(g_proxy_config_gnome2.glib_module, "g_free");
-    if (!g_proxy_resolver_gnome3.free)
+    g_proxy_resolver_gnome3.g_free = dlopen(g_proxy_config_gnome2.glib_module, "g_free");
+    if (!g_proxy_resolver_gnome3.g_free)
         goto gnome2_init_error;
 
     // Glib functions
