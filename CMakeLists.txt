@@ -56,6 +56,12 @@ elseif(UNIX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(deps REQUIRED IMPORTED_TARGET glib-2.0)
     target_link_libraries(proxyres PkgConfig::deps)
+
+    pkg_check_modules(GConf REQUIRED gconf-2.0)
+    # Don't set libraries since we are dynamically linking against them instead
+    unset(GConf_LDFLAGS CACHE)
+    unset(GConf_LIBRARIES CACHE)
+    target_link_libraries(proxyres GConf)
 endif()
 
 add_subdirectory(test)
