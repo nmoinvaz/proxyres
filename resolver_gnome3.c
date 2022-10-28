@@ -26,7 +26,7 @@ typedef struct g_proxy_resolver_gnome3_s {
     gboolean (*g_proxy_resolver_is_supported)(GProxyResolver *resolver);
     GProxyResolver *(*g_proxy_resolver_get_default)(void);
     gchar **(*g_proxy_resolver_lookup)(GProxyResolver *resolver, const gchar *uri, GCancellable *cancellable,
-                                       GError *error);
+                                       GError **error);
     void (*g_proxy_resolver_lookup_async)(GProxyResolver *resolver, const gchar *uri, GCancellable *cancellable,
                                           GAsyncReadyCallback callback, gpointer user_data);
     gchar **(*g_proxy_resolver_lookup_finish)(GProxyResolver *resolver, GAsyncResult *result, GError **error);
@@ -220,6 +220,7 @@ static void *proxy_resolver_gnome3_get_proxies_for_url_thread(void *user_data) {
                                  proxy_resolver->list);
 
     proxy_resolver_gnome3_cleanup(proxy_resolver);
+    return 0;
 }
 
 bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
@@ -291,8 +292,13 @@ bool proxy_resolver_gnome3_cancel(void *ctx) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
     if (!proxy_resolver)
         return false;
+
+    // Cancel request to the proxy resolver
     if (proxy_resolver->cancellable)
         g_proxy_resolver_gnome3.g_cancellable_cancel(proxy_resolver->cancellable);
+
+    // Wait until the lookup thread is finished
+    pthread_join(proxy_resolver->thread, NULL);
     return true;
 }
 

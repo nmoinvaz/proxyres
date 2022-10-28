@@ -30,7 +30,7 @@ typedef struct g_proxy_config_gnome3_s {
 
 g_proxy_config_gnome3_s g_proxy_config_gnome3;
 
-static char *proxy_config_gnome3_is_mode(char *mode) {
+static bool proxy_config_gnome3_is_mode(char *mode) {
     GSettings *settings;
     char *compare_mode = NULL;
     bool equal = false;
