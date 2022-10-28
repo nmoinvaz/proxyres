@@ -141,14 +141,7 @@ bool proxy_resolver_mac_is_pending(void *ctx) {
 }
 
 bool proxy_resolver_mac_cancel(void *ctx) {
-    proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (!proxy_resolver)
-        return false;
-    if (proxy_resolver->resolver) {
-        WinHttpCloseHandle(proxy_resolver->resolver);
-        proxy_resolver->resolver = NULL;
-    }
-    return true;
+    return false;
 }
 
 bool proxy_resolver_mac_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
