@@ -4,6 +4,13 @@
 
 #include "proxyres.h"
 
+#ifdef _WIN32
+#  include <windows.h>
+#  define sleep Sleep
+#else
+#  include <unistd.h>
+#endif
+
 static void print_proxy_config(void) {
     printf("Proxy configuration\n");
 
@@ -34,14 +41,14 @@ static void print_proxy_config(void) {
         printf("  Proxy bypass: not set\n");
     }
 }
-#include <windows.h>
+
 static void resolve_proxy_for_url(const char *url) {
     void *proxy_resolver;
     proxy_resolver_create(&proxy_resolver);
     printf("Resolving proxy for %s\n", url);
     if (proxy_resolver_get_proxies_for_url(proxy_resolver, url)) {
         while (proxy_resolver_is_pending(proxy_resolver)) {
-            Sleep(10);
+            sleep(10);
         }
         char *list;
         printf("  Proxy: %s\n", proxy_resolver_get_list(proxy_resolver, &list) ? list : "DIRECT");
