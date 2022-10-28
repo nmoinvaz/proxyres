@@ -5,7 +5,8 @@
 #include "config_i.h"
 #if defined(__APPLE__)
 #  include "config_mac.h"
-#elif defined(__gnome3__)
+#elif defined(__linux__)
+#  include "config_gnome2.h"
 #  include "config_gnome3.h"
 #elif defined(_WIN32)
 #  include "config_win.h"
@@ -47,7 +48,9 @@ bool proxy_config_init(void) {
     if (proxy_config_mac_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
 #elif defined(__linux__)
-    if (proxy_config_gnome2_init())
+    if (proxy_config_gnome3_init())
+        g_proxy_config.proxy_config_i = proxy_config_gnome3_get_interface();
+    else if (proxy_config_gnome2_init())
         g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
 #elif defined(_WIN32)
     if (proxy_config_win_init())
