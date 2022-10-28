@@ -61,6 +61,7 @@ elseif(UNIX)
     # Don't set libraries since we are dynamically linking against them instead
     unset(GConf_LDFLAGS CACHE)
     unset(GConf_LIBRARIES CACHE)
+    target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
     target_link_libraries(proxyres GConf)
 endif()
 
