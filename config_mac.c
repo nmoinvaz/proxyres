@@ -85,7 +85,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         // Get the proxy url associated with the protocol
         CFStringRef proxy_url = CFDictionaryGetValue(proxy_settings, url_index);
         if (proxy_url != NULL) {
-            const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, proxy, max_proxy, kCFStringEncodingUTF8);
+            const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, proxy, kCFStringEncodingUTF8);
             if (proxy_url_p) {
                 max_proxy = strlen(proxy_url_p) + 32;  // Allow enough room for port number
                 proxy = calloc(max_proxy, sizeof(char));
