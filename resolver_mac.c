@@ -56,6 +56,8 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
+    char *proxy = NULL;
+    char *auto_config_url = NULL;
     bool is_ok = false;
 
     if (!proxy_resolver || !url)
@@ -63,7 +65,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_mac_reset(proxy_resolver);
 
-    const char *proxy = proxy_config_get_proxy(url);
+    proxy = proxy_config_get_proxy(url);
     if (proxy != NULL) {
         proxy_resolver->list = proxy;
         goto mac_done;
@@ -76,10 +78,9 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         goto mac_error;
     }
 
-    const char *auto_config_url = proxy_config_get_auto_config_url();
+    auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url != NULL) {
         url_ref = CFURLCreateWithBytes(NULL, auto_config_url, strlen(auto_config_url), kCFStringEncodingUTF8, NULL);
-        free(auto_config_url);
 
         if (url_ref == NULL) {
             proxy_resolver->error = ENOMEM;
@@ -105,6 +106,9 @@ mac_done:
                                  proxy_resolver->list);
 
 mac_cleanup:
+    free(proxy);
+    free(auto_config_url);
+
     if (url_ref)
         CFRelease(url_ref);
     if (target_url_ref)
