@@ -9,6 +9,9 @@ char *proxy_config_gnome3_get_auto_config_url(void);
 char *proxy_config_gnome3_get_proxy(const char *protocol);
 char *proxy_config_gnome3_get_bypass_list(void);
 
+bool proxy_config_gnome3_init(void);
+bool proxy_config_gnome3_uninit(void);
+
 proxy_config_i_s *proxy_config_gnome3_get_interface(void);
 
 #ifdef __cplusplus
