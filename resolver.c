@@ -87,7 +87,7 @@ bool proxy_resolver_create(void **ctx) {
 bool proxy_resolver_delete(void **ctx) {
     if (!g_proxy_resolver.proxy_resolver_i)
         return true;
-    return g_proxy_resolver.proxy_resolver_i->delete (ctx);
+    return g_proxy_resolver.proxy_resolver_i->delete(ctx);
 }
 
 bool proxy_resolver_init(void) {

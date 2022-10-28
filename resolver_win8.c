@@ -47,13 +47,16 @@ typedef struct proxy_resolver_win8_s {
     char *list;
 } proxy_resolver_win8_s;
 
+static void proxy_resolver_win8_cleanup(proxy_resolver_win8_s *proxy_resolver) {
+    free(proxy_resolver->list);
+    proxy_resolver->list = NULL;
+}
+
 static void proxy_resolver_win8_reset(proxy_resolver_win8_s *proxy_resolver) {
     proxy_resolver->pending = false;
     proxy_resolver->error = 0;
-    if (proxy_resolver->list) {
-        free(proxy_resolver->list);
-        proxy_resolver->list = NULL;
-    }
+
+    proxy_resolver_win8_cleanup(proxy_resolver);
 }
 
 void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DWORD_PTR Context, DWORD InternetStatus,
@@ -343,11 +346,13 @@ bool proxy_resolver_win8_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_win8_cancel(ctx);
+    proxy_resolver_win8_cleanup(proxy_resolver);
     free(proxy_resolver);
     return true;
 }
 
 bool proxy_resolver_win8_init(void) {
+    return false;
     // Dynamically load WinHTTP and CreateProxyResolver which is only avaialble on Windows 8 or higher
     g_proxy_resolver_win8.win_http = LoadLibraryExA("winhttp.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!g_proxy_resolver_win8.win_http)
@@ -377,7 +382,8 @@ bool proxy_resolver_win8_init(void) {
 
     if (!g_proxy_resolver_win8.session) {
     win8_init_error:
-        FreeLibrary(g_proxy_resolver_win8.win_http);
+        if (g_proxy_resolver_win8.win_http)
+            FreeLibrary(g_proxy_resolver_win8.win_http);
         g_proxy_resolver_win8.win_http = NULL;
         return false;
     }

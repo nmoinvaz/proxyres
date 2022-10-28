@@ -5,6 +5,7 @@
 
 #include <windows.h>
 #include <winhttp.h>
+#include <process.h>
 
 #include "resolver.h"
 #include "resolver_i.h"
@@ -33,18 +34,27 @@ typedef struct proxy_resolver_winxp_s {
     bool pending;
     // Proxy list
     char *list;
+    // Thread variables
+    uintptr_t thread;
+    char *url;
 } proxy_resolver_winxp_s;
+
+static void proxy_resolver_winxp_cleanup(proxy_resolver_winxp_s *proxy_resolver) {
+    free(proxy_resolver->list);
+    proxy_resolver->list = NULL;
+    free(proxy_resolver->url);
+    proxy_resolver->url = NULL;
+}
 
 static void proxy_resolver_winxp_reset(proxy_resolver_winxp_s *proxy_resolver) {
     proxy_resolver->pending = false;
     proxy_resolver->error = 0;
-    if (proxy_resolver->list) {
-        free(proxy_resolver->list);
-        proxy_resolver->list = NULL;
-    }
+
+    proxy_resolver_winxp_cleanup(proxy_resolver);
 }
 
-static bool proxy_resolver_winxp_get_proxies_for_url_thread(proxy_resolver_winxp_s *proxy_resolver, const char *url) {
+void proxy_resolver_winxp_get_proxies_for_url_thread(void *user_data) {
+    proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)user_data;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
@@ -79,7 +89,7 @@ static bool proxy_resolver_winxp_get_proxies_for_url_thread(proxy_resolver_winxp
     }
 
     // Convert url to wide char for WinHttpGetProxyForUrl
-    url_wide = wstrdup(url);
+    url_wide = wstrdup(proxy_resolver->url);
     if (!url_wide)
         goto winxp_error;
 
@@ -146,6 +156,8 @@ winxp_ok:
     if (ie_config.lpszAutoConfigUrl)
         GlobalFree(ie_config.lpszAutoConfigUrl);
 
+    proxy_resolver->thread = 0;
+
     return proxy_resolver->error == 0;
 }
 
@@ -153,9 +165,15 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     if (!proxy_resolver || !url)
         return false;
+    if (proxy_resolver->thread)
+        return false;
 
-    // TODO: Add threading
-    return proxy_resolver_winxp_get_proxies_for_url_thread(proxy_resolver, url);
+    free(proxy_resolver->url);
+
+    proxy_resolver->url = _strdup(url);
+    proxy_resolver->pending = true;
+    proxy_resolver->thread = _beginthread(proxy_resolver_winxp_get_proxies_for_url_thread, 0, proxy_resolver);
+    return true;
 }
 
 bool proxy_resolver_winxp_get_list(void *ctx, char **list) {
@@ -217,6 +235,7 @@ bool proxy_resolver_winxp_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_winxp_cancel(ctx);
+    proxy_resolver_winxp_cleanup(proxy_resolver);
     free(proxy_resolver);
     return true;
 }
