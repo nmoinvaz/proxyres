@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <dlfcn.h>
 #include <glib.h>
 #include <gconf/gconf.h>
 
