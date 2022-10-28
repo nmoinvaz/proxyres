@@ -21,7 +21,7 @@ typedef struct g_proxy_config_s {
 g_proxy_config_s g_proxy_config;
 
 bool proxy_config_get_auto_discover(void) {
-    if (!g_proxy_config.proxy_config_i)
+    if (g_proxy_config.proxy_config_i)
         return g_proxy_config.proxy_config_i->auto_discover();
     return false;
 }

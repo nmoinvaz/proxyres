@@ -64,6 +64,12 @@ elseif(UNIX)
     unset(GConf_LDFLAGS CACHE)
     unset(GConf_LIBRARIES CACHE)
     target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
+
+    find_package(Threads REQUIRED)
+    target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
+    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
+
+    target_link_libraries(proxyres dl)
 endif()
 
 add_subdirectory(test)
