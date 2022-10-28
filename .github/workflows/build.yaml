@@ -35,7 +35,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build
+        sudo apt install -y ninja-build gconf
 
     - name: Checkout repository
       uses: actions/checkout@v3
