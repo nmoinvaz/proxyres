@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <CFNetwork/CFNetwork.h>
