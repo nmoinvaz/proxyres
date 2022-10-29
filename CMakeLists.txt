@@ -63,6 +63,11 @@ if(WIN32)
 elseif(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     target_link_libraries(proxyres PRIVATE ${COREFOUNDATION_LIBRARY})
+
+    find_library(JAVASCRIPTCORE_LIBRARY JavaScriptCore)
+    target_link_libraries(proxyres PRIVATE ${JAVASCRIPTCORE_LIBRARY})
+
+    set_target_properties(proxyres PROPERTIES LINK_FLAGS -Wl,-F/Library/Frameworks)
 elseif(UNIX)
     find_package(PkgConfig REQUIRED)
 
