@@ -263,9 +263,6 @@ bool proxy_resolver_gnome3_cancel(void *ctx) {
     // Cancel request to the proxy resolver
     if (proxy_resolver->cancellable)
         g_proxy_resolver_gnome3.g_cancellable_cancel(proxy_resolver->cancellable);
-
-    // Wait until the lookup thread is finished
-    pthread_join(proxy_resolver->thread, NULL);
     return true;
 }
 
