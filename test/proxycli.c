@@ -6,15 +6,15 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <io.h>
 
 #include "proxyres.h"
 
 #ifdef _WIN32
-#  include <windows.h>
-#  define sleep Sleep
+#include <io.h>
+#include <windows.h>
+#define sleep Sleep
 #else
-#  include <unistd.h>
+#include <unistd.h>
 #endif
 
 static void print_proxy_config(void) {
