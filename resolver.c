@@ -103,7 +103,9 @@ bool proxy_resolver_init(void) {
     else if (proxy_resolver_winxp_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winxp_get_interface();
 #endif
-    return false;
+    if (!g_proxy_resolver.proxy_resolver_i)
+        return false;
+    return true;
 }
 
 bool proxy_resolver_uninit(void) {

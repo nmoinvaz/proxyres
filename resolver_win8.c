@@ -243,7 +243,9 @@ win8_done:
         goto win8_ok;
 
     // Copy proxy list to proxy resolver
-    proxy = utf8strdup(proxy_info.lpszProxy);
+    proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
+    if (!proxy)
+        goto win8_error;
     size_t max_list = strlen(proxy) + 1;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
 

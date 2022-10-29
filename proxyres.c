@@ -1,13 +1,24 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "config.h"
+#include "execute.h"
 #include "resolver.h"
 
 bool proxyres_init(void) {
-    return proxy_config_init() && proxy_resolver_init();
+    if (!proxy_config_init())
+        printf("Failed to initialization proxy config\n");
+    if (!proxy_resolver_init())
+        printf("Failed to initialization proxy resolver\n");
+    if (!proxy_execute_init())
+        printf("Failed to initialization proxy execute\n");
+    return true;
 }
 
 bool proxyres_uninit(void) {
-    return proxy_config_uninit() && proxy_resolver_uninit();
+    proxy_config_uninit();
+    proxy_resolver_uninit();
+    proxy_execute_uninit();
+    return true;
 }

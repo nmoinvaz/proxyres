@@ -1,9 +1,6 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #define MAX_PROXY_URL 256
 
 #ifdef __cplusplus

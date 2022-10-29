@@ -89,7 +89,7 @@ void proxy_resolver_winxp_get_proxies_for_url_thread(void *user_data) {
     }
 
     // Convert url to wide char for WinHttpGetProxyForUrl
-    url_wide = wstrdup(proxy_resolver->url);
+    url_wide = utf8_dup_to_wchar(proxy_resolver->url);
     if (!url_wide)
         goto winxp_error;
 
@@ -115,7 +115,9 @@ winxp_done:
         goto winxp_ok;
 
     // Copy proxy list to proxy resolver
-    proxy = utf8strdup(proxy_info.lpszProxy);
+    proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
+    if (!proxy)
+        goto winxp_error;
     size_t max_list = strlen(proxy) + 8;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
     if (!proxy_resolver->list) {
