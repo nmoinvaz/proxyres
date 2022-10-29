@@ -23,13 +23,13 @@ if(WIN32)
         execute_jsproxy.h
         resolver_win8.h
         resolver_winxp.h
-        utils_win.h)
+        util_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
         execute_jsproxy.c
         resolver_win8.c
         resolver_winxp.c
-        utils_win.c)
+        util_win.c)
 elseif(APPLE)
     list(APPEND PROXYRES_HDRS
         config_mac.h

@@ -8,6 +8,7 @@
 
 #include <JavaScriptCore/JavaScript.h>
 
+#include "execute.h"
 #include "execute_jscoregtk.h"
 
 #include "util.h"
@@ -271,11 +272,7 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
     // Get the result of the call to FindProxyForURL
     JSStringRef proxy_string = g_proxy_execute_jscoregtk.JSValueToStringCopy(global, proxy_value, NULL);
     if (proxy_string) {
-        int32_t max_proxies = g_proxy_execute_jscoregtk.JSStringGetMaximumUTF8CStringSize(proxy_string);
-
-        proxy_execute->list = (char *)calloc(max_proxies, sizeof(char));
-
-        g_proxy_execute_jscoregtk.JSStringGetUTF8CString(proxy_string, proxy_execute->list, max_proxies);
+        proxy_execute->list = js_string_dup_to_utf8(proxy_string);
         g_proxy_execute_jscoregtk.JSStringRelease(proxy_string);
     }
 
@@ -314,7 +311,10 @@ bool proxy_execute_jscoregtk_create(void **ctx) {
 }
 
 bool proxy_execute_jscoregtk_delete(void **ctx) {
-    proxy_execute_jscoregtk_s *proxy_execute = (proxy_execute_jscoregtk_s *)*ctx;
+    proxy_execute_jscoregtk_s *proxy_execute;
+    if (!ctx)
+        return false;
+    proxy_execute = (proxy_execute_jscoregtk_s *)*ctx;
     if (!proxy_execute)
         return false;
     free(proxy_execute->list);

@@ -10,7 +10,7 @@
 #include "resolver_i.h"
 #include "resolver_winxp.h"
 
-#include "utils_win.h"
+#include "util_win.h"
 
 // WinHTTP proxy resolver function definitions
 typedef DWORD(WINAPI *LPWINHTTPGETPROXYFORURLEX)(HINTERNET Resolver, PCWSTR Url,
@@ -114,7 +114,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
             proxy_resolver->list[max_list - 1] = 0;
 
             // Convert wide char proxy url to UTF-8
-            char *proxy_url = utf8strdup(entry->pwszProxy);
+            char *proxy_url = wchar_dup_to_utf8(entry->pwszProxy);
             if (proxy_url) {
                 strncat(proxy_resolver->list, proxy_url, max_list - list_len);
                 proxy_resolver->list[max_list - 1] = 0;
@@ -213,7 +213,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     // Convert url to wide char for WinHttpGetProxyForUrlEx
-    url_wide = wstrdup(url);
+    url_wide = utf8_dup_to_wchar(url);
     if (!url_wide)
         goto win8_error;
 

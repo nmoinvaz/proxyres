@@ -11,7 +11,7 @@
 #include "resolver_i.h"
 #include "resolver_winxp.h"
 
-#include "utils_win.h"
+#include "util_win.h"
 
 typedef struct g_proxy_resolver_winxp_s {
     // WinHTTP module handle

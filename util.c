@@ -5,7 +5,6 @@
 #include <string.h>
 
 #ifdef _WIN32
-#include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -18,7 +17,7 @@
 #include <limits.h>
 
 char *dns_resolve(const char *host, int32_t *error) {
-    char name[HOST_NAME_MAX + 1] = {0};
+    char name[256] = {0};
     struct addrinfo hints = {0};
     struct addrinfo *address_info;
     struct addrinfo *next_address;
@@ -66,7 +65,7 @@ char *dns_resolve(const char *host, int32_t *error) {
     if (ip_addr == NULL)
         goto my_ip_address_err;
 
-    err = getnameinfo(next_address->ai_addr, next_address->ai_addrlen, ip_addr, INET6_ADDRSTRLEN, NULL, 0,
+    err = getnameinfo(next_address->ai_addr, (socklen_t)next_address->ai_addrlen, ip_addr, INET6_ADDRSTRLEN, NULL, 0,
                       NI_NUMERICHOST);
 
     if (err != 0)

@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <io.h>
 
 #include "proxyres.h"
 
@@ -66,7 +70,7 @@ static void execute_pac_script(const char *script_path, const char *url) {
     printf("Executing PAC script %s for %s\n", script_path, url);
 
     // Open PAC script file
-    int fd = open(script_path, O_RDONLY);
+    int fd = open(script_path, O_RDONLY | O_RAW);
     if (fd < 0) {
         printf("Failed to open PAC script file %s\n", script_path);
         return;

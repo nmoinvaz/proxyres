@@ -8,7 +8,7 @@
 #include "config_i.h"
 #include "config_win.h"
 
-#include "utils_win.h"
+#include "util_win.h"
 
 static void free_winhttp_ie_proxy_config(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG *ie_config) {
     if (ie_config->lpszAutoConfigUrl)
@@ -38,7 +38,7 @@ char *proxy_config_win_get_auto_config_url(void) {
         return NULL;
 
     if (ie_config.lpszAutoConfigUrl)
-        auto_config_url = utf8strdup(ie_config.lpszAutoConfigUrl);
+        auto_config_url = wchar_dup_to_utf8(ie_config.lpszAutoConfigUrl);
 
     free_winhttp_ie_proxy_config(&ie_config);
     return auto_config_url;
@@ -52,7 +52,7 @@ char *proxy_config_win_get_proxy(const char *protocol) {
         return NULL;
 
     if (ie_config.lpszProxy)
-        list = utf8strdup(ie_config.lpszProxy);
+        list = wchar_dup_to_utf8(ie_config.lpszProxy);
 
     free_winhttp_ie_proxy_config(&ie_config);
     return list;
@@ -66,7 +66,7 @@ char *proxy_config_win_get_bypass_list(void) {
         return NULL;
 
     if (ie_config.lpszProxyBypass)
-        list = utf8strdup(ie_config.lpszProxyBypass);
+        list = wchar_dup_to_utf8(ie_config.lpszProxyBypass);
 
     free_winhttp_ie_proxy_config(&ie_config);
     return list;
