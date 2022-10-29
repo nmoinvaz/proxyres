@@ -18,11 +18,9 @@ static bool get_cf_dictionary_bool(CFDictionaryRef dictionary, CFStringRef key) 
 }
 
 bool proxy_config_mac_get_auto_discover(void) {
-    CFDictionaryRef proxy_settings = NULL;
-    CFStringRef AutoConfigURL = NULL;
     bool auto_discover = false;
 
-    proxy_settings = CFNetworkCopySystemProxySettings();
+    CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
         return false;
 
@@ -35,11 +33,9 @@ bool proxy_config_mac_get_auto_discover(void) {
 }
 
 char *proxy_config_get_auto_config_url(void) {
-    CFDictionaryRef proxy_settings = NULL;
-    CFStringRef AutoConfigURL = NULL;
     char *url = NULL;
 
-    proxy_settings = CFNetworkCopySystemProxySettings();
+    CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
         return NULL;
 
@@ -60,8 +56,6 @@ char *proxy_config_get_auto_config_url(void) {
 }
 
 char *proxy_config_mac_get_proxy(const char *protocol) {
-    CFDictionaryRef proxy_settings = NULL;
-    CFStringRef AutoConfigURL = NULL;
     char *proxy = NULL;
     int32_t max_proxy = 0;
 
@@ -77,7 +71,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         port_index = kCFNetworkProxiesHTTPSPort;
     }
 
-    proxy_settings = CFNetworkCopySystemProxySettings();
+    CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
         return NULL;
 
@@ -111,11 +105,9 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
 }
 
 char *proxy_config_mac_get_bypass_list(void) {
-    CFDictionaryRef proxy_settings = NULL;
-    CFStringRef AutoConfigURL = NULL;
     char *bypass_list = NULL;
 
-    proxy_settings = CFNetworkCopySystemProxySettings();
+    CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
         return NULL;
 
