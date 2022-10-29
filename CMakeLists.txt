@@ -20,11 +20,13 @@ set(PROXYRES_SRCS
 if(WIN32)
     list(APPEND PROXYRES_HDRS
         config_win.h
+        execute_jsproxy.h
         resolver_win8.h
         resolver_winxp.h
         utils_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
+        execute_jsproxy.c
         resolver_win8.c
         resolver_winxp.c
         utils_win.c)
@@ -57,7 +59,7 @@ set_property(TARGET proxyres PROPERTY C_STANDARD 99)
 target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(WIN32)
-    target_link_libraries(proxyres PRIVATE winhttp)
+    target_link_libraries(proxyres PRIVATE winhttp ws2_32)
 elseif(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     target_link_libraries(proxyres PRIVATE ${COREFOUNDATION_LIBRARY})
