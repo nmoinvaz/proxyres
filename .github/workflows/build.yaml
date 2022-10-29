@@ -35,7 +35,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build libgconf2-dev
+        sudo apt install -y ninja-build libgconf2-dev libjavascriptcoregtk-4.0-dev
 
     - name: Checkout repository
       uses: actions/checkout@v3
