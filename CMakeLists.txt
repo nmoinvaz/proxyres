@@ -51,7 +51,7 @@ elseif(UNIX)
 endif()
 
 if(WIN32)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1)
 endif()
 
 add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
