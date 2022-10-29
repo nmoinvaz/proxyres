@@ -6,7 +6,7 @@ Cross-platform support for Linux, macOS, & Windows.
 
 **proxy_config**
 
-Read and write the operating system's proxy configuration information.
+Read the user's proxy configuration.
 
 **proxy_resolve**
 
@@ -41,5 +41,4 @@ cmake --build build
 * Support for macOS
 * Unit tests with Google Test
 * Test integration
-* Cross-platform Proxy Configuration reading/writing
 * Resolver from scratch with WPAD and DHCP
