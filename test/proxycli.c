@@ -55,8 +55,12 @@ static void resolve_proxy_for_url(const char *url) {
 
     proxy_resolver_create(&proxy_resolver);
     if (proxy_resolver_get_proxies_for_url(proxy_resolver, url)) {
-        while (proxy_resolver_is_pending(proxy_resolver)) {
-            sleep(10);
+        // Check if proxy resolver is blocking
+        if (!proxy_resolver_is_blocking()) {
+            // Wait for proxy to resolve asynchronously
+            while (proxy_resolver_is_pending(proxy_resolver)) {
+                sleep(10);
+            }
         }
         char *list;
         printf("  Proxy: %s\n", proxy_resolver_get_list(proxy_resolver, &list) ? list : "DIRECT");

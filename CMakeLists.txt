@@ -86,9 +86,9 @@ elseif(UNIX)
     unset(JSCoreGTK_LIBRARIES CACHE)
     target_include_directories(proxyres PRIVATE ${JSCoreGTK_INCLUDE_DIRS})
 
-    find_package(Threads REQUIRED)
-    target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
-    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
+    #find_package(Threads REQUIRED)
+    #target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
+    #target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
     target_link_libraries(proxyres dl)
 endif()

@@ -90,6 +90,12 @@ bool proxy_resolver_delete(void **ctx) {
     return g_proxy_resolver.proxy_resolver_i->delete(ctx);
 }
 
+bool proxy_resolver_is_blocking(void) {
+    if (!g_proxy_resolver.proxy_resolver_i)
+        return false;
+    return g_proxy_resolver.proxy_resolver_i->is_blocking();
+}
+
 bool proxy_resolver_init(void) {
 #if defined(__APPLE__)
     if (proxy_resolver_mac_init())

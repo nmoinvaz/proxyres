@@ -142,6 +142,10 @@ bool proxy_resolver_mac_is_pending(void *ctx) {
     return proxy_resolver->pending;
 }
 
+bool proxy_resolver_mac_is_blocking(void *ctx) {
+    return true;
+}
+
 bool proxy_resolver_mac_cancel(void *ctx) {
     return false;
 }

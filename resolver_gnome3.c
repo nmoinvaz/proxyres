@@ -7,9 +7,6 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <gio/gio.h>
-#ifdef HAVE_PTHREADS
-#include <pthread.h>
-#endif
 
 #include "resolver.h"
 #include "resolver_i.h"
@@ -54,19 +51,40 @@ typedef struct proxy_resolver_gnome3_s {
     proxy_resolver_resolved_cb callback;
     // Proxy list
     char *list;
-#ifdef HAVE_PTHREADS
-    // Thread variables
-    pthread_t thread;
-    char *url;
-#endif
 } proxy_resolver_gnome3_s;
 
 static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolver) {
     free(proxy_resolver->list);
     proxy_resolver->list = NULL;
-    free(proxy_resolver->url);
-    proxy_resolver->url = NULL;
+}
 
+static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver) {
+    proxy_resolver->pending = false;
+    proxy_resolver->error = 0;
+
+    proxy_resolver_gnome3_cleanup(proxy_resolver);
+}
+
+static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
+    // Get reference to the default proxy resolver
+    proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
+    if (!proxy_resolver->resolver) {
+        proxy_resolver->error = ENOMEM;
+        printf("Unable to create resolver object (%d)\n", proxy_resolver->error);
+        return false;
+    }
+
+    // Create cancellable object in case we need to cancel operation
+    proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
+    if (!proxy_resolver->cancellable) {
+        proxy_resolver->error = ENOMEM;
+        printf("Unable to create cancellable object (%d)\n", proxy_resolver->error);
+        return false;
+    }
+    return true;
+}
+
+static void proxy_resolver_gnome3_delete_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
     if (proxy_resolver->cancellable) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
         proxy_resolver->cancellable = NULL;
@@ -76,13 +94,6 @@ static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolve
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->resolver);
         proxy_resolver->resolver = NULL;
     }
-}
-
-static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver) {
-    proxy_resolver->pending = false;
-    proxy_resolver->error = 0;
-
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
 }
 
 static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_resolver, char **proxies, GError *error) {
@@ -129,32 +140,29 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
     return true;
 }
 
-#ifndef HAVE_PTHREADS
+#ifdef USE_ASYNC_LOOKUP
 // g_proxy_resolver_lookup_async requires g_main_loop to be running in the main thread
 void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)user_data;
     GError *error = NULL;
-    char *list = NULL;
-    char **proxies;
 
     // Get list of proxies from resolver
-    proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish(proxy_resolver->resolver, res, &error);
+    char **proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish(proxy_resolver->resolver, res, &error);
     proxy_resolver_gnome3_read_proxies(proxy_resolver, proxies);
 
-gnome3_done:
     proxy_resolver->pending = false;
-
-    // Trigger resolve callback
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
 
     if (error)
         g_proxy_resolver_gnome3.g_error_free(error);
     if (proxies)
         g_proxy_resolver_gnome3.g_strfreev(proxies);
 
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
+    // Trigger resolve callback
+    if (proxy_resolver->callback)
+        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
+                                 proxy_resolver->list);
+
+    proxy_resolver_gnome3_delete_resolver(proxy_resolver);
 }
 
 bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
@@ -162,21 +170,8 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_gnome3_reset(proxy_resolver);
 
-    // Get reference to the default proxy resolver
-    proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
-    if (!proxy_resolver->resolver) {
-        proxy_resolver->error = ENOMEM;
-        printf("Unable to create resolver object (%d)\n", proxy_resolver->error);
+    if (!proxy_resolver_gnome3_create_resolver(proxy_resolver))
         goto gnome3_error;
-    }
-
-    // Create cancellable object in case we need to cancel operation
-    proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
-    if (!proxy_resolver->cancellable) {
-        proxy_resolver->error = ENOMEM;
-        printf("Unable to create cancellable object (%d)\n", proxy_resolver->error);
-        goto gnome3_error;
-    }
 
     proxy_resolver->pending = true;
 
@@ -193,18 +188,31 @@ gnome3_error:
         proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
                                  proxy_resolver->list);
 
+    proxy_resolver_gnome3_delete_resolver(proxy_resolver);
     proxy_resolver_gnome3_cleanup(proxy_resolver);
     return false;
 }
 #else
-static void *proxy_resolver_gnome3_get_proxies_for_url_thread(void *user_data) {
-    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)user_data;
+bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
+    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
     GError *error = NULL;
     char **proxies = NULL;
 
-    proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, proxy_resolver->url,
+    proxy_resolver_gnome3_reset(proxy_resolver);
+
+    if (!proxy_resolver_gnome3_create_resolver(proxy_resolver))
+        goto gnome3_error;
+
+    // Get list of proxies from resolver
+    proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, url,
                                                               proxy_resolver->cancellable, &error);
     proxy_resolver_gnome3_get_proxies(proxy_resolver, proxies, error);
+    goto gnome3_done;
+
+gnome3_error:
+    proxy_resolver_gnome3_cleanup(proxy_resolver);
+
+gnome3_done:
 
     if (error)
         g_proxy_resolver_gnome3.g_error_free(error);
@@ -212,56 +220,15 @@ static void *proxy_resolver_gnome3_get_proxies_for_url_thread(void *user_data) {
         g_proxy_resolver_gnome3.g_strfreev(proxies);
 
     proxy_resolver->pending = false;
-    proxy_resolver->thread = 0;
 
     // Trigger resolve callback
     if (proxy_resolver->callback)
         proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
                                  proxy_resolver->list);
 
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
-    return 0;
-}
+    proxy_resolver_gnome3_delete_resolver(proxy_resolver);
 
-bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
-    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-
-    if (proxy_resolver->thread)
-        return false;
-
-    proxy_resolver_gnome3_reset(proxy_resolver);
-
-    // Get reference to the default proxy resolver
-    proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
-    if (!proxy_resolver->resolver) {
-        proxy_resolver->error = ENOMEM;
-        printf("Unable to create resolver object (%d)\n", proxy_resolver->error);
-        goto gnome3_error;
-    }
-
-    // Create cancellable object in case we need to cancel operation
-    proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
-    if (!proxy_resolver->cancellable) {
-        proxy_resolver->error = ENOMEM;
-        printf("Unable to create cancellable object (%d)\n", proxy_resolver->error);
-        goto gnome3_error;
-    }
-
-    proxy_resolver->pending = true;
-    proxy_resolver->url = strdup(url);
-
-    pthread_create(&proxy_resolver->thread, NULL, proxy_resolver_gnome3_get_proxies_for_url_thread, proxy_resolver);
-    return true;
-
-gnome3_error:
-
-    // Trigger resolve callback
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
-    return false;
+    return proxy_resolver->error == 0;
 }
 #endif
 
@@ -330,6 +297,14 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
     proxy_resolver_gnome3_cleanup(proxy_resolver);
     free(proxy_resolver);
     return true;
+}
+
+bool proxy_resolver_gnome3_is_blocking(void) {
+#ifdef USE_ASYNC_LOOKUP
+    return false;
+#else
+    return true;
+#endif
 }
 
 bool proxy_resolver_gnome3_init(void) {

@@ -21,6 +21,8 @@ bool proxy_resolver_set_resolved_callback(void *ctx, void *user_data, proxy_reso
 bool proxy_resolver_create(void **ctx);
 bool proxy_resolver_delete(void **ctx);
 
+bool proxy_resolver_is_blocking(void);
+
 bool proxy_resolver_init(void);
 bool proxy_resolver_uninit(void);
 
