@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #include "config.h"
 #include "config_i.h"
@@ -63,8 +64,10 @@ bool proxy_config_init(void) {
     if (proxy_config_win_init())
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
 #endif
-    if (!g_proxy_config.proxy_config_i)
+    if (!g_proxy_config.proxy_config_i) {
+        printf("No config interface found\n");
         return false;
+    }
     return true;
 }
 

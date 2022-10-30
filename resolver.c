@@ -109,8 +109,10 @@ bool proxy_resolver_init(void) {
     else if (proxy_resolver_winxp_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winxp_get_interface();
 #endif
-    if (!g_proxy_resolver.proxy_resolver_i)
+    if (!g_proxy_resolver.proxy_resolver_i) {
+        printf("No proxy resolver available\n");
         return false;
+    }
     return true;
 }
 
