@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "config_i.h"
+#include "config_env.h"
 #if defined(__APPLE__)
 #  include "config_mac.h"
 #elif defined(__linux__)
@@ -58,7 +59,7 @@ bool proxy_config_init(void) {
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
 #endif
     if (!g_proxy_config.proxy_config_i)
-        return false;
+        g_proxy_config.proxy_config_i = proxy_config_env_get_interface();
     return true;
 }
 
