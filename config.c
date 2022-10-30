@@ -57,12 +57,14 @@ bool proxy_config_init(void) {
         g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
     else if (proxy_config_kde_init())
         g_proxy_config.proxy_config_i = proxy_config_kde_get_interface();
+    else if (!g_proxy_config.proxy_config_i)
+        g_proxy_config.proxy_config_i = proxy_config_env_get_interface();
 #elif defined(_WIN32)
     if (proxy_config_win_init())
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
 #endif
     if (!g_proxy_config.proxy_config_i)
-        g_proxy_config.proxy_config_i = proxy_config_env_get_interface();
+        return false;
     return true;
 }
 
