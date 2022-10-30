@@ -21,6 +21,14 @@ typedef struct g_proxy_config_kde_s {
 
 g_proxy_config_kde_s g_proxy_config_kde;
 
+enum proxy_type_enum {
+    PROXY_TYPE_NONE,
+    PROXY_TYPE_FIXED,
+    PROXY_TYPE_PAC,
+    PROXY_TYPE_WPAD,
+    PROXY_TYPE_ENV
+};
+
 static char *get_ini_setting(const char *section, const char *key) {
     int32_t max_config = strlen(g_proxy_config_kde.config);
     int32_t line_len = 0;
@@ -65,23 +73,28 @@ static char *get_ini_setting(const char *section, const char *key) {
     return NULL;
 }
 
-bool proxy_config_kde_get_auto_discover(void) {
+static bool check_proxy_type(int type) {
     char *proxy_type = get_ini_setting("Proxy Settings", "ProxyType");
     if (!proxy_type)
         return false;
-    bool auto_discover = strcmp(proxy_type, "auto") == 0;
+    bool is_equal = atoi(proxy_type) == type;
     free(proxy_type);
-    return auto_discover;
+    return is_equal;
+}
+
+bool proxy_config_kde_get_auto_discover(void) {
+    return check_proxy_type(PROXY_TYPE_WPAD);
 }
 
 char *proxy_config_kde_get_auto_config_url(void) {
+    if (!check_proxy_type(PROXY_TYPE_PAC))
+        return NULL;
     return get_ini_setting("Proxy Settings", "Proxy Config Script");
 }
 
 char *proxy_config_kde_get_proxy(const char *protocol) {
-    if (!protocol)
+    if (!protocol || !check_proxy_type(PROXY_TYPE_FIXED))
         return NULL;
-
     // Construct key name to search for in config
     int32_t protocol_len = strlen(protocol);
     int32_t max_key = protocol_len + 8;
@@ -159,6 +172,10 @@ bool proxy_config_kde_init(void) {
     // Read config file into buffer
     lseek(fd, 0, SEEK_SET);
     if (read(fd, g_proxy_config_kde.config, config_size) != config_size)
+        goto kde_init_error;
+
+    // Use proxy_config_env instead
+    if (check_proxy_type(PROXY_TYPE_ENV))
         goto kde_init_error;
 
     goto kde_ini_cleanup;
