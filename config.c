@@ -6,12 +6,13 @@
 #include "config_i.h"
 #include "config_env.h"
 #if defined(__APPLE__)
-#  include "config_mac.h"
+#include "config_mac.h"
 #elif defined(__linux__)
-#  include "config_gnome2.h"
-#  include "config_gnome3.h"
+#include "config_gnome2.h"
+#include "config_gnome3.h"
+#include "config_kde.h"
 #elif defined(_WIN32)
-#  include "config_win.h"
+#include "config_win.h"
 #endif
 
 typedef struct g_proxy_config_s {
@@ -54,6 +55,8 @@ bool proxy_config_init(void) {
         g_proxy_config.proxy_config_i = proxy_config_gnome3_get_interface();
     else if (proxy_config_gnome2_init())
         g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
+    else if (proxy_config_kde_init())
+        g_proxy_config.proxy_config_i = proxy_config_kde_get_interface();
 #elif defined(_WIN32)
     if (proxy_config_win_init())
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
