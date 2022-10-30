@@ -197,6 +197,7 @@ proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
                                                       proxy_resolver_mac_set_resolved_callback,
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,
+                                                      proxy_resolver_mac_is_blocking,
                                                       proxy_resolver_mac_init,
                                                       proxy_resolver_mac_uninit};
     return &proxy_resolver_mac_i;
