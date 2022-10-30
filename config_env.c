@@ -60,7 +60,6 @@ char *proxy_config_env_get_proxy(const char *protocol) {
 
     char proxy_list[256];
     snprintf(proxy_list, sizeof(proxy_list), "PROXY %s", proxy);
-    proxy_list[sizeof(proxy_list) - 1] = 0;
     return strdup(proxy_list);
 }
 
