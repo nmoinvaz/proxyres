@@ -93,4 +93,6 @@ elseif(UNIX)
     target_link_libraries(proxyres dl)
 endif()
 
+enable_testing()
+
 add_subdirectory(test)

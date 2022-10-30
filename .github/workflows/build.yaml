@@ -50,3 +50,4 @@ jobs:
 
     - name: Run tests
       run: ctest --verbose -C Release
+      working-directory: build
