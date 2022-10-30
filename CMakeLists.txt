@@ -39,12 +39,14 @@ elseif(APPLE)
         resolver_mac.c)
 elseif(UNIX)
     list(APPEND PROXYRES_HDRS
+        config_env.h
         config_gnome2.h
         config_gnome3.h
         config_kde.h
         execute_jscoregtk.h
         resolver_gnome3.h)
     list(APPEND PROXYRES_SRCS
+        config_env.c
         config_gnome2.c
         config_gnome3.c
         config_kde.h
