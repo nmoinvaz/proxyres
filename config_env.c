@@ -43,24 +43,26 @@ char *proxy_config_env_get_auto_config_url(void) {
 }
 
 char *proxy_config_env_get_proxy(const char *protocol) {
-    char name[256];
-
     if (!protocol)
         return NULL;
 
-    snprintf(name, sizeof(name), "%s_proxy", protocol);
+    int32_t name_len = strlen(protocol) + 8;
+    char *name = (char *)malloc(name_len);
+    snprintf(name, name_len, "%s_proxy", protocol);
 
     // Don't check HTTP_PROXY due to CGI environment variable creation
     // https://everything.curl.dev/usingcurl/proxies/env
     bool check_uppercase = strcmp(protocol, "http") != 0;
 
     char *proxy = get_proxy_env_var(name, check_uppercase);
+    free(name);
     if (!proxy)
         return NULL;
 
-    char proxy_list[256];
-    snprintf(proxy_list, sizeof(proxy_list), "PROXY %s", proxy);
-    return strdup(proxy_list);
+    int32_t proxy_list_len = strlen(proxy) + 8;
+    char *proxy_list = (char *)malloc(proxy_list_len);
+    snprintf(proxy_list, proxy_list_len, "PROXY %s", proxy);
+    return proxy_list;
 }
 
 char *proxy_config_env_get_bypass_list(void) {
