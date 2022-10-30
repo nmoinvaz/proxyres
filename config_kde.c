@@ -1,9 +1,18 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <limits.h>
 
+#include <fcntl.h>
 #include <pwd.h>
 #include <unistd.h>
+
+#include "config.h"
+#include "config_i.h"
+#include "config_kde.h"
 
 typedef struct g_proxy_config_kde_s {
     // User config file
@@ -15,7 +24,7 @@ g_proxy_config_kde_s g_proxy_config_kde;
 static char *get_ini_setting(const char *section, const char *key) {
     int32_t max_config = strlen(g_proxy_config_kde.config);
     int32_t line_len = 0;
-    char *line_start = line;
+    const char *line_start = g_proxy_config_kde.config;
     bool in_section = true;
 
     // Read config file until we find the section and key
@@ -28,8 +37,8 @@ static char *get_ini_setting(const char *section, const char *key) {
 
         // Check for the key if we are already in the section
         if (in_section) {
-            char *key_start = line_start;
-            char *key_end = strchr(key_start, '=');
+            const char *key_start = line_start;
+            const char *key_end = strchr(key_start, '=');
             if (key_end) {
                 int32_t key_len = (int32_t)(key_end - key_start);
                 if (strncmp(key_start, key, key_len) == 0) {
@@ -47,7 +56,7 @@ static char *get_ini_setting(const char *section, const char *key) {
 
         // Check to see if we are in the right section
         if (line_len > 2 && line_start[0] == '[' && line_end[-1] == ']')
-            in_section = strncmp(line_start + 1, section, line_len - 2) == 0);
+            in_section = strncmp(line_start + 1, section, line_len - 2) == 0;
 
         // Continue to the next line
         line_start = line_end + 1;
