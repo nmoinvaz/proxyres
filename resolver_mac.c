@@ -159,12 +159,9 @@ bool proxy_resolver_mac_set_resolved_callback(void *ctx, void *user_data, proxy_
     return true;
 }
 
-bool proxy_resolver_mac_create(void **ctx) {
+void *proxy_resolver_mac_create(void) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)calloc(1, sizeof(proxy_resolver_mac_s));
-    if (!proxy_resolver)
-        return false;
-    *ctx = proxy_resolver;
-    return true;
+    return proxy_resolver;
 }
 
 bool proxy_resolver_mac_delete(void **ctx) {

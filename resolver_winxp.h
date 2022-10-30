@@ -13,7 +13,7 @@ bool proxy_resolver_winxp_cancel(void *ctx);
 
 bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback);
 
-bool proxy_resolver_winxp_create(void **ctx);
+void *proxy_resolver_winxp_create(void);
 bool proxy_resolver_winxp_delete(void **ctx);
 
 bool proxy_resolver_winxp_is_blocking(void);

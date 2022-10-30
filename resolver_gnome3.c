@@ -275,12 +275,9 @@ bool proxy_resolver_gnome3_set_resolved_callback(void *ctx, void *user_data, pro
     return true;
 }
 
-bool proxy_resolver_gnome3_create(void **ctx) {
+void *proxy_resolver_gnome3_create(void) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)calloc(1, sizeof(proxy_resolver_gnome3_s));
-    if (!proxy_resolver)
-        return false;
-    *ctx = proxy_resolver;
-    return true;
+    return proxy_resolver;
 }
 
 bool proxy_resolver_gnome3_delete(void **ctx) {

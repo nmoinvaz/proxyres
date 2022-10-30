@@ -13,7 +13,7 @@ bool proxy_resolver_gnome3_cancel(void *ctx);
 
 bool proxy_resolver_gnome3_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback);
 
-bool proxy_resolver_gnome3_create(void **ctx);
+void *proxy_resolver_gnome3_create(void);
 bool proxy_resolver_gnome3_delete(void **ctx);
 
 bool proxy_resolver_gnome3_is_blocking(void);

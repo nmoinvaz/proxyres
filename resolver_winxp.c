@@ -198,12 +198,9 @@ bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, prox
     return true;
 }
 
-bool proxy_resolver_winxp_create(void **ctx) {
+void *proxy_resolver_winxp_create(void) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)calloc(1, sizeof(proxy_resolver_winxp_s));
-    if (!proxy_resolver)
-        return false;
-    *ctx = proxy_resolver;
-    return true;
+    return proxy_resolver;
 }
 
 bool proxy_resolver_winxp_delete(void **ctx) {

@@ -8,7 +8,7 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
 char *proxy_execute_jscoregtk_get_list(void *ctx);
 bool proxy_execute_jscoregtk_get_error(void *ctx, int32_t *error);
 
-bool proxy_execute_jscoregtk_create(void **ctx);
+void *proxy_execute_jscoregtk_create(void);
 bool proxy_execute_jscoregtk_delete(void **ctx);
 
 bool proxy_execute_jscoregtk_init(void);

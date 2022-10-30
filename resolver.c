@@ -75,13 +75,10 @@ bool proxy_resolver_set_resolved_callback(void *ctx, void *user_data, proxy_reso
     return true;
 }
 
-bool proxy_resolver_create(void **ctx) {
-    if (!g_proxy_resolver.proxy_resolver_i) {
-        if (*ctx != NULL)
-            *ctx = &g_proxy_resolver;
-        return true;
-    }
-    return g_proxy_resolver.proxy_resolver_i->create(ctx);
+void *proxy_resolver_create(void) {
+    if (!g_proxy_resolver.proxy_resolver_i)
+        return NULL;
+    return g_proxy_resolver.proxy_resolver_i->create();
 }
 
 bool proxy_resolver_delete(void **ctx) {

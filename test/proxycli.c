@@ -53,7 +53,10 @@ static void resolve_proxy_for_url(const char *url) {
 
     printf("Resolving proxy for %s\n", url);
 
-    proxy_resolver_create(&proxy_resolver);
+    proxy_resolver = proxy_resolver_create();
+    if (!proxy_resolver)
+        return;
+
     if (proxy_resolver_get_proxies_for_url(proxy_resolver, url)) {
         // Check if proxy resolver is blocking
         if (!proxy_resolver_is_blocking()) {
@@ -104,12 +107,14 @@ static void execute_pac_script(const char *script_path, const char *url) {
 
     script[bytes_read] = 0;
 
-    proxy_execute_create(&proxy_execute);
-    if (proxy_execute_get_proxies_for_url(proxy_execute, script, url)) {
-        char *list = proxy_execute_get_list(proxy_execute);
-        printf("  Proxy: %s\n", list ? list : "DIRECT");
+    proxy_execute = proxy_execute_create();
+    if (proxy_execute) {
+        if (proxy_execute_get_proxies_for_url(proxy_execute, script, url)) {
+            char *list = proxy_execute_get_list(proxy_execute);
+            printf("  Proxy: %s\n", list ? list : "DIRECT");
+        }
+        proxy_execute_delete(&proxy_execute);
     }
-    proxy_execute_delete(&proxy_execute);
 
 execute_pac_cleanup:
 

@@ -123,13 +123,10 @@ bool proxy_execute_jsproxy_get_error(void *ctx, int32_t *error) {
     return true;
 }
 
-bool proxy_execute_jsproxy_create(void **ctx) {
+void *proxy_execute_jsproxy_create(void) {
     proxy_execute_jsproxy_s *proxy_execute =
         (proxy_execute_jsproxy_s *)calloc(1, sizeof(proxy_execute_jsproxy_s));
-    if (!proxy_execute)
-        return false;
-    *ctx = proxy_execute;
-    return true;
+    return proxy_execute;
 }
 
 bool proxy_execute_jsproxy_delete(void **ctx) {

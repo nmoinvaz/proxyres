@@ -13,7 +13,7 @@ bool proxy_resolver_win8_cancel(void *ctx);
 
 bool proxy_resolver_win8_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback);
 
-bool proxy_resolver_win8_create(void **ctx);
+void *proxy_resolver_win8_create(void);
 bool proxy_resolver_win8_delete(void **ctx);
 
 bool proxy_resolver_win8_is_blocking(void);

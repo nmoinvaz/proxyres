@@ -10,7 +10,7 @@ typedef struct proxy_resolver_i_s {
 
     bool (*set_resolved_callback)(void *ctx, void *user_data, proxy_resolver_resolved_cb callback);
 
-    bool (*create)(void **ctx);
+    void *(*create)(void);
     bool (*delete)(void **ctx);
 
     bool (*is_blocking)(void);

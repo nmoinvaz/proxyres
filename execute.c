@@ -30,11 +30,11 @@ bool proxy_execute_get_error(void *ctx, int32_t *error) {
 #endif
 }
 
-bool proxy_execute_create(void **ctx) {
+void *proxy_execute_create(void) {
 #if defined(__linux__)
-    return proxy_execute_jscoregtk_create(ctx);
+    return proxy_execute_jscoregtk_create();
 #elif defined(_WIN32)
-    return proxy_execute_jsproxy_create(ctx);
+    return proxy_execute_jsproxy_create();
 #endif
 }
 bool proxy_execute_delete(void *ctx) {

@@ -301,13 +301,10 @@ bool proxy_execute_jscoregtk_get_error(void *ctx, int32_t *error) {
     return false;
 }
 
-bool proxy_execute_jscoregtk_create(void **ctx) {
+void *proxy_execute_jscoregtk_create(void) {
     proxy_execute_jscoregtk_s *proxy_execute =
         (proxy_execute_jscoregtk_s *)calloc(1, sizeof(proxy_execute_jscoregtk_s));
-    if (!proxy_execute)
-        return false;
-    *ctx = proxy_execute;
-    return true;
+    return proxy_execute;
 }
 
 bool proxy_execute_jscoregtk_delete(void **ctx) {

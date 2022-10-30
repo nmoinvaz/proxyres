@@ -332,12 +332,9 @@ bool proxy_resolver_win8_set_resolved_callback(void *ctx, void *user_data, proxy
     return true;
 }
 
-bool proxy_resolver_win8_create(void **ctx) {
+void *proxy_resolver_win8_create(void) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)calloc(1, sizeof(proxy_resolver_win8_s));
-    if (!proxy_resolver)
-        return false;
-    *ctx = proxy_resolver;
-    return true;
+    return proxy_resolver;
 }
 
 bool proxy_resolver_win8_delete(void **ctx) {
