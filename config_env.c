@@ -46,6 +46,7 @@ char *proxy_config_env_get_proxy(const char *protocol) {
     if (!protocol)
         return NULL;
 
+    // Construct name of environment variable based on proxy protocol
     int32_t name_len = strlen(protocol) + 8;
     char *name = (char *)malloc(name_len);
     snprintf(name, name_len, "%s_proxy", protocol);
@@ -59,6 +60,7 @@ char *proxy_config_env_get_proxy(const char *protocol) {
     if (!proxy)
         return NULL;
 
+    // Return proxy as a list of proxies
     int32_t proxy_list_len = strlen(proxy) + 8;
     char *proxy_list = (char *)malloc(proxy_list_len);
     snprintf(proxy_list, proxy_list_len, "PROXY %s", proxy);
