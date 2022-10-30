@@ -199,16 +199,16 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
 
     global = g_proxy_execute_jscoregtk.JSGlobalContextCreate(NULL);
     if (!global)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
 
     // Register dnsResolve C function
     function_name = g_proxy_execute_jscoregtk.JSStringCreateWithUTF8CString("dnsResolve");
     if (!function_name)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     function = g_proxy_execute_jscoregtk.JSObjectMakeFunctionWithCallback(global, function_name,
                                                                           proxy_execute_jscoregtk_dns_resolve);
     if (!function)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
 
     g_proxy_execute_jscoregtk.JSObjectSetProperty(global, g_proxy_execute_jscoregtk.JSContextGetGlobalObject(global),
                                                   function_name, function, kJSPropertyAttributeNone, NULL);
@@ -218,11 +218,11 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
     // Register myIpAddress C function
     function_name = g_proxy_execute_jscoregtk.JSStringCreateWithUTF8CString("myIpAddress");
     if (!function_name)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     function = g_proxy_execute_jscoregtk.JSObjectMakeFunctionWithCallback(global, function_name,
                                                                           proxy_execute_jscoregtk_my_ip_address);
     if (!function)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
 
     g_proxy_execute_jscoregtk.JSObjectSetProperty(global, g_proxy_execute_jscoregtk.JSContextGetGlobalObject(global),
                                                   function_name, function, kJSPropertyAttributeNone, NULL);
@@ -232,12 +232,12 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
     JSStringRef utils_javascript = g_proxy_execute_jscoregtk.JSStringCreateWithUTF8CString(MOZILLA_PAC_JAVASCRIPT);
     if (!utils_javascript)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     g_proxy_execute_jscoregtk.JSEvaluateScript(global, utils_javascript, NULL, NULL, 1, &exception);
     g_proxy_execute_jscoregtk.JSStringRelease(utils_javascript);
     if (exception) {
         js_print_exception(global, exception);
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     }
 
     // Load PAC script
@@ -246,7 +246,7 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
     g_proxy_execute_jscoregtk.JSStringRelease(script_string);
     if (exception) {
         js_print_exception(global, exception);
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     }
 
     // Construct the call FindProxyForURL
@@ -257,17 +257,17 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
     // Execute the call to FindProxyForURL
     JSStringRef find_proxy_string = g_proxy_execute_jscoregtk.JSStringCreateWithUTF8CString(find_proxy);
     if (!find_proxy_string)
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     JSValueRef proxy_value =
         g_proxy_execute_jscoregtk.JSEvaluateScript(global, find_proxy_string, NULL, NULL, 1, &exception);
     g_proxy_execute_jscoregtk.JSStringRelease(find_proxy_string);
     if (exception) {
         js_print_exception(global, exception);
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
     }
 
     if (!g_proxy_execute_jscoregtk.JSValueIsString(global, proxy_value))
-        goto jscoregtk_execute_err;
+        goto jscoregtk_execute_error;
 
     // Get the result of the call to FindProxyForURL
     JSStringRef proxy_string = g_proxy_execute_jscoregtk.JSValueToStringCopy(global, proxy_value, NULL);
@@ -278,7 +278,7 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
 
     success = true;
 
-jscoregtk_execute_err:
+jscoregtk_execute_error:
 jscoregtk_execute_cleanup:
 
     if (function_name)

@@ -145,16 +145,16 @@ bool proxy_config_kde_init(void) {
     int config_size = lseek(fd, 0, SEEK_END);
     g_proxy_config_kde.config = (char *)calloc(config_size + 1, sizeof(char));
     if (!g_proxy_config_kde.config)
-        goto kde_init_err;
+        goto kde_init_error;
 
     // Read config file into buffer
     lseek(fd, 0, SEEK_SET);
     if (read(fd, g_proxy_config_kde.config, config_size) != config_size)
-        goto kde_init_err;
+        goto kde_init_error;
 
     goto kde_ini_cleanup;
 
-kde_init_err:
+kde_init_error:
     proxy_config_kde_uninit();
 
 kde_ini_cleanup:

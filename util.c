@@ -40,7 +40,7 @@ char *dns_resolve(const char *host, int32_t *error) {
     err = getaddrinfo(name, NULL, &hints, &address_info);
     if (err != EAI_NONAME) {
         if (err != 0)
-            goto my_ip_address_err;
+            goto my_ip_address_error;
 
         // Name is already an IP address
         freeaddrinfo(address_info);
@@ -50,7 +50,7 @@ char *dns_resolve(const char *host, int32_t *error) {
     hints.ai_flags = 0;
     err = getaddrinfo(name, NULL, &hints, &address_info);
     if (err != 0)
-        goto my_ip_address_err;
+        goto my_ip_address_error;
 
     // Convert IP address to string
     next_address = address_info;
@@ -58,22 +58,22 @@ char *dns_resolve(const char *host, int32_t *error) {
         next_address = next_address->ai_next;
         // Name not resolved
         if (next_address == NULL)
-            goto my_ip_address_err;
+            goto my_ip_address_error;
     }
 
     ip_addr = (char *)calloc(1, INET6_ADDRSTRLEN);
     if (ip_addr == NULL)
-        goto my_ip_address_err;
+        goto my_ip_address_error;
 
     err = getnameinfo(next_address->ai_addr, (socklen_t)next_address->ai_addrlen, ip_addr, INET6_ADDRSTRLEN, NULL, 0,
                       NI_NUMERICHOST);
 
     if (err != 0)
-        goto my_ip_address_err;
+        goto my_ip_address_error;
 
     return ip_addr;
 
-my_ip_address_err:
+my_ip_address_error:
 
     free(ip_addr);
 

@@ -153,19 +153,19 @@ bool proxy_execute_jsproxy_init(void) {
     g_proxy_execute_jsproxy.InternetInitializeAutoProxyDll = (pfnInternetInitializeAutoProxyDll)GetProcAddress(
         g_proxy_execute_jsproxy.module, "InternetInitializeAutoProxyDll");
     if (!g_proxy_execute_jsproxy.InternetInitializeAutoProxyDll)
-        goto jsproxy_init_err;
+        goto jsproxy_init_error;
     g_proxy_execute_jsproxy.InternetDeInitializeAutoProxyDll = (pfnInternetDeInitializeAutoProxyDll)GetProcAddress(
         g_proxy_execute_jsproxy.module, "InternetDeInitializeAutoProxyDll");
     if (!g_proxy_execute_jsproxy.InternetDeInitializeAutoProxyDll)
-        goto jsproxy_init_err;
+        goto jsproxy_init_error;
     g_proxy_execute_jsproxy.InternetGetProxyInfo =
         (pfnInternetGetProxyInfo)GetProcAddress(g_proxy_execute_jsproxy.module, "InternetGetProxyInfo");
     if (!g_proxy_execute_jsproxy.InternetGetProxyInfo)
-        goto jsproxy_init_err;
-    
+        goto jsproxy_init_error;
+
     return true;
-    
-jsproxy_init_err:
+
+jsproxy_init_error:
     proxy_execute_jsproxy_uninit();
     return false;
 }
