@@ -49,7 +49,7 @@ elseif(UNIX)
         config_env.c
         config_gnome2.c
         config_gnome3.c
-        config_kde.h
+        config_kde.c
         execute_jscoregtk.c
         resolver_gnome3.c)
 endif()
