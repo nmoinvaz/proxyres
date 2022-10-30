@@ -2,13 +2,13 @@
 
 Cross-platform support for Linux, macOS, & Windows.
 
-## Interfaces
+## API
 
-**proxy_config**
+### proxy_config
 
 Read the user's proxy configuration.
 
-**proxy_resolve**
+### proxy_resolve
 
 Resolves proxies for a given URL based on the operating system's proxy configuration.
 
@@ -16,7 +16,7 @@ Resolves proxies for a given URL based on the operating system's proxy configura
 * Supports Web Proxy Auto-Discovery Protocol (WPAD).
 * Evaluates any discovered Proxy Auto-Configuration (PAC) to determine the proxies for the URL.
 
-**proxy_execute**
+### proxy_execute
 
 Execute Proxy Auto-Configuration (PAC) files containing the JavasScript function `FindProxyForURL` for a given URL to determine the proxies for it. Support varies depending on the operating system and the libraries available.
 
