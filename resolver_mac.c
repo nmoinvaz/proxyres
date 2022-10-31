@@ -142,8 +142,8 @@ bool proxy_resolver_mac_is_pending(void *ctx) {
     return proxy_resolver->pending;
 }
 
-bool proxy_resolver_mac_is_blocking(void *ctx) {
-    return true;
+bool proxy_resolver_mac_is_async(void *ctx) {
+    return false;
 }
 
 bool proxy_resolver_mac_cancel(void *ctx) {
@@ -194,7 +194,7 @@ proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
                                                       proxy_resolver_mac_set_resolved_callback,
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,
-                                                      proxy_resolver_mac_is_blocking,
+                                                      proxy_resolver_mac_is_async,
                                                       proxy_resolver_mac_init,
                                                       proxy_resolver_mac_uninit};
     return &proxy_resolver_mac_i;

@@ -216,8 +216,8 @@ bool proxy_resolver_winxp_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_winxp_is_blocking(void) {
-    return true;
+bool proxy_resolver_winxp_is_async(void) {
+    return false;
 }
 
 bool proxy_resolver_winxp_init(void) {
@@ -246,7 +246,7 @@ proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
                                                         proxy_resolver_winxp_set_resolved_callback,
                                                         proxy_resolver_winxp_create,
                                                         proxy_resolver_winxp_delete,
-                                                        proxy_resolver_winxp_is_blocking,
+                                                        proxy_resolver_winxp_is_async,
                                                         proxy_resolver_winxp_init,
                                                         proxy_resolver_winxp_uninit};
     return &proxy_resolver_winxp_i;

@@ -293,11 +293,11 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_gnome3_is_blocking(void) {
+bool proxy_resolver_gnome3_is_async(void) {
 #ifdef USE_ASYNC_LOOKUP
-    return false;
-#else
     return true;
+#else
+    return false;
 #endif
 }
 
@@ -379,7 +379,7 @@ proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
                                                          proxy_resolver_gnome3_set_resolved_callback,
                                                          proxy_resolver_gnome3_create,
                                                          proxy_resolver_gnome3_delete,
-                                                         proxy_resolver_gnome3_is_blocking,
+                                                         proxy_resolver_gnome3_is_async,
                                                          proxy_resolver_gnome3_init,
                                                          proxy_resolver_gnome3_uninit};
     return &proxy_resolver_gnome3_i;

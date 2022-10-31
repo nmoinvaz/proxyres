@@ -16,7 +16,7 @@ bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, prox
 void *proxy_resolver_winxp_create(void);
 bool proxy_resolver_winxp_delete(void **ctx);
 
-bool proxy_resolver_winxp_is_blocking(void);
+bool proxy_resolver_winxp_is_async(void);
 
 bool proxy_resolver_winxp_init(void);
 bool proxy_resolver_winxp_uninit(void);

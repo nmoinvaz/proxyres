@@ -350,8 +350,8 @@ bool proxy_resolver_win8_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_win8_is_blocking(void) {
-    return false;
+bool proxy_resolver_win8_is_async(void) {
+    return true;
 }
 
 bool proxy_resolver_win8_init(void) {
@@ -413,7 +413,7 @@ proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
                                                        proxy_resolver_win8_set_resolved_callback,
                                                        proxy_resolver_win8_create,
                                                        proxy_resolver_win8_delete,
-                                                       proxy_resolver_win8_is_blocking,
+                                                       proxy_resolver_win8_is_async,
                                                        proxy_resolver_win8_init,
                                                        proxy_resolver_win8_uninit};
     return &proxy_resolver_win8_i;

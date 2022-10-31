@@ -16,7 +16,7 @@ bool proxy_resolver_mac_set_resolved_callback(void *ctx, void *user_data, proxy_
 void *proxy_resolver_mac_create(void);
 bool proxy_resolver_mac_delete(void **ctx);
 
-bool proxy_resolver_mac_is_blocking(void);
+bool proxy_resolver_mac_is_async(void);
 
 bool proxy_resolver_mac_init(void);
 bool proxy_resolver_mac_uninit(void);

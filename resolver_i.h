@@ -13,7 +13,7 @@ typedef struct proxy_resolver_i_s {
     void *(*create)(void);
     bool (*delete)(void **ctx);
 
-    bool (*is_blocking)(void);
+    bool (*is_async)(void);
 
     bool (*init)(void);
     bool (*uninit)(void);
