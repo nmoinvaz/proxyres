@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include "log.h"
 #include "config.h"
 #include "config_i.h"
 #include "config_env.h"
@@ -15,6 +16,7 @@
 #elif defined(_WIN32)
 #include "config_win.h"
 #endif
+#include "util_linux.h"
 
 typedef struct g_proxy_config_s {
     // Proxy config interface
@@ -52,20 +54,33 @@ bool proxy_config_init(void) {
     if (proxy_config_mac_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
 #elif defined(__linux__)
-    if (proxy_config_gnome3_init())
-        g_proxy_config.proxy_config_i = proxy_config_gnome3_get_interface();
-    else if (proxy_config_gnome2_init())
-        g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
-    else if (proxy_config_kde_init())
-        g_proxy_config.proxy_config_i = proxy_config_kde_get_interface();
-    else if (!g_proxy_config.proxy_config_i)
+    int32_t desktop_env = get_desktop_env();
+
+    switch (desktop_env) {
+    case DESKTOP_ENV_GNOME3:
+        if (proxy_config_gnome3_init())
+            g_proxy_config.proxy_config_i = proxy_config_gnome3_get_interface();
+        break;
+    case DESKTOP_ENV_GNOME2:
+        if (proxy_config_gnome2_init())
+            g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
+        break;
+    case DESKTOP_ENV_KDE5:
+    case DESKTOP_ENV_KDE4:
+    case DESKTOP_ENV_KDE3:
+        if (proxy_config_kde_init())
+            g_proxy_config.proxy_config_i = proxy_config_kde_get_interface();
+        break;
+    }
+
+    if (!g_proxy_config.proxy_config_i)
         g_proxy_config.proxy_config_i = proxy_config_env_get_interface();
 #elif defined(_WIN32)
     if (proxy_config_win_init())
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
 #endif
     if (!g_proxy_config.proxy_config_i) {
-        printf("No config interface found\n");
+        LOG_ERROR("No config interface found\n");
         return false;
     }
     return true;

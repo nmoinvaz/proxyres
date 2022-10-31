@@ -45,7 +45,8 @@ elseif(UNIX)
         config_kde.h
         execute_jscoregtk.h
         resolver_gnome3.h
-        threadpool_pthread.h)
+        threadpool_pthread.h
+        util_linux.h)
     list(APPEND PROXYRES_SRCS
         config_env.c
         config_gnome2.c
@@ -53,11 +54,15 @@ elseif(UNIX)
         config_kde.c
         execute_jscoregtk.c
         resolver_gnome3.c
-        threadpool_pthread.c)
+        threadpool_pthread.c
+        util_linux.c)
 endif()
 
 if(WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1)
+elseif(APPLE)
+elseif(UNIX)
+    add_compile_definitions(_GNU_SOURCE=1)
 endif()
 
 add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})

@@ -13,6 +13,7 @@
 #include "config.h"
 #include "config_i.h"
 #include "config_kde.h"
+#include "util_linux.h"
 
 typedef struct g_proxy_config_kde_s {
     // User config file
@@ -145,18 +146,24 @@ bool proxy_config_kde_init(void) {
     if (user_home_path[user_home_path_len - 1] == '/')
         user_home_path[user_home_path_len - 1] = 0;
 
-    // Check to see if config path for KDE3 exists
-    snprintf(config_path, sizeof(config_path), "%s/.kde/share/config/kioslaverc", user_home_path);
-    if (access(config_path, F_OK) == -1) {
-        // Check to see if config path for KDE4 exists
+    // Get config file path based on desktop environment
+    int32_t desktop_env = get_desktop_env();
+    switch (desktop_env) {
+    case DESKTOP_ENV_KDE3:
+        snprintf(config_path, sizeof(config_path), "%s/.kde/share/config/kioslaverc", user_home_path);
+        break;
+    case DESKTOP_ENV_KDE4:
         snprintf(config_path, sizeof(config_path), "%s/.kde4/share/config/kioslaverc", user_home_path);
-        if (access(config_path, F_OK) == -1) {
-            // Check to see if config path for KDE5 exists
-            snprintf(config_path, sizeof(config_path), "%s/.config/kioslaverc", user_home_path);
-            if (access(config_path, F_OK) == -1)
-                return false;
-        }
+        break;
+    case DESKTOP_ENV_KDE5:
+    default:
+        snprintf(config_path, sizeof(config_path), "%s/.config/kioslaverc", user_home_path);
+        break;
     }
+
+    // Check to see if config file exists
+    if (access(config_path, F_OK) == -1)
+        return false;
 
     // Open user config file
     fd = open(config_path, O_RDONLY);
