@@ -7,11 +7,11 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CFNetwork/CFNetwork.h>
 
+#include "config.h"
+#include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_mac.h"
-
-#include "config.h"
 
 typedef struct g_proxy_resolver_mac_s {
     bool reserved;
@@ -75,7 +75,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
     if (target_url_ref == NULL) {
         proxy_resolver->error = ENOMEM;
-        printf("Unable to create target url reference (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to create target url reference (%d)\n", proxy_resolver->error);
         goto mac_error;
     }
 
@@ -86,7 +86,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
         if (url_ref == NULL) {
             proxy_resolver->error = ENOMEM;
-            printf("Unable to create auto config url reference (%d)\n", proxy_resolver->error);
+            LOG_ERROR("Unable to create auto config url reference (%d)\n", proxy_resolver->error);
             goto mac_error;
         }
 

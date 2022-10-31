@@ -6,8 +6,9 @@ set(PROXYRES_HDRS
     config.h
     config_i.h
     execute.h
-    proxyres.h
+    log.h
     mozilla_js.h
+    proxyres.h
     resolver.h
     resolver_i.h
     util.h)

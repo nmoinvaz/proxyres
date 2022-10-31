@@ -7,7 +7,6 @@
 
 #include "execute.h"
 #include "execute_jsproxy.h"
-
 #include "util.h"
 
 typedef struct g_proxy_execute_jsproxy_s {

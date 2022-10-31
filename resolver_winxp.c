@@ -6,10 +6,10 @@
 #include <windows.h>
 #include <winhttp.h>
 
+#include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_winxp.h"
-
 #include "util_win.h"
 
 typedef struct g_proxy_resolver_winxp_s {
@@ -116,7 +116,7 @@ winxp_done:
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
     if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
-        printf("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
         goto winxp_error;
     }
 

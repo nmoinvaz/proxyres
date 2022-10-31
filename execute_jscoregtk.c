@@ -10,9 +10,9 @@
 
 #include "execute.h"
 #include "execute_jscoregtk.h"
-
-#include "util.h"
+#include "log.h"
 #include "mozilla_js.h"
+#include "util.h"
 
 typedef struct g_proxy_execute_jscoregtk_s {
     // JSCoreGTK module
@@ -123,7 +123,7 @@ static void js_print_exception(JSContextRef ctx, JSValueRef exception) {
         if (message_string) {
             char *message = js_string_dup_to_utf8(message_string);
             if (message) {
-                printf("Exception: %s (line %d)\n", message, line);
+                printf("EXCEPTION: %s (line %d)\n", message, line);
                 free(message);
                 printed = true;
             }
@@ -132,7 +132,7 @@ static void js_print_exception(JSContextRef ctx, JSValueRef exception) {
     }
 
     if (!printed) {
-        printf("Unable to print unknown exception object\n");
+        LOG_ERROR("Unable to print unknown exception object\n");
         return;
     }
 }

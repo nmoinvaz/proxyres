@@ -4,15 +4,16 @@
 
 #include "config.h"
 #include "execute.h"
+#include "log.h"
 #include "resolver.h"
 
 bool proxyres_init(void) {
     if (!proxy_config_init())
-        printf("Failed to initialization proxy config\n");
+        LOG_WARN("Failed to initialization proxy config\n");
     if (!proxy_resolver_init())
-        printf("Failed to initialization proxy resolver\n");
+        LOG_WARN("Failed to initialization proxy resolver\n");
     if (!proxy_execute_init())
-        printf("Failed to initialization proxy execute\n");
+        LOG_WARN("Failed to initialization proxy execute\n");
     return true;
 }
 
