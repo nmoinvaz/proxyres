@@ -44,14 +44,16 @@ elseif(UNIX)
         config_gnome3.h
         config_kde.h
         execute_jscoregtk.h
-        resolver_gnome3.h)
+        resolver_gnome3.h
+        threadpool_pthread.h)
     list(APPEND PROXYRES_SRCS
         config_env.c
         config_gnome2.c
         config_gnome3.c
         config_kde.c
         execute_jscoregtk.c
-        resolver_gnome3.c)
+        resolver_gnome3.c
+        threadpool_pthread.c)
 endif()
 
 if(WIN32)
@@ -90,9 +92,9 @@ elseif(UNIX)
     unset(JSCoreGTK_LIBRARIES CACHE)
     target_include_directories(proxyres PRIVATE ${JSCoreGTK_INCLUDE_DIRS})
 
-    #find_package(Threads REQUIRED)
-    #target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
-    #target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
+    find_package(Threads REQUIRED)
+    target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
+    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
     target_link_libraries(proxyres dl)
 endif()
