@@ -1,6 +1,6 @@
 # proxyres - proxy resolution library in C
 
-Cross-platform support for Linux, macOS, & Windows.
+Cross-platform proxy resolution with support for Linux, macOS, & Windows.
 
 ## API
 
@@ -34,6 +34,10 @@ Use CMake to generate project and solution files for your environment:
 cmake -S . -B build
 cmake --build build
 ```
+
+## History & Motivation
+
+The code in this library started many years ago as part of a custom HTTP/HTTPS stack we developed at [Solid State Networks](https://solidstatenetworks.com/). When we switched over to using cURL we still needed to implement the proxy resolution. We thought about using libproxy, however the license did not allow us to statically link the library for closed source commerical purposes. With changes that were needed for Windows 11 we decided to move our proxy resolution code to an open-source library since there weren't many alternatives available.
 
 ## Todo
 
