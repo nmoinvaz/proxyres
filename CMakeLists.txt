@@ -31,6 +31,7 @@ if(WIN32)
         execute_jsproxy.c
         resolver_win8.c
         resolver_winxp.c
+        threadpool_win.c
         util_win.c)
 elseif(APPLE)
     list(APPEND PROXYRES_HDRS
