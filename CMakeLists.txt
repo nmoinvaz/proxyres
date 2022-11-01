@@ -11,6 +11,7 @@ set(PROXYRES_HDRS
     proxyres.h
     resolver.h
     resolver_i.h
+    threadpool.h
     util.h)
 set(PROXYRES_SRCS
     config.c
@@ -37,7 +38,8 @@ elseif(APPLE)
         resolver_mac.h)
     list(APPEND PROXYRES_SRCS
         config_mac.c
-        resolver_mac.c)
+        resolver_mac.c
+        threadpool_pthread.c)
 elseif(UNIX)
     list(APPEND PROXYRES_HDRS
         config_env.h
@@ -46,7 +48,6 @@ elseif(UNIX)
         config_kde.h
         execute_jscoregtk.h
         resolver_gnome3.h
-        threadpool_pthread.h
         util_linux.h)
     list(APPEND PROXYRES_SRCS
         config_env.c
@@ -78,6 +79,10 @@ elseif(APPLE)
 
     find_library(JAVASCRIPTCORE_LIBRARY JavaScriptCore)
     target_link_libraries(proxyres PRIVATE ${JAVASCRIPTCORE_LIBRARY})
+
+    find_package(Threads REQUIRED)
+    target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
+    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
     set_target_properties(proxyres PROPERTIES LINK_FLAGS -Wl,-F/Library/Frameworks)
 elseif(UNIX)

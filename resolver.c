@@ -17,7 +17,7 @@
 #include "resolver_winxp.h"
 #include "resolver_win8.h"
 #endif
-#include "threadpool_pthread.h"
+#include "threadpool.h"
 
 typedef struct g_proxy_resolver_s {
     // Proxy resolver interface

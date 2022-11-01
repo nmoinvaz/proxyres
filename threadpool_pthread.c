@@ -8,7 +8,7 @@
 #include <pthread.h>
 
 #include "log.h"
-#include "threadpool_pthread.h"
+#include "threadpool.h"
 
 typedef struct threadpool_job_s {
     void *user_data;
