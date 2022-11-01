@@ -12,7 +12,7 @@
 #ifdef _WIN32
 #include <io.h>
 #include <windows.h>
-#define sleep Sleep
+#define usleep Sleep
 #else
 #include <unistd.h>
 #endif
@@ -49,26 +49,53 @@ static void print_proxy_config(void) {
 }
 
 static void resolve_proxy_for_url(const char *url) {
-    void *proxy_resolver;
-
-    printf("Resolving proxy for %s\n", url);
-
-    proxy_resolver = proxy_resolver_create();
+    void *proxy_resolver = proxy_resolver_create();
     if (!proxy_resolver)
         return;
 
+    printf("Resolving proxy for %s\n", url);
+
     if (proxy_resolver_get_proxies_for_url(proxy_resolver, url)) {
-        // Check if proxy resolver is blocking
-        if (!proxy_resolver_is_blocking()) {
-            // Wait for proxy to resolve asynchronously
-            while (proxy_resolver_is_pending(proxy_resolver)) {
-                sleep(10);
-            }
+        // Wait for proxy to resolve asynchronously
+        while (proxy_resolver_is_pending(proxy_resolver)) {
+            usleep(10);
         }
-        char *list;
-        printf("  Proxy: %s\n", proxy_resolver_get_list(proxy_resolver, &list) ? list : "DIRECT");
+
+        // Get the proxy list for the url
+        const char *list = proxy_resolver_get_list(proxy_resolver);
+        printf("  Proxy: %s\n", list ? list : "DIRECT");
     }
     proxy_resolver_delete(&proxy_resolver);
+}
+
+static void resolve_proxy_for_url_async(int argc, char *argv[]) {
+    void **proxy_resolver = (void **)calloc(argc, sizeof(void *));
+    if (!proxy_resolver)
+        return;
+
+    for (int32_t i = 0; i < argc; i++) {
+        // Create each proxy resolver instance
+        proxy_resolver[i] = proxy_resolver_create();
+        if (!proxy_resolver[i])
+            return;
+
+        // Start asynchronous request for proxy resolution
+        proxy_resolver_get_proxies_for_url(proxy_resolver[i], argv[i]);
+    }
+
+    for (int32_t i = 0; i < argc; i++) {
+        printf("Resolving proxy for %s\n", argv[i]);
+
+        // Wait for proxy to resolve asynchronously
+        while (proxy_resolver_is_pending(proxy_resolver[i])) {
+            usleep(10);
+        }
+
+        // Get the proxy list for the url
+        const char *list = proxy_resolver_get_list(proxy_resolver[i]);
+        printf("  Proxy: %s\n", list ? list : "DIRECT");
+        proxy_resolver_delete(&proxy_resolver[i]);
+    }
 }
 
 static void execute_pac_script(const char *script_path, const char *url) {
@@ -145,8 +172,7 @@ int main(int argc, char *argv[]) {
         for (int i = 3; i < argc; i++)
             execute_pac_script(argv[2], argv[i]);
     } else if (strcmp(cmd, "resolve") == 0) {
-        for (int i = 2; i < argc; i++)
-            resolve_proxy_for_url(argv[i]);
+        resolve_proxy_for_url_async(argc - 2, argv + 2);
     }
     proxyres_uninit();
     return 0;
