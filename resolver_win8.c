@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <windows.h>
 #include <winhttp.h>
@@ -68,13 +69,13 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     if (InternetStatus == WINHTTP_CALLBACK_FLAG_REQUEST_ERROR) {
         WINHTTP_ASYNC_RESULT *async_result = (WINHTTP_ASYNC_RESULT *)StatusInformation;
         proxy_resolver->error = async_result->dwError;
-        LOG_ERROR("Unable to retrieve proxy configuration (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to retrieve proxy configuration (%" PRId32 ")\n", proxy_resolver->error);
         goto win8_complete;
     }
 
     proxy_resolver->error = g_proxy_resolver_win8.winhttp_get_proxy_result(proxy_resolver->resolver, &proxy_result);
     if (proxy_resolver->error != ERROR_SUCCESS) {
-        LOG_ERROR("Unable to retrieve proxy result (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to retrieve proxy result (%" PRId32 ")\n", proxy_resolver->error);
         goto win8_complete;
     }
 
@@ -199,7 +200,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     g_proxy_resolver_win8.winhttp_create_proxy_resolver(g_proxy_resolver_win8.session, &proxy_resolver->resolver);
     if (!proxy_resolver->resolver) {
         proxy_resolver->error = GetLastError();
-        LOG_ERROR("Unable to create proxy resolver (%d)", proxy_resolver->error);
+        LOG_ERROR("Unable to create proxy resolver (%" PRId32 ")", proxy_resolver->error);
         goto win8_error;
     }
 
@@ -208,7 +209,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
                                  WINHTTP_CALLBACK_FLAG_REQUEST_ERROR | WINHTTP_CALLBACK_FLAG_GETPROXYFORURL_COMPLETE,
                                  (DWORD_PTR)NULL) == WINHTTP_INVALID_STATUS_CALLBACK) {
         proxy_resolver->error = GetLastError();
-        LOG_ERROR("Unable to install status callback (%d)", proxy_resolver->error);
+        LOG_ERROR("Unable to install status callback (%" PRId32 ")", proxy_resolver->error);
         goto win8_error;
     }
 
@@ -230,7 +231,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
     if (error != ERROR_IO_PENDING) {
         proxy_resolver->error = error;
-        LOG_ERROR("Unable to get proxy for url %s (%d)", url, proxy_resolver->error);
+        LOG_ERROR("Unable to get proxy for url %s (%" PRId32 ")", url, proxy_resolver->error);
         goto win8_error;
     }
 
@@ -251,7 +252,7 @@ win8_done:
 
     if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for proxy list (%d)", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")", proxy_resolver->error);
         goto win8_error;
     }
 

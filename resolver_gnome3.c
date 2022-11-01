@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <errno.h>
 #include <dlfcn.h>
@@ -71,7 +72,7 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
     proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
     if (!proxy_resolver->resolver) {
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to create resolver object (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to create resolver object (%" PRId32 ")\n", proxy_resolver->error);
         return false;
     }
 
@@ -79,7 +80,7 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
     proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
     if (!proxy_resolver->cancellable) {
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to create cancellable object (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to create cancellable object (%" PRId32 ")\n", proxy_resolver->error);
         return false;
     }
     return true;
@@ -103,7 +104,7 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
 
     if (!proxies) {
         proxy_resolver->error = error->code;
-        LOG_ERROR("Unable to get proxies for list (%d:%s)\n", proxy_resolver->error, error->message);
+        LOG_ERROR("Unable to get proxies for list (%" PRId32 ":%s)\n", proxy_resolver->error, error->message);
         return false;
     }
 
@@ -111,7 +112,7 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
     proxy_resolver->list = calloc(max_list, sizeof(char));
     if (!proxy_resolver->list) {
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to allocate memory for list (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for list (%" PRId32 ")\n", proxy_resolver->error);
         return false;
     }
 
@@ -216,7 +217,7 @@ gnome3_error:
 gnome3_done:
 
     if (error) {
-        LOG_ERROR("%s (%d)\n", error->message, error->code);
+        LOG_ERROR("%s (%" PRId32 ")\n", error->message, error->code);
         g_proxy_resolver_gnome3.g_error_free(error);
     }
     if (proxies)

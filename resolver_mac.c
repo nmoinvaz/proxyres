@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <Carbon/Carbon.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -75,7 +76,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
     if (target_url_ref == NULL) {
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to create target url reference (%d)\n", proxy_resolver->error);
+        LOG_ERROR("Unable to create target url reference (%" PRId32 ")\n", proxy_resolver->error);
         goto mac_error;
     }
 
@@ -86,7 +87,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
         if (url_ref == NULL) {
             proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to create auto config url reference (%d)\n", proxy_resolver->error);
+            LOG_ERROR("Unable to create auto config url reference (%" PRId32 ")\n", proxy_resolver->error);
             goto mac_error;
         }
 
