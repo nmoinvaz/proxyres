@@ -10,3 +10,7 @@ add_test(NAME proxycli-resolve-google
 add_test(NAME proxycli-execute-google
     COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js
         https://example1.com/ https://google.com/)
+
+add_executable(tpoolcli tpoolcli.c)
+
+target_link_libraries(tpoolcli PRIVATE proxyres)
