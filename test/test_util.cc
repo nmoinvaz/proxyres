@@ -38,3 +38,35 @@ TEST(util, dns_resolve_bad) {
     EXPECT_EQ(ip, nullptr);
     EXPECT_NE(error, 0);
 }
+
+struct parse_url_host_param {
+    const char *string;
+    const char *expected;
+
+    friend std::ostream &operator<<(std::ostream &os, const parse_url_host_param &param) {
+        return os << "string: " << param.string;
+    }
+};
+
+constexpr parse_url_host_param parse_url_host_tests[] = {
+    {"https://google.com/", "google.com"},
+    {"https://google.com", "google.com"},
+    {"google.com", "google.com"},
+    {"google.com/", "google.com"},
+    {"https://u:p@google.com/", "google.com"},
+    {"https://u:p@www.google.com", "www.google.com"},
+};
+
+class util : public ::testing::TestWithParam<parse_url_host_param> {};
+
+INSTANTIATE_TEST_SUITE_P(util, util, testing::ValuesIn(parse_url_host_tests));
+
+TEST_P(util, parse_url_host) {
+    const auto &param = GetParam();
+    char *host = parse_url_host(param.string);
+    EXPECT_NE(host, nullptr);
+    if (host) {
+        EXPECT_STREQ(host, param.expected);
+        free(host);
+    }
+}
