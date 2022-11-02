@@ -31,8 +31,14 @@ if(WIN32)
         execute_jsproxy.c
         resolver_win8.c
         resolver_winxp.c
-        threadpool_win.c
         util_win.c)
+    if(CMAKE_SYSTEM_VERSION GREATER_EQUAL 6.1)
+        list(APPEND PROXYRES_SRCS
+            threadpool_winvista.c)
+    else()
+        list(APPEND PROXYRES_SRCS
+            threadpool_winxp.c)
+    endif()
 elseif(APPLE)
     list(APPEND PROXYRES_HDRS
         config_mac.h

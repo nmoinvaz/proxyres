@@ -105,9 +105,9 @@ static DWORD WINAPI threadpool_do_work(LPVOID arg) {
         while (!threadpool->stop && !threadpool->queue_first) {
             LeaveCriticalSection(&threadpool->queue_lock);
             // queue_lock will be unlocked during sleep and locked during awake
-            DWORD Wait = WaitForSingleObject(threadpool->wakeup_cond, 1000);
+            DWORD wait = WaitForSingleObject(threadpool->wakeup_cond, 250);
             EnterCriticalSection(&threadpool->queue_lock);
-            if (Wait == WAIT_TIMEOUT)
+            if (wait == WAIT_TIMEOUT)
                 continue;
         }
 
@@ -199,7 +199,14 @@ static void threadpool_delete_threads(threadpool_s *threadpool) {
         threadpool->threads = threadpool->threads->next;
         threadpool->num_threads--;
 
-        WaitForSingleObject(thread->handle, INFINITE);
+        // Wait for thread to exit
+        while (true) {
+            // Signal wake up condition to wake up threads to stop
+            SetEvent(threadpool->wakeup_cond);
+            DWORD wait = WaitForSingleObject(thread->handle, 250);
+            if (wait == WAIT_TIMEOUT)
+                continue;
+        }
 
         free(thread);
     }
@@ -235,7 +242,7 @@ void threadpool_wait(void *ctx) {
             (threadpool->stop && threadpool->num_threads != 0)) {
             LeaveCriticalSection(&threadpool->queue_lock);
             // Wait for signal that indicates there is no more work to do
-            WaitForSingleObject(threadpool->lazy_cond, 1000);
+            WaitForSingleObject(threadpool->lazy_cond, 250);
             EnterCriticalSection(&threadpool->queue_lock);
         } else {
             break;
@@ -248,7 +255,7 @@ void *threadpool_create(int32_t min_threads, int32_t max_threads) {
     threadpool_s *threadpool = (threadpool_s *)calloc(1, sizeof(threadpool_s));
     if (!threadpool)
         return NULL;
-    
+
     threadpool->min_threads = min_threads;
     threadpool->max_threads = max_threads;
 
