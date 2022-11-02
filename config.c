@@ -2,8 +2,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "log.h"
 #include "config.h"
 #include "config_i.h"
 #include "config_env.h"
@@ -16,11 +17,16 @@
 #elif defined(_WIN32)
 #include "config_win.h"
 #endif
+#include "log.h"
 #include "util_linux.h"
 
 typedef struct g_proxy_config_s {
     // Proxy config interface
     proxy_config_i_s *proxy_config_i;
+    // Overrides
+    char *auto_config_url;
+    char *proxy;
+    char *bypass_list;
 } g_proxy_config_s;
 
 g_proxy_config_s g_proxy_config;
@@ -32,21 +38,44 @@ bool proxy_config_get_auto_discover(void) {
 }
 
 char *proxy_config_get_auto_config_url(void) {
+    if (g_proxy_config.auto_config_url)
+        return strdup(g_proxy_config.auto_config_url);
     if (!g_proxy_config.proxy_config_i)
         return NULL;
     return g_proxy_config.proxy_config_i->get_auto_config_url();
 }
 
 char *proxy_config_get_proxy(const char *protocol) {
+    if (g_proxy_config.proxy)
+        return strdup(g_proxy_config.proxy);
     if (!g_proxy_config.proxy_config_i)
         return NULL;
     return g_proxy_config.proxy_config_i->get_proxy(protocol);
 }
 
 char *proxy_config_get_bypass_list(void) {
+    if (g_proxy_config.bypass_list)
+        return strdup(g_proxy_config.bypass_list);
     if (!g_proxy_config.proxy_config_i)
         return NULL;
     return g_proxy_config.proxy_config_i->get_bypass_list();
+}
+
+void proxy_config_set_auto_config_url_override(const char *auto_config_url) {
+    if (g_proxy_config.auto_config_url)
+        free(g_proxy_config.auto_config_url);
+    g_proxy_config.auto_config_url = auto_config_url ? strdup(auto_config_url) : NULL;
+}
+
+void proxy_config_set_proxy_override(const char *proxy) {
+    if (g_proxy_config.proxy)
+        free(g_proxy_config.proxy);
+    g_proxy_config.proxy = proxy ? strdup(proxy) : NULL;
+}
+
+void proxy_config_set_bypass_list_override(const char *bypass_list) {
+    free(g_proxy_config.bypass_list);
+    g_proxy_config.bypass_list = bypass_list ? strdup(bypass_list) : NULL;
 }
 
 bool proxy_config_init(void) {
@@ -87,6 +116,9 @@ bool proxy_config_init(void) {
 }
 
 bool proxy_config_uninit(void) {
+    free(g_proxy_config.auto_config_url);
+    free(g_proxy_config.proxy);
+    free(g_proxy_config.bypass_list);
     if (g_proxy_config.proxy_config_i)
         return g_proxy_config.proxy_config_i->uninit();
     return false;
