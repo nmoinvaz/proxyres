@@ -89,7 +89,7 @@ char *proxy_config_gnome2_get_proxy(const char *protocol) {
             if (port == 0)
                 snprintf(proxy, max_proxy, "%s", host);
             else
-                snprintf(proxy, max_proxy, "%s:" PRIu32 "", host, port);
+                snprintf(proxy, max_proxy, "%s:%" PRIu32 "", host, port);
         }
 
         g_proxy_config_gnome2.g_free(host);
