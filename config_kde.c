@@ -16,66 +16,16 @@
 #include "util_linux.h"
 
 typedef struct g_proxy_config_kde_s {
-    // User config file
+    // User's ini config
     char *config;
 } g_proxy_config_kde_s;
 
 g_proxy_config_kde_s g_proxy_config_kde;
 
-enum proxy_type_enum {
-    PROXY_TYPE_NONE,
-    PROXY_TYPE_FIXED,
-    PROXY_TYPE_PAC,
-    PROXY_TYPE_WPAD,
-    PROXY_TYPE_ENV
-};
-
-static char *get_ini_setting(const char *section, const char *key) {
-    int32_t max_config = strlen(g_proxy_config_kde.config);
-    int32_t line_len = 0;
-    const char *line_start = g_proxy_config_kde.config;
-    bool in_section = true;
-
-    // Read config file until we find the section and key
-    do {
-        // Find end of line
-        const char *line_end = strchr(line_start, '\n');
-        if (!line_end)
-            line_end = line_start + strlen(line_start);
-        line_len = (int32_t)(line_end - line_start);
-
-        // Check for the key if we are already in the section
-        if (in_section) {
-            const char *key_start = line_start;
-            const char *key_end = strchr(key_start, '=');
-            if (key_end) {
-                int32_t key_len = (int32_t)(key_end - key_start);
-                if (strncmp(key_start, key, key_len) == 0) {
-                    // Found key, now make a copy of the value
-                    int32_t value_len = line_len - key_len - 1;
-                    if (value_len) {
-                        char *value = (char *)calloc(value_len + 1, sizeof(char));
-                        strncpy(value, key_end + 1, value_len);
-                        value[value_len] = 0;
-                        return value;
-                    }
-                }
-            }
-        }
-
-        // Check to see if we are in the right section
-        if (line_len > 2 && line_start[0] == '[' && line_end[-1] == ']')
-            in_section = strncmp(line_start + 1, section, line_len - 2) == 0;
-
-        // Continue to the next line
-        line_start = line_end + 1;
-    } while (line_start < g_proxy_config_kde.config + max_config);
-
-    return NULL;
-}
+enum proxy_type_enum { PROXY_TYPE_NONE, PROXY_TYPE_FIXED, PROXY_TYPE_PAC, PROXY_TYPE_WPAD, PROXY_TYPE_ENV };
 
 static bool check_proxy_type(int type) {
-    char *proxy_type = get_ini_setting("Proxy Settings", "ProxyType");
+    char *proxy_type = get_config_value(g_proxy_config_kde.config, "Proxy Settings", "ProxyType");
     if (!proxy_type)
         return false;
     bool is_equal = atoi(proxy_type) == type;
@@ -90,7 +40,7 @@ bool proxy_config_kde_get_auto_discover(void) {
 char *proxy_config_kde_get_auto_config_url(void) {
     if (!check_proxy_type(PROXY_TYPE_PAC))
         return NULL;
-    return get_ini_setting("Proxy Settings", "Proxy Config Script");
+    return get_config_value(g_proxy_config_kde.config, "Proxy Settings", "Proxy Config Script");
 }
 
 char *proxy_config_kde_get_proxy(const char *protocol) {
@@ -113,13 +63,13 @@ char *proxy_config_kde_get_proxy(const char *protocol) {
     strncat(key, "Proxy", max_key - protocol_len - 1);
     key[max_key - 1] = 0;
 
-    char *proxy = get_ini_setting("Proxy Settings", key);
+    char *proxy = get_config_value(g_proxy_config_kde.config, "Proxy Settings", key);
     free(key);
     return proxy;
 }
 
 char *proxy_config_kde_get_bypass_list(void) {
-    return get_ini_setting("Proxy Settings", "NoProxyFor");
+    return get_config_value(g_proxy_config_kde.config, "Proxy Settings", "NoProxyFor");
 }
 
 bool proxy_config_kde_init(void) {
