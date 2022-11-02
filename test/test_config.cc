@@ -7,7 +7,6 @@
 
 extern "C" {
 #include "config.h"
-#include "log.h"
 }
 
 TEST(config, override_auto_config_url) {
