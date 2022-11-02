@@ -2,10 +2,17 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "threadpool.h"
+
+#ifdef __linux__
 #include <pthread.h>
 #include <unistd.h>
-
-#include "threadpool_pthread.h"
+#else
+#include <windows.h>
+#define pthread_self() (intptr_t)GetThreadId(NULL)
+#define usleep Sleep
+#endif
 
 static const size_t num_items = 100;
 
@@ -18,7 +25,7 @@ void worker(void *arg)
     printf("tid=%p, old=%d, val=%d\n", pthread_self(), old, *val);
 
     if (*val%2)
-        usleep(100000);
+        usleep(1000);
 }
 
 int main(int argc, char **argv)
@@ -31,7 +38,7 @@ int main(int argc, char **argv)
 
     for (i=0; i<num_items; i++) {
         vals[i] = i;
-        threadpool_queue(tm, vals+i, worker);
+        threadpool_enqueue(tm, vals+i, worker);
     }
 
     threadpool_wait(tm);

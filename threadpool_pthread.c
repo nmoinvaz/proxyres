@@ -239,6 +239,8 @@ void threadpool_wait(void *ctx) {
 
 void *threadpool_create(int32_t min_threads, int32_t max_threads) {
     threadpool_s *threadpool = (threadpool_s *)calloc(1, sizeof(threadpool_s));
+    if (!threadpool)
+        return NULL;
 
     threadpool->min_threads = min_threads;
     threadpool->max_threads = max_threads;
