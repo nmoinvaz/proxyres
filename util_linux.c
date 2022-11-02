@@ -50,3 +50,50 @@ int32_t get_desktop_env(void) {
 
     return DESKTOP_ENV_UNKNOWN;
 }
+
+// Read a value from an ini config file given the section and key
+char *get_config_value(const char *config, const char *section, const char *key) {
+    size_t max_config = strlen(config);
+    int32_t line_len = 0;
+    const char *line_start = config;
+    bool in_section = true;
+
+    // Read ini file until we find the section and key
+    do {
+        // Find end of line
+        const char *line_end = strchr(line_start, '\n');
+        if (!line_end)
+            line_end = line_start + strlen(line_start);
+        line_len = (int32_t)(line_end - line_start);
+
+        // Check for the key if we are already in the section
+        if (in_section) {
+            const char *key_start = line_start;
+            const char *key_end = strchr(key_start, '=');
+            if (key_end) {
+                int32_t key_len = (int32_t)(key_end - key_start);
+                if (strncmp(key_start, key, key_len) == 0) {
+                    // Found key, now make a copy of the value
+                    int32_t value_len = line_len - key_len - 1;
+                    if (value_len >= 0) {
+                        char *value = (char *)calloc(value_len + 1, sizeof(char));
+                        if (value) {
+                            strncpy(value, key_end + 1, value_len);
+                            value[value_len] = 0;
+                        }
+                        return value;
+                    }
+                }
+            }
+        }
+
+        // Check to see if we are in the right section
+        if (line_len > 2 && line_start[0] == '[' && line_end[-1] == ']')
+            in_section = strncmp(line_start + 1, section, line_len - 2) == 0;
+
+        // Continue to the next line
+        line_start = line_end + 1;
+    } while (line_start < config + max_config);
+
+    return NULL;
+}

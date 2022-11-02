@@ -51,6 +51,10 @@ set(TEST_SRCS
     test_main.cc
     test_threadpool.cc
     test_util.cc)
+if(UNIX AND NOT APPLE)
+    list(APPEND TEST_SRCS
+        test_util_linux.cc)
+endif()
 
 add_executable(gtest_proxyres ${TEST_SRCS})
 target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)

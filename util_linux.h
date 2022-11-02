@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 int32_t get_desktop_env(void);
+char *get_config_value(const char *config, const char *section, const char *key);
 
 #ifdef __cplusplus
 }

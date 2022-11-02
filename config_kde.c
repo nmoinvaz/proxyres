@@ -46,6 +46,7 @@ char *proxy_config_kde_get_auto_config_url(void) {
 char *proxy_config_kde_get_proxy(const char *protocol) {
     if (!protocol || !check_proxy_type(PROXY_TYPE_FIXED))
         return NULL;
+    
     // Construct key name to search for in config
     int32_t protocol_len = strlen(protocol);
     int32_t max_key = protocol_len + 8;
