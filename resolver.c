@@ -44,7 +44,7 @@ static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
 
     g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(proxy_resolver->base, proxy_resolver->url);
 
-    LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved with thread_pool = %s\n", proxy_resolver->base,
+    LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved with thread_pool = %s\n", (intptr_t)proxy_resolver->base,
              proxy_resolver_get_list(proxy_resolver) ? proxy_resolver_get_list(proxy_resolver) : "DIRECT");
 
     proxy_resolver->pending = false;
@@ -55,12 +55,12 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
 
-    LOG_INFO("proxy_resolver 0x%" PRIxPTR " - getting proxies for url %s\n", proxy_resolver->base, url);
+    LOG_INFO("proxy_resolver 0x%" PRIxPTR " - getting proxies for url %s\n", (intptr_t)proxy_resolver->base, url);
 
     // Call get_proxies_for_url directly since the underlying interface is asynchronous
     if (g_proxy_resolver.proxy_resolver_i->is_async()) {
         bool ok = g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(ctx, url);
-        LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved = %s\n", proxy_resolver->base,
+        LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved = %s\n", (intptr_t)proxy_resolver->base,
                  proxy_resolver_get_list(proxy_resolver) ? proxy_resolver_get_list(proxy_resolver) : "DIRECT");
         return ok;
     }
