@@ -25,8 +25,9 @@ char *dns_resolve(const char *host, int32_t *error) {
     int32_t err = 0;
 
     if (host == NULL) {
-        if (gethostname(name, sizeof(name)))
-            return NULL;
+        err = gethostname(name, sizeof(name));
+        if (err != 0)
+            goto my_ip_address_error;
     } else {
         strncpy(name, host, sizeof(name));
     }

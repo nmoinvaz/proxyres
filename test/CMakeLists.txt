@@ -47,7 +47,9 @@ if(NOT TARGET GTest::GTest)
 endif()
 
 set(TEST_SRCS
-    test_threadpool.cc)
+    test_main.cc
+    test_threadpool.cc
+    test_util.cc)
 
 add_executable(gtest_proxyres ${TEST_SRCS})
-target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest GTest::Main)
+target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
