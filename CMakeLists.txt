@@ -81,6 +81,9 @@ target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 if(WIN32)
     target_link_libraries(proxyres PRIVATE winhttp ws2_32)
 elseif(APPLE)
+    find_library(CFNETWORK_LIBRARY CFNetwork)
+    target_link_libraries(proxyres PRIVATE ${CFNETWORK_LIBRARY})
+
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     target_link_libraries(proxyres PRIVATE ${COREFOUNDATION_LIBRARY})
 
@@ -89,7 +92,7 @@ elseif(APPLE)
 
     find_package(Threads REQUIRED)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
-    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(proxyres PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
     set_target_properties(proxyres PROPERTIES LINK_FLAGS -Wl,-F/Library/Frameworks)
 elseif(UNIX)
@@ -112,9 +115,9 @@ elseif(UNIX)
 
     find_package(Threads REQUIRED)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
-    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(proxyres PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
-    target_link_libraries(proxyres dl)
+    target_link_libraries(proxyres PRIVATE dl)
 endif()
 
 enable_testing()

@@ -8,6 +8,7 @@
 #include "config.h"
 #include "config_i.h"
 #include "config_mac.h"
+#include "proxyres.h"
 
 static bool get_cf_dictionary_bool(CFDictionaryRef dictionary, CFStringRef key) {
     CFNumberRef item = NULL;
@@ -32,7 +33,7 @@ bool proxy_config_mac_get_auto_discover(void) {
     return auto_discover;
 }
 
-char *proxy_config_get_auto_config_url(void) {
+char *proxy_config_mac_get_auto_config_url(void) {
     char *url = NULL;
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
@@ -61,14 +62,22 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
 
     // Determine the indexes to retrieve from the system proxy settings to get the value
     // for the proxy list we want
-    int32_t enable_index = kCFNetworkProxiesHTTPEnable;
-    int32_t url_index = kCFNetworkProxiesHTTPProxy;
-    int32_t port_index = kCFNetworkProxiesHTTPPort;
+    CFStringRef enable_index = kCFNetworkProxiesHTTPEnable;
+    CFStringRef host_index = kCFNetworkProxiesHTTPProxy;
+    CFStringRef port_index = kCFNetworkProxiesHTTPPort;
 
-    if (strcmp(protocol, "https") == 0) {
+    if (strcasecmp(protocol, "https") == 0) {
         enable_index = kCFNetworkProxiesHTTPSEnable;
-        url_index = kCFNetworkProxiesHTTPSProxy;
+        host_index = kCFNetworkProxiesHTTPSProxy;
         port_index = kCFNetworkProxiesHTTPSPort;
+    } else if (strcasecmp(protocol, "socks") == 0) {
+        enable_index = kCFNetworkProxiesSOCKSEnable;
+        host_index = kCFNetworkProxiesSOCKSProxy;
+        port_index = kCFNetworkProxiesSOCKSPort;
+    } else if (strcasecmp(protocol, "ftp") == 0) {
+        enable_index = kCFNetworkProxiesFTPEnable;
+        host_index = kCFNetworkProxiesFTPProxy;
+        port_index = kCFNetworkProxiesFTPPort;
     }
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
@@ -77,26 +86,24 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
 
     if (get_cf_dictionary_bool(proxy_settings, enable_index) == true) {
         // Get the proxy url associated with the protocol
-        CFStringRef proxy_url = CFDictionaryGetValue(proxy_settings, url_index);
-        if (proxy_url) {
-            const char *proxy_url_p = CFStringGetCStringPtr(proxy_url, kCFStringEncodingUTF8);
-            if (proxy_url_p) {
-                max_proxy = strlen(proxy_url_p) + 32;  // Allow enough room for port number
+        CFStringRef host = CFDictionaryGetValue(proxy_settings, host_index);
+        if (host) {
+            const char *host_p = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
+            if (host_p) {
+                max_proxy = strlen(host_p) + 32;  // Allow enough room for port number
                 proxy = calloc(max_proxy, sizeof(char));
-                strncat(proxy, proxy_url_p, max_proxy);
+                strncat(proxy, host_p, max_proxy);
             }
         }
 
         // Get the proxy port associated with the protocol
-        CFStringRef proxy_port = CFDictionaryGetValue(proxy_settings, port_index);
-        if (proxy_port) {
+        CFNumberRef port = CFDictionaryGetValue(proxy_settings, port_index);
+        if (port) {
             // Append the proxy port to the proxy url
+            int64_t port_number = 0;
+            CFNumberGetValue(port, kCFNumberSInt64Type, &port_number);
             int32_t proxy_len = strlen(proxy);
-            strncat(proxy, ":", max_proxy - proxy_len - 1);
-            proxy_len++;
-            proxy[max_proxy - 1] = 0;
-
-            CFStringGetCString(proxy_port, proxy + proxy_len, max_proxy - proxy_len, kCFStringEncodingUTF8);
+            snprintf(proxy + proxy_len, max_proxy - proxy_len, ":%" PRId64 "", port_number);
         }
     }
 
@@ -112,11 +119,23 @@ char *proxy_config_mac_get_bypass_list(void) {
         return NULL;
 
     // Get proxy bypass list
-    CFStringRef exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
+    CFArrayRef exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
     if (exceptions_list) {
-        const char *exceptions_list_p = CFStringGetCStringPtr(exceptions_list, kCFStringEncodingUTF8);
-        if (exceptions_list_p) {
-            bypass_list = strdup(exceptions_list_p);
+        // Allocate memory to copy exception list
+        int32_t exception_count = CFArrayGetCount(exceptions_list);
+        int32_t max_bypass_list = exception_count * MAX_PROXY_URL + 1;
+        int32_t bypass_list_len = 0;
+
+        bypass_list = (char *)calloc(max_bypass_list, sizeof(char));
+
+        // Enumerate exception array and copy to semi-colon delimited string
+        for (int32_t i = 0; bypass_list && i < exception_count; ++i) {
+            CFStringRef exception = CFArrayGetValueAtIndex(exceptions_list, i);
+            if (exception) {
+                const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);
+                snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s;", exception_utf8);
+                bypass_list_len += strlen(exception_utf8) + 1;
+            }
         }
     }
 

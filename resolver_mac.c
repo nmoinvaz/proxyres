@@ -4,7 +4,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include <Carbon/Carbon.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <CFNetwork/CFNetwork.h>
 
@@ -13,6 +12,9 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_mac.h"
+
+#define PROXY_RESOLVER_RUN_LOOP     CFSTR("proxy_resolver_mac.run_loop")
+#define PROXY_RESOLVER_TIMEOUT_SEC  10
 
 typedef struct g_proxy_resolver_mac_s {
     bool reserved;
@@ -35,22 +37,80 @@ typedef struct proxy_resolver_mac_s {
 static void proxy_resolver_mac_reset(proxy_resolver_mac_s *proxy_resolver) {
     proxy_resolver->pending = false;
     proxy_resolver->error = 0;
-    if (proxy_resolver->list) {
-        free(proxy_resolver->list);
-        proxy_resolver->list = NULL;
-    }
+
+    free(proxy_resolver->list);
+    proxy_resolver->list = NULL;
 }
 
-static void proxy_resolver_mac_auto_config_result_callback(CFUnsafeMutableRawPointer client, CFArray proxy_list,
-                                                           CFError error) {
-    proxy_resolver_mac_s *proxy_resolver;
-    CFStreamClientContext *context = (CFStreamClientContext *)client;
-    if (!context)
-        return;
-    proxy_resolver = (proxy_resolver_mac_s *)context->info;
-    if (!proxy_resolver)
-        return;
+static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArrayRef proxy_array, CFErrorRef error) {
+    proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)client;
+    if (error) {
+        // Get error code
+        proxy_resolver->error = CFErrorGetCode(error);
+    } else {
+        // Convert proxy array into PAC file return format
+        int32_t proxy_count = CFArrayGetCount(proxy_array);
+        int32_t max_list = proxy_count * MAX_PROXY_URL + 1;
+        int32_t list_len = 0;
 
+        proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
+
+        // Enumerate through each proxy in the array
+        for (int32_t i = 0; proxy_resolver->list && i < proxy_count; i++) {
+            CFDictionaryRef proxy = CFArrayGetValueAtIndex(proxy_array, i);
+            CFStringRef proxy_type = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyTypeKey);
+
+            // Copy type of connection
+            if (CFEqual(proxy_type, kCFProxyTypeNone)) {
+                strncat(proxy_resolver->list, "DIRECT", max_list - list_len);
+                list_len += 6;
+            } else if (CFEqual(proxy_type, kCFProxyTypeHTTP)) {
+                strncat(proxy_resolver->list, "HTTP ", max_list - list_len);
+                list_len += 5;
+            } else if (CFEqual(proxy_type, kCFProxyTypeHTTPS)) {
+                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len);
+                list_len += 6;
+            } else if (CFEqual(proxy_type, kCFProxyTypeSOCKS)) {
+                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len);
+                list_len += 6;
+            } else if (CFEqual(proxy_type, kCFProxyTypeFTP)) {
+                strncat(proxy_resolver->list, "FTP ", max_list - list_len);
+                list_len += 4;
+            }
+            proxy_resolver->list[max_list] = 0;
+
+            if (!CFEqual(proxy_type, kCFProxyTypeNone)) {
+                // Copy proxy host
+                CFStringRef host = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyHostNameKey);
+                if (host) {
+                    const char *host_utf8 = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
+                    strncat(proxy_resolver->list, host_utf8, max_list - list_len);
+                    list_len += strlen(host_utf8);
+                    proxy_resolver->list[max_list - 1] = 0;
+                }
+                // Copy proxy port
+                CFNumberRef port = (CFNumberRef)CFDictionaryGetValue(proxy, kCFProxyPortNumberKey);
+                if (port) {
+                    int64_t port_number = 0;
+                    CFNumberGetValue(port, kCFNumberSInt64Type, &port_number);
+                    snprintf(proxy_resolver->list + list_len, max_list - list_len, ":%" PRId64 "", port_number);
+                    list_len = strlen(proxy_resolver->list);
+                }
+            }
+
+            if (i != proxy_count - 1) {
+                // Append semi-colon separator
+                strncat(proxy_resolver->list, ";", max_list - list_len);
+                proxy_resolver->list[max_list - 1] = 0;
+                list_len++;
+            }
+        }
+
+        if (!proxy_resolver->list)
+            proxy_resolver->error = ENOMEM;
+    }
+
+    CFRunLoopStop(CFRunLoopGetCurrent());
     return;
 }
 
@@ -68,35 +128,40 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_mac_reset(proxy_resolver);
 
     proxy = proxy_config_get_proxy(url);
-    if (proxy != NULL) {
+    if (proxy) {
         proxy_resolver->list = proxy;
         goto mac_done;
     }
 
     target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
-    if (target_url_ref == NULL) {
+    if (!target_url_ref) {
         proxy_resolver->error = ENOMEM;
         LOG_ERROR("Unable to create target url reference (%" PRId32 ")\n", proxy_resolver->error);
         goto mac_error;
     }
 
     auto_config_url = proxy_config_get_auto_config_url();
-    if (auto_config_url != NULL) {
+    if (auto_config_url) {
         url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)auto_config_url, strlen(auto_config_url),
                                        kCFStringEncodingUTF8, NULL);
 
-        if (url_ref == NULL) {
+        if (!url_ref) {
             proxy_resolver->error = ENOMEM;
             LOG_ERROR("Unable to create auto config url reference (%" PRId32 ")\n", proxy_resolver->error);
             goto mac_error;
         }
 
         CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
-        CFNetworkExecuteProxyAutoConfigurationURL(url_ref, target_url_ref,
-                                                  proxy_resolver_mac_auto_config_result_callback, &context);
+
+        CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
+            url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
+
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
+        CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
+        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
     }
 
-    goto mac_cleanup;
+    goto mac_done;
 
 mac_error:
 mac_done:
@@ -109,6 +174,7 @@ mac_done:
                                  proxy_resolver->list);
 
 mac_cleanup:
+
     free(proxy);
     free(auto_config_url);
 
@@ -143,7 +209,7 @@ bool proxy_resolver_mac_is_pending(void *ctx) {
     return proxy_resolver->pending;
 }
 
-bool proxy_resolver_mac_is_async(void *ctx) {
+bool proxy_resolver_mac_is_async(void) {
     return false;
 }
 
