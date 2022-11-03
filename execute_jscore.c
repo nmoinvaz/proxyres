@@ -326,7 +326,7 @@ bool proxy_execute_jscoregtk_delete(void **ctx) {
 /*********************************************************************/
 
 bool proxy_execute_jscoregtk_init(void) {
-#if defined(__APPLE__)
+#ifdef __APPLE__
     g_proxy_execute_jscoregtk.module = dlopen("/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
 #else
     g_proxy_execute_jscoregtk.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
