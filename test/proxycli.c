@@ -70,21 +70,25 @@ static void resolve_proxy_for_url(const char *url) {
 }
 #endif
 
-static void resolve_proxy_for_url_async(int argc, char *argv[]) {
+static bool resolve_proxy_for_url_async(int argc, char *argv[]) {
+    bool success = false;
+    int32_t error = 0;
+    
     void **proxy_resolver = (void **)calloc(argc, sizeof(void *));
     if (!proxy_resolver)
-        return;
+        return false;
 
     for (int32_t i = 0; i < argc; i++) {
         // Create each proxy resolver instance
         proxy_resolver[i] = proxy_resolver_create();
         if (!proxy_resolver[i])
-            return;
+            return false;
 
         // Start asynchronous request for proxy resolution
         proxy_resolver_get_proxies_for_url(proxy_resolver[i], argv[i]);
     }
 
+    success = true;
     for (int32_t i = 0; i < argc; i++) {
         printf("Resolving proxy for %s\n", argv[i]);
 
@@ -96,8 +100,15 @@ static void resolve_proxy_for_url_async(int argc, char *argv[]) {
         // Get the proxy list for the url
         const char *list = proxy_resolver_get_list(proxy_resolver[i]);
         printf("  Proxy: %s\n", list ? list : "DIRECT");
+
+        proxy_resolver_get_error(proxy_resolver[i], &error);
+        if (error != 0)
+            success = false;
+
         proxy_resolver_delete(&proxy_resolver[i]);
     }
+    
+    return success;
 }
 
 static bool execute_pac_script(const char *script_path, const char *url) {
@@ -184,7 +195,8 @@ int main(int argc, char *argv[]) {
                 exit_code = 1;
         }
     } else if (strcmp(cmd, "resolve") == 0) {
-        resolve_proxy_for_url_async(argc - 2, argv + 2);
+        if (!resolve_proxy_for_url_async(argc - 2, argv + 2))
+            exit_code = 1;
     }
 
     proxyres_uninit();
