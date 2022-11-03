@@ -98,8 +98,9 @@ elseif(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     target_link_libraries(proxyres PRIVATE ${COREFOUNDATION_LIBRARY})
 
-    find_library(JAVASCRIPTCORE_LIBRARY JavaScriptCore)
-    target_link_libraries(proxyres PRIVATE ${JAVASCRIPTCORE_LIBRARY})
+    #find_library(JAVASCRIPTCORE_LIBRARY JavaScriptCore)
+    # Don't set libraries since we are dynamically linking against them
+    #target_link_libraries(proxyres PRIVATE ${JAVASCRIPTCORE_LIBRARY})
 
     find_package(Threads REQUIRED)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
