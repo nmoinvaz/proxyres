@@ -61,7 +61,7 @@ jobs:
 
     - name: Dump proxy info (Windows)
       if: runner.os == 'Windows'
-      run: netsh winhttp dump
+      run: netsh winhttp show proxy
 
     - name: Run tests
       run: ctest --verbose -C Release
