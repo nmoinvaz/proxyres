@@ -142,7 +142,7 @@ static bool execute_pac_script(const char *script_path, const char *url) {
     // Read PAC script from file
     int32_t bytes_read = read(fd, script, script_len);
     if (bytes_read != script_len) {
-        printf("Failed to read PAC script file %s\n", script_path);
+        printf("Failed to read PAC script file %s (%d != %d)\n", script_path, bytes_read, script_len);
         goto execute_pac_cleanup;
     }
 
