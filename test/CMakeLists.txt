@@ -5,11 +5,11 @@ target_link_libraries(proxycli PRIVATE proxyres)
 add_test(NAME proxycli-config
     COMMAND proxycli config)
 add_test(NAME proxycli-resolve-google
-    COMMAND proxycli resolve
-        https://example1.com/ https://google.com/)
+    COMMAND proxycli resolve https://example1.com/ https://google.com/
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
 add_test(NAME proxycli-execute-google
-    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js
-        https://example1.com/ https://google.com/)
+    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js https://example1.com/ https://google.com/
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
 
 if(NOT TARGET GTest::GTest)
     include(FetchContent)
