@@ -42,11 +42,11 @@ if(WIN32)
 elseif(APPLE)
     list(APPEND PROXYRES_HDRS
         config_mac.h
-        execute_jscoregtk.h
+        execute_jscore.h
         resolver_mac.h)
     list(APPEND PROXYRES_SRCS
         config_mac.c
-        execute_jscoregtk.c
+        execute_jscore.c
         resolver_mac.c
         threadpool_pthread.c)
 elseif(UNIX)
@@ -55,7 +55,7 @@ elseif(UNIX)
         config_gnome2.h
         config_gnome3.h
         config_kde.h
-        execute_jscoregtk.h
+        execute_jscore.h
         resolver_gnome3.h
         util_linux.h)
     list(APPEND PROXYRES_SRCS
@@ -63,7 +63,7 @@ elseif(UNIX)
         config_gnome2.c
         config_gnome3.c
         config_kde.c
-        execute_jscoregtk.c
+        execute_jscore.c
         resolver_gnome3.c
         threadpool_pthread.c
         util_linux.c)
