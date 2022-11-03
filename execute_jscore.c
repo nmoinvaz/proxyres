@@ -108,10 +108,7 @@ JSStringRef js_object_get_string_property(JSContextRef ctx, JSObjectRef object, 
 }
 
 static void js_print_exception(JSContextRef ctx, JSValueRef exception) {
-    JSStringRef MessageString = NULL;
     bool printed = false;
-    char *Message = NULL;
-    int Line = 0;
 
     if (!exception)
         return;
@@ -198,20 +195,20 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     bool success = false;
 
     if (!proxy_execute)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
 
     global = g_proxy_execute_jscore.JSGlobalContextCreate(NULL);
     if (!global)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
 
     // Register dnsResolve C function
     function_name = g_proxy_execute_jscore.JSStringCreateWithUTF8CString("dnsResolve");
     if (!function_name)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
                                                                           proxy_execute_jscore_dns_resolve);
     if (!function)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
                                                   function_name, function, kJSPropertyAttributeNone, NULL);
@@ -221,11 +218,11 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     // Register myIpAddress C function
     function_name = g_proxy_execute_jscore.JSStringCreateWithUTF8CString("myIpAddress");
     if (!function_name)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
                                                                           proxy_execute_jscore_my_ip_address);
     if (!function)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
                                                   function_name, function, kJSPropertyAttributeNone, NULL);
@@ -235,12 +232,12 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
     JSStringRef utils_javascript = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(MOZILLA_PAC_JAVASCRIPT);
     if (!utils_javascript)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     g_proxy_execute_jscore.JSEvaluateScript(global, utils_javascript, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(utils_javascript);
     if (exception) {
         js_print_exception(global, exception);
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     }
 
     // Load PAC script
@@ -249,7 +246,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     g_proxy_execute_jscore.JSStringRelease(script_string);
     if (exception) {
         js_print_exception(global, exception);
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     }
 
     // Construct the call FindProxyForURL
@@ -260,17 +257,17 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     // Execute the call to FindProxyForURL
     JSStringRef find_proxy_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(find_proxy);
     if (!find_proxy_string)
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     JSValueRef proxy_value =
         g_proxy_execute_jscore.JSEvaluateScript(global, find_proxy_string, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(find_proxy_string);
     if (exception) {
         js_print_exception(global, exception);
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
     }
 
     if (!g_proxy_execute_jscore.JSValueIsString(global, proxy_value))
-        goto jscoregtk_execute_error;
+        goto jscoregtk_execute_cleanup;
 
     // Get the result of the call to FindProxyForURL
     JSStringRef proxy_string = g_proxy_execute_jscore.JSValueToStringCopy(global, proxy_value, NULL);
@@ -281,7 +278,6 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
 
     success = true;
 
-jscoregtk_execute_error:
 jscoregtk_execute_cleanup:
 
     if (function_name)

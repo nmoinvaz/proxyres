@@ -48,6 +48,7 @@ static void print_proxy_config(void) {
     }
 }
 
+#if 0
 static void resolve_proxy_for_url(const char *url) {
     void *proxy_resolver = proxy_resolver_create();
     if (!proxy_resolver)
@@ -67,6 +68,7 @@ static void resolve_proxy_for_url(const char *url) {
     }
     proxy_resolver_delete(&proxy_resolver);
 }
+#endif
 
 static void resolve_proxy_for_url_async(int argc, char *argv[]) {
     void **proxy_resolver = (void **)calloc(argc, sizeof(void *));
@@ -100,14 +102,15 @@ static void resolve_proxy_for_url_async(int argc, char *argv[]) {
 
 static bool execute_pac_script(const char *script_path, const char *url) {
     bool success = false;
-
+    char *script = NULL;
+    
     printf("Executing PAC script %s for %s\n", script_path, url);
 
     // Open PAC script file
     int fd = open(script_path, O_RDONLY);
     if (fd < 0) {
         printf("Failed to open PAC script file %s\n", script_path);
-        goto execute_pac_error;
+        goto execute_pac_cleanup;
     }
 
     // Get length of PAC script
@@ -115,21 +118,21 @@ static bool execute_pac_script(const char *script_path, const char *url) {
     lseek(fd, 0, SEEK_SET);
     if (script_len < 0) {
         printf("Failed to get length of PAC script file %s\n", script_path);
-        goto execute_pac_error;
+        goto execute_pac_cleanup;
     }
 
     // Allocate memory for PAC script
-    char *script = (char *)calloc(script_len + 1, sizeof(char));
+    script = (char *)calloc(script_len + 1, sizeof(char));
     if (!script) {
         printf("Failed to allocate memory for PAC script\n");
-        goto execute_pac_error;
+        goto execute_pac_cleanup;
     }
 
     // Read PAC script from file
     int32_t bytes_read = read(fd, script, script_len);
     if (bytes_read != script_len) {
         printf("Failed to read PAC script file %s\n", script_path);
-        goto execute_pac_error;
+        goto execute_pac_cleanup;
     }
 
     script[bytes_read] = 0;
@@ -145,7 +148,6 @@ static bool execute_pac_script(const char *script_path, const char *url) {
 
     success = true;
 
-execute_pac_error:
 execute_pac_cleanup:
 
     close(fd);

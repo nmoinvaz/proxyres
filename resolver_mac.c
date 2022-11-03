@@ -120,7 +120,6 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     CFURLRef url_ref = NULL;
     char *proxy = NULL;
     char *auto_config_url = NULL;
-    bool is_ok = false;
 
     if (!proxy_resolver || !url)
         return false;
@@ -172,8 +171,6 @@ mac_done:
     if (proxy_resolver->callback)
         proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
                                  proxy_resolver->list);
-
-mac_cleanup:
 
     free(proxy);
     free(auto_config_url);
