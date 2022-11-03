@@ -59,3 +59,6 @@ endif()
 
 add_executable(gtest_proxyres ${TEST_SRCS})
 target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
+
+add_test(NAME gtest_proxyres
+    COMMAND gtest_proxyres)
