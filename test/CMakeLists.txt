@@ -7,11 +7,9 @@ add_test(NAME proxycli-help
 add_test(NAME proxycli-config
     COMMAND proxycli config)
 add_test(NAME proxycli-resolve-google
-    COMMAND proxycli resolve https://example1.com/ https://google.com/
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
+    COMMAND proxycli resolve https://example1.com/ https://google.com/)
 add_test(NAME proxycli-execute-google
-    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js https://example1.com/ https://google.com/
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
+    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js https://example1.com/ https://google.com/)
 
 if(NOT TARGET GTest::GTest)
     include(FetchContent)
@@ -68,14 +66,22 @@ add_test(NAME gtest_proxyres
 if(WIN32)
     # Windows 11 or greater no longer supports PAC script execution in wininet
     if(CMAKE_HOST_SYSTEM_VERSION GREATER_EQUAL 10.0.22000)
-        file(TO_NATIVE_PATH $<SHELL_PATH:${CMAKE_CURRENT_SOURCE_DIR}/jsproxy.dll> SOURCE_JS_PROXY_DLL)
+        if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+            file(TO_NATIVE_PATH
+                $<SHELL_PATH:${CMAKE_CURRENT_SOURCE_DIR}/jsproxy32.dll> SOURCE_JS_PROXY_DLL)
+        else()
+            file(TO_NATIVE_PATH
+                $<SHELL_PATH:${CMAKE_CURRENT_SOURCE_DIR}/jsproxy64.dll> SOURCE_JS_PROXY_DLL)
+        endif()
 
-        file(TO_NATIVE_PATH $<SHELL_PATH:$<TARGET_FILE_DIR:proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
+        file(TO_NATIVE_PATH
+            $<SHELL_PATH:$<TARGET_FILE_DIR:proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
         add_custom_command(TARGET proxycli POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE_JS_PROXY_DLL} ${TARGET_JS_PROXY_DLL}
             COMMENT "Copying jsproxy.dll to build directory")
 
-        file(TO_NATIVE_PATH $<SHELL_PATH:$<TARGET_FILE_DIR:gtest_proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
+        file(TO_NATIVE_PATH
+            $<SHELL_PATH:$<TARGET_FILE_DIR:gtest_proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
         add_custom_command(TARGET gtest_proxyres POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE_JS_PROXY_DLL} ${TARGET_JS_PROXY_DLL}
             COMMENT "Copying jsproxy.dll to build directory")
