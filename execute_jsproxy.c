@@ -27,8 +27,7 @@ typedef struct proxy_execute_jsproxy_s {
     int32_t error;
     // Proxy list
     char *list;
-}
-proxy_execute_jsproxy_s;
+} proxy_execute_jsproxy_s;
 
 DWORD CALLBACK proxy_execute_jsproxy_dns_resolve(LPSTR host, LPSTR ip, LPDWORD ip_size) {
     char *address = dns_resolve(host, NULL);
@@ -92,7 +91,8 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     bool success = false;
 
     if (!g_proxy_execute_jsproxy.InternetInitializeAutoProxyDll(0, 0, 0, &ap_helpers, &ap_script)) {
-        LOG_ERROR("Failed to execute InternetInitializeAutoProxyDll (%d)\n", GetLastError());
+        proxy_execute_jsproxy->error = GetLastError();
+        LOG_ERROR("Failed to execute InternetInitializeAutoProxyDll (%d)\n", proxy_execute_jsproxy->error);
         return false;
     }
 
@@ -101,11 +101,15 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     if (!host)
         return false;
 
-    success =
-        g_proxy_execute_jsproxy.InternetGetProxyInfo(url, (DWORD)strlen(url) + 1, host, (DWORD)strlen(host) + 1, &proxy, &proxy_len);
+    success = g_proxy_execute_jsproxy.InternetGetProxyInfo(url, (DWORD)strlen(url) + 1, host, (DWORD)strlen(host) + 1,
+                                                           &proxy, &proxy_len);
+    if (!success) {
+        proxy_execute_jsproxy->error = GetLastError();
+        LOG_ERROR("Failed to execute InternetGetProxyInfo (%d)\n", proxy_execute_jsproxy->error);
+    }
+
     free(host);
 
-    proxy_execute_jsproxy->error = GetLastError();
     proxy_execute_jsproxy->list = success ? strdup(proxy) : NULL;
 
     if (proxy)
@@ -127,8 +131,7 @@ bool proxy_execute_jsproxy_get_error(void *ctx, int32_t *error) {
 }
 
 void *proxy_execute_jsproxy_create(void) {
-    proxy_execute_jsproxy_s *proxy_execute =
-        (proxy_execute_jsproxy_s *)calloc(1, sizeof(proxy_execute_jsproxy_s));
+    proxy_execute_jsproxy_s *proxy_execute = (proxy_execute_jsproxy_s *)calloc(1, sizeof(proxy_execute_jsproxy_s));
     return proxy_execute;
 }
 
