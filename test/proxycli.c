@@ -12,9 +12,11 @@
 #ifdef _WIN32
 #include <io.h>
 #include <windows.h>
+#define O_BINARY _O_BINARY
 #define usleep Sleep
 #else
 #include <unistd.h>
+#define O_BINARY 0
 #endif
 
 static void print_proxy_config(void) {
@@ -118,7 +120,7 @@ static bool execute_pac_script(const char *script_path, const char *url) {
     printf("Executing PAC script %s for %s\n", script_path, url);
 
     // Open PAC script file
-    int fd = open(script_path, O_RDONLY);
+    int fd = open(script_path, O_RDONLY | O_BINARY);
     if (fd < 0) {
         printf("Failed to open PAC script file %s\n", script_path);
         goto execute_pac_cleanup;
@@ -126,7 +128,6 @@ static bool execute_pac_script(const char *script_path, const char *url) {
 
     // Get length of PAC script
     int32_t script_len = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
     if (script_len < 0) {
         printf("Failed to get length of PAC script file %s\n", script_path);
         goto execute_pac_cleanup;
@@ -140,6 +141,7 @@ static bool execute_pac_script(const char *script_path, const char *url) {
     }
 
     // Read PAC script from file
+    lseek(fd, 0, SEEK_SET);
     int32_t bytes_read = read(fd, script, script_len);
     if (bytes_read != script_len) {
         printf("Failed to read PAC script file %s (%d != %d)\n", script_path, bytes_read, script_len);
