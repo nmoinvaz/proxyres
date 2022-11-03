@@ -59,7 +59,7 @@ static bool threadpool_job_delete(threadpool_job_s **job) {
 }
 
 static bool threadpool_enqueue_job(threadpool_s *threadpool, threadpool_job_s *job) {
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - enqueue\n", job);
+    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - enqueue\n", (intptr_t)job);
 
     // Add job to the end of the queue
     if (!threadpool->queue_last) {
@@ -84,7 +84,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
         threadpool->queue_last = NULL;
     threadpool->queue_count--;
 
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - dequeue\n", job);
+    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - dequeue\n", (intptr_t)job);
     return job;
 }
 
