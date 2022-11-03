@@ -51,6 +51,18 @@ jobs:
     - name: Build project
       run: cmake --build build --config Release
 
+    - name: Dump proxy info (Ubuntu)
+      if: runner.os == 'Linux'
+      run: env | grep -i proxy
+
+    - name: Dump proxy info (macOS)
+      if: runner.os == 'macOS'
+      run: scutil --proxy
+
+    - name: Dump proxy info (Windows)
+      if: runner.os == 'Windows'
+      run: netsh winhttp dump
+
     - name: Run tests
       run: ctest --verbose -C Release
       working-directory: build
