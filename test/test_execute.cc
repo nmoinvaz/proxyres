@@ -18,7 +18,7 @@ struct execute_param {
     }
 };
 
-constexpr char *script = R"(
+static const char *script = R"(
 function FindProxyForURL(url, host) {
   if (host == "127.0.0.1") {
     return "PROXY localhost:30";
