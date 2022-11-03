@@ -62,3 +62,18 @@ target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
 
 add_test(NAME gtest_proxyres
     COMMAND gtest_proxyres)
+
+# Windows 11 or greater no longer supports PAC script execution in wininet
+if(CMAKE_HOST_SYSTEM_VERSION GREATER_EQUAL 10.0.22000)
+    file(TO_NATIVE_PATH $<SHELL_PATH:${CMAKE_CURRENT_SOURCE_DIR}/jsproxy.dll> SOURCE_JS_PROXY_DLL)
+
+    file(TO_NATIVE_PATH $<SHELL_PATH:$<TARGET_FILE_DIR:proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
+    add_custom_command(TARGET proxycli POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE_JS_PROXY_DLL} ${TARGET_JS_PROXY_DLL}
+        COMMENT "Copying jsproxy.dll to build directory")
+
+    file(TO_NATIVE_PATH $<SHELL_PATH:$<TARGET_FILE_DIR:gtest_proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
+    add_custom_command(TARGET gtest_proxyres POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE_JS_PROXY_DLL} ${TARGET_JS_PROXY_DLL}
+        COMMENT "Copying jsproxy.dll to build directory")
+endif()
