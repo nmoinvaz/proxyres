@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "util.h"
+#include "util_linux.h"
 }
 
 struct get_config_value_param {
@@ -19,7 +19,7 @@ struct get_config_value_param {
     }
 };
 
-constexpr char *config = R"(
+static const char *config = R"(
 [Notification Messages]
 WarnOnLeaveSSLMode=false
 
