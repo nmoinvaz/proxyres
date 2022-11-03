@@ -134,8 +134,10 @@ char *proxy_config_mac_get_bypass_list(void) {
             CFStringRef exception = CFArrayGetValueAtIndex(exceptions_list, i);
             if (exception) {
                 const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);
-                snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s;", exception_utf8);
-                bypass_list_len += strlen(exception_utf8) + 1;
+                if (exception_utf8) {
+                    snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s;", exception_utf8);
+                    bypass_list_len += strlen(exception_utf8) + 1;
+                }
             }
         }
     }
