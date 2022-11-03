@@ -186,7 +186,9 @@ int main(int argc, char *argv[]) {
     proxyres_init();
 
     const char *cmd = argv[1];
-    if (strcmp(cmd, "config") == 0) {
+    if (strcmp(cmd, "help") == 0) {
+        print_help();
+    } else if (strcmp(cmd, "config") == 0) {
         print_proxy_config();
     } else if (strcmp(cmd, "execute") == 0) {
         if (argc <= 3)
