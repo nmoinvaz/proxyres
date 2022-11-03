@@ -93,12 +93,13 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
                 max_proxy = strlen(host_p) + 32;  // Allow enough room for port number
                 proxy = calloc(max_proxy, sizeof(char));
                 strncat(proxy, host_p, max_proxy);
+                proxy[max_proxy - 1] = 0;
             }
         }
 
         // Get the proxy port associated with the protocol
         CFNumberRef port = CFDictionaryGetValue(proxy_settings, port_index);
-        if (port) {
+        if (proxy && port) {
             // Append the proxy port to the proxy url
             int64_t port_number = 0;
             CFNumberGetValue(port, kCFNumberSInt64Type, &port_number);
