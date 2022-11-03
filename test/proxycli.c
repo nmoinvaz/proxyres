@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "log.h"
 #include "proxyres.h"
 
 #ifdef _WIN32
@@ -104,8 +105,10 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[]) {
         printf("  Proxy: %s\n", list ? list : "DIRECT");
 
         proxy_resolver_get_error(proxy_resolver[i], &error);
-        if (error != 0)
+        if (error != 0) {
+            LOG_ERROR("Unable to resolve proxy (%d)\n", error);
             success = false;
+        }
 
         proxy_resolver_delete(&proxy_resolver[i]);
     }
