@@ -66,11 +66,11 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
-    if (ie_config.lpszProxy != NULL) {
+    if (ie_config.lpszProxy) {
         // Use explicit proxy list
         proxy_info.lpszProxy = ie_config.lpszProxy;
         goto winxp_done;
-    } else if (ie_config.lpszAutoConfigUrl != NULL) {
+    } else if (ie_config.lpszAutoConfigUrl) {
         // Use auto configuration script
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = ie_config.lpszAutoConfigUrl;
@@ -98,7 +98,15 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
             is_ok = WinHttpGetProxyForUrl(g_proxy_resolver_winxp.session, url_wide, &options, &proxy_info);
         }
         if (!is_ok) {
-            proxy_resolver->error = GetLastError();
+            int32_t error = GetLastError();
+
+            // Failed to detect proxy auto configuration url so use DIRECT connection
+            if (error == ERROR_WINHTTP_AUTODETECTION_FAILED) {
+                LOG_DEBUG("Proxy resolution returned code (%d)\n", error);
+                goto winxp_done;
+            }
+
+            proxy_resolver->error = error;
             goto winxp_error;
         }
     }

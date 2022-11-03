@@ -68,8 +68,15 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
 
     if (InternetStatus == WINHTTP_CALLBACK_FLAG_REQUEST_ERROR) {
         WINHTTP_ASYNC_RESULT *async_result = (WINHTTP_ASYNC_RESULT *)StatusInformation;
+
+        // Failed to detect proxy auto configuration url so use DIRECT connection
+        if (async_result->dwError == ERROR_WINHTTP_AUTODETECTION_FAILED) {
+            LOG_DEBUG("Proxy resolution returned code (%d)\n", async_result->dwError);
+            goto win8_complete;
+        }
+
         proxy_resolver->error = async_result->dwError;
-        LOG_ERROR("Unable to retrieve proxy configuration (%" PRId32 ")\n", proxy_resolver->error);
+        LOG_ERROR("Unable to resolve proxy for url (%" PRId32 ")\n", proxy_resolver->error);
         goto win8_complete;
     }
 
@@ -180,11 +187,11 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
-    if (ie_config.lpszProxy != NULL) {
+    if (ie_config.lpszProxy) {
         // Use explicit proxy list
         proxy_info.lpszProxy = ie_config.lpszProxy;
         goto win8_done;
-    } else if (ie_config.lpszAutoConfigUrl != NULL) {
+    } else if (ie_config.lpszAutoConfigUrl) {
         // Use auto configuration script
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = ie_config.lpszAutoConfigUrl;
