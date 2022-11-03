@@ -30,9 +30,15 @@ Execute Proxy Auto-Configuration (PAC) files containing the JavasScript function
 
 Use CMake to generate project and solution files for your environment:
 
-```
+```bash
 cmake -S . -B build
 cmake --build build
+```
+
+To run CMake tests use the following command:
+
+```bash
+ctest --verbose -C Debug
 ```
 
 ## History & Motivation
@@ -41,8 +47,5 @@ The code in this library started many years ago as part of a custom HTTP/HTTPS s
 
 ## Todo
 
-* Multi-threaded proxy resolver
-* Support for macOS
-* Unit tests with Google Test
 * Test integration
 * Resolver from scratch with WPAD and DHCP
