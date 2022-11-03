@@ -20,34 +20,52 @@
 #define O_BINARY 0
 #endif
 
-static void print_proxy_config(void) {
-    printf("Proxy configuration\n");
+static void print_proxy_config(int32_t option_count, char *options[]) {
+    if (!option_count)
+        printf("Proxy configuration\n");
 
-    bool auto_discover = proxy_config_get_auto_discover();
-    printf("  Auto discover: %s\n", auto_discover ? "enabled" : "disabled");
-
-    char *auto_config_url = proxy_config_get_auto_config_url();
-    if (auto_config_url) {
-        printf("  Auto config url: %s\n", auto_config_url);
-        free(auto_config_url);
-    } else {
-        printf("  Auto config url: not set\n");
+    if (!option_count || strcmp(*options, "auto_discover") == 0) {
+        if (!option_count)
+            printf("  Auto discover: ");
+        bool auto_discover = proxy_config_get_auto_discover();
+        printf("%s\n", auto_discover ? "enabled" : "disabled");
     }
 
-    char *proxy = proxy_config_get_proxy("http");
-    if (proxy) {
-        printf("  Proxy: %s\n", proxy);
-        free(proxy);
-    } else {
-        printf("  Proxy: not set\n");
+    if (!option_count || strcmp(*options, "auto_config_url") == 0) {
+        if (!option_count)
+            printf("  Auto config url: ");
+        char *auto_config_url = proxy_config_get_auto_config_url();
+        if (auto_config_url) {
+            printf("%s\n", auto_config_url);
+            free(auto_config_url);
+        } else {
+            printf("not set\n");
+        }
     }
 
-    char *bypass_list = proxy_config_get_bypass_list();
-    if (bypass_list) {
-        printf("  Proxy bypass: %s\n", bypass_list);
-        free(bypass_list);
-    } else {
-        printf("  Proxy bypass: not set\n");
+    if (!option_count || strcmp(*options, "proxy") == 0) {
+        if (!option_count)
+            printf("  Proxy: ");
+        const char *protocol = option_count > 1 ? options[1] : "http";
+        char *proxy = proxy_config_get_proxy(protocol);
+        if (proxy) {
+            printf("%s\n", proxy);
+            free(proxy);
+        } else {
+            printf("not set\n");
+        }
+    }
+
+    if (!option_count || strcmp(*options, "bypass_list") == 0) {
+        if (!option_count)
+            printf("  Proxy bypass: ");
+        char *bypass_list = proxy_config_get_bypass_list();
+        if (bypass_list) {
+            printf("%s\n", bypass_list);
+            free(bypass_list);
+        } else {
+            printf("not set\n");
+        }
     }
 }
 
@@ -192,7 +210,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(cmd, "help") == 0) {
         print_help();
     } else if (strcmp(cmd, "config") == 0) {
-        print_proxy_config();
+        print_proxy_config(argc - 2, argv + 2);
     } else if (strcmp(cmd, "execute") == 0) {
         if (argc <= 3)
             return print_help();
