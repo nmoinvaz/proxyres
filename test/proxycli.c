@@ -98,14 +98,16 @@ static void resolve_proxy_for_url_async(int argc, char *argv[]) {
     }
 }
 
-static void execute_pac_script(const char *script_path, const char *url) {
+static bool execute_pac_script(const char *script_path, const char *url) {
+    bool success = false;
+
     printf("Executing PAC script %s for %s\n", script_path, url);
 
     // Open PAC script file
     int fd = open(script_path, O_RDONLY);
     if (fd < 0) {
         printf("Failed to open PAC script file %s\n", script_path);
-        return;
+        goto execute_pac_error;
     }
 
     // Get length of PAC script
@@ -113,21 +115,21 @@ static void execute_pac_script(const char *script_path, const char *url) {
     lseek(fd, 0, SEEK_SET);
     if (script_len < 0) {
         printf("Failed to get length of PAC script file %s\n", script_path);
-        goto execute_pac_cleanup;
+        goto execute_pac_error;
     }
 
     // Allocate memory for PAC script
     char *script = (char *)calloc(script_len + 1, sizeof(char));
     if (!script) {
         printf("Failed to allocate memory for PAC script\n");
-        goto execute_pac_cleanup;
+        goto execute_pac_error;
     }
 
     // Read PAC script from file
     int32_t bytes_read = read(fd, script, script_len);
     if (bytes_read != script_len) {
         printf("Failed to read PAC script file %s\n", script_path);
-        goto execute_pac_cleanup;
+        goto execute_pac_error;
     }
 
     script[bytes_read] = 0;
@@ -141,10 +143,15 @@ static void execute_pac_script(const char *script_path, const char *url) {
         proxy_execute_delete(&proxy_execute);
     }
 
+    success = true;
+
+execute_pac_error:
 execute_pac_cleanup:
 
     close(fd);
     free(script);
+
+    return success;
 }
 
 static int print_help(void) {
@@ -156,6 +163,8 @@ static int print_help(void) {
 }
 
 int main(int argc, char *argv[]) {
+    int exit_code = 0;
+
     if (argc <= 1)
         return print_help();
 
@@ -167,11 +176,15 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(cmd, "execute") == 0) {
         if (argc <= 3)
             return print_help();
-        for (int i = 3; i < argc; i++)
-            execute_pac_script(argv[2], argv[i]);
+
+        for (int32_t i = 3; i < argc; i++) {
+            if (!execute_pac_script(argv[2], argv[i]))
+                exit_code = 1;
+        }
     } else if (strcmp(cmd, "resolve") == 0) {
         resolve_proxy_for_url_async(argc - 2, argv + 2);
     }
+
     proxyres_uninit();
-    return 0;
+    return exit_code;
 }
