@@ -57,7 +57,7 @@ TEST_P(execute, get_proxies_for_url) {
         EXPECT_TRUE(proxy_execute_get_proxies_for_url(proxy_execute, script, param.url));
         EXPECT_TRUE(proxy_execute_get_error(proxy_execute, &error));
         EXPECT_EQ(error, 0);
-        char *list = proxy_execute_get_list(proxy_execute);
+        const char *list = proxy_execute_get_list(proxy_execute);
         EXPECT_NE(list, nullptr);
         if (list)
             EXPECT_STREQ(list, param.expected);
