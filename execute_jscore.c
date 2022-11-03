@@ -301,7 +301,9 @@ const char *proxy_execute_jscore_get_list(void *ctx) {
 }
 
 bool proxy_execute_jscore_get_error(void *ctx, int32_t *error) {
-    return false;
+    proxy_execute_jscore_s *proxy_execute = (proxy_execute_jscore_s *)ctx;
+    *error = proxy_execute->error;
+    return true;
 }
 
 void *proxy_execute_jscore_create(void) {
