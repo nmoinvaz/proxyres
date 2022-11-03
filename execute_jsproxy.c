@@ -149,7 +149,7 @@ bool proxy_execute_jsproxy_delete(void **ctx) {
 }
 
 bool proxy_execute_jsproxy_init(void) {
-    g_proxy_execute_jsproxy.module = LoadLibrary("jsproxy.dll");
+    g_proxy_execute_jsproxy.module = LoadLibraryW(L"jsproxy.dll");
     if (!g_proxy_execute_jsproxy.module)
         return false;
 
