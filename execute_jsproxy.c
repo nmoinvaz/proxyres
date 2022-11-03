@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <windows.h>
 #include <wininet.h>
@@ -7,6 +8,7 @@
 
 #include "execute.h"
 #include "execute_jsproxy.h"
+#include "log.h"
 #include "util.h"
 
 typedef struct g_proxy_execute_jsproxy_s {
@@ -74,10 +76,10 @@ BOOL CALLBACK proxy_execute_jsproxy_is_in_net(LPSTR ip, LPSTR target, LPSTR mask
 
 bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, const char *url) {
     proxy_execute_jsproxy_s *proxy_execute_jsproxy = (proxy_execute_jsproxy_s *)ctx;
-    AutoProxyHelperVtbl ap_table = {&proxy_execute_jsproxy_is_resolvable,
-                                    &proxy_execute_jsproxy_my_ip_address,
-                                    &proxy_execute_jsproxy_dns_resolve,
-                                    &proxy_execute_jsproxy_is_in_net,
+    AutoProxyHelperVtbl ap_table = {proxy_execute_jsproxy_is_resolvable,
+                                    proxy_execute_jsproxy_my_ip_address,
+                                    proxy_execute_jsproxy_dns_resolve,
+                                    proxy_execute_jsproxy_is_in_net,
                                     NULL,
                                     NULL,
                                     NULL,
@@ -89,8 +91,10 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     char *proxy = NULL;
     bool success = false;
 
-    if (g_proxy_execute_jsproxy.InternetInitializeAutoProxyDll(0, 0, 0, &ap_helpers, &ap_script) == false)
+    if (!g_proxy_execute_jsproxy.InternetInitializeAutoProxyDll(0, 0, 0, &ap_helpers, &ap_script)) {
+        LOG_ERROR("Failed to execute InternetInitializeAutoProxyDll (%d)\n", GetLastError());
         return false;
+    }
 
     // Don't include port in FindProxyForURL function
     char *host = parse_url_host(url);
