@@ -99,7 +99,7 @@ elseif(UNIX)
     find_package(PkgConfig REQUIRED)
 
     pkg_check_modules(deps REQUIRED IMPORTED_TARGET glib-2.0)
-    target_link_libraries(proxyres PkgConfig::deps)
+    target_link_libraries(proxyres PRIVATE PkgConfig::deps)
 
     pkg_check_modules(GConf REQUIRED gconf-2.0)
     # Don't set libraries since we are dynamically linking against them
