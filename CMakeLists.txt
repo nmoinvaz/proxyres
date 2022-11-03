@@ -42,9 +42,11 @@ if(WIN32)
 elseif(APPLE)
     list(APPEND PROXYRES_HDRS
         config_mac.h
+        execute_jscoregtk.h
         resolver_mac.h)
     list(APPEND PROXYRES_SRCS
         config_mac.c
+        execute_jscoregtk.c
         resolver_mac.c
         threadpool_pthread.c)
 elseif(UNIX)

@@ -111,7 +111,7 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     return success;
 }
 
-char *proxy_execute_jsproxy_get_list(void *ctx) {
+const char *proxy_execute_jsproxy_get_list(void *ctx) {
     proxy_execute_jsproxy_s *proxy_execute = (proxy_execute_jsproxy_s *)ctx;
     return proxy_execute->list;
 }

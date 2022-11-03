@@ -99,8 +99,6 @@ static void resolve_proxy_for_url_async(int argc, char *argv[]) {
 }
 
 static void execute_pac_script(const char *script_path, const char *url) {
-    void *proxy_execute;
-
     printf("Executing PAC script %s for %s\n", script_path, url);
 
     // Open PAC script file
@@ -134,10 +132,10 @@ static void execute_pac_script(const char *script_path, const char *url) {
 
     script[bytes_read] = 0;
 
-    proxy_execute = proxy_execute_create();
+    void *proxy_execute = proxy_execute_create();
     if (proxy_execute) {
         if (proxy_execute_get_proxies_for_url(proxy_execute, script, url)) {
-            char *list = proxy_execute_get_list(proxy_execute);
+            const char *list = proxy_execute_get_list(proxy_execute);
             printf("  Proxy: %s\n", list ? list : "DIRECT");
         }
         proxy_execute_delete(&proxy_execute);

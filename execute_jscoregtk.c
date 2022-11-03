@@ -197,6 +197,9 @@ bool proxy_execute_jscoregtk_get_proxies_for_url(void *ctx, const char *script, 
     char find_proxy[4096];
     bool success = false;
 
+    if (!proxy_execute)
+        goto jscoregtk_execute_error;
+
     global = g_proxy_execute_jscoregtk.JSGlobalContextCreate(NULL);
     if (!global)
         goto jscoregtk_execute_error;
@@ -292,7 +295,7 @@ jscoregtk_execute_cleanup:
     return success;
 }
 
-char *proxy_execute_jscoregtk_get_list(void *ctx) {
+const char *proxy_execute_jscoregtk_get_list(void *ctx) {
     proxy_execute_jscoregtk_s *proxy_execute = (proxy_execute_jscoregtk_s *)ctx;
     return proxy_execute->list;
 }
@@ -323,11 +326,15 @@ bool proxy_execute_jscoregtk_delete(void **ctx) {
 /*********************************************************************/
 
 bool proxy_execute_jscoregtk_init(void) {
+#if defined(__APPLE__)
+    g_proxy_execute_jscoregtk.module = dlopen("/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
+#else
     g_proxy_execute_jscoregtk.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
     if (g_proxy_execute_jscoregtk.module == NULL)
         g_proxy_execute_jscoregtk.module = dlopen("libjavascriptcoregtk-3.0.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (g_proxy_execute_jscoregtk.module == NULL)
         g_proxy_execute_jscoregtk.module = dlopen("libjavascriptcoregtk-1.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+#endif
 
     if (!g_proxy_execute_jscoregtk.module)
         return false;
