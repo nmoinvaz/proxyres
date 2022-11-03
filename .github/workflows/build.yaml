@@ -14,11 +14,13 @@ jobs:
           - name: Build - macOS Xcode
             runs-on: macos-latest
             compiler: clang
+            cxx-compiler: clang++
             cmake-args: -G Xcode
 
           - name: Build - Ubuntu Clang
             runs-on: ubuntu-latest
             compiler: clang
+            cxx-compiler: clang++
             cmake-args: -G Ninja
 
           - name: Build - Windows Win32
@@ -44,6 +46,7 @@ jobs:
       run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=OFF
       env:
         CC: ${{ matrix.compiler }}
+        CXX: ${{ matrix.cxx-compiler }}
 
     - name: Build project
       run: cmake --build build --config Release
