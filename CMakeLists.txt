@@ -32,7 +32,7 @@ if(WIN32)
         resolver_win8.c
         resolver_winxp.c
         util_win.c)
-    if(CMAKE_SYSTEM_VERSION GREATER_EQUAL 6.1)
+    if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION GREATER_EQUAL 6.1)
         list(APPEND PROXYRES_SRCS
             threadpool_winvista.c)
     else()
@@ -82,6 +82,15 @@ target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(WIN32)
     target_link_libraries(proxyres PRIVATE winhttp ws2_32)
+
+    # Windows 11 or greater no longer supports PAC script execution in wininet
+    if(CMAKE_HOST_SYSTEM_VERSION GREATER_EQUAL 10.0.22000)
+        add_custom_command(TARGET proxyres POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy 
+                ${CMAKE_SOURCE_DIR}/test/jsproxy.dll
+                ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Copying jsproxy.dll to build directory")
+    endif()
 elseif(APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries(proxyres PRIVATE ${CFNETWORK_LIBRARY})
