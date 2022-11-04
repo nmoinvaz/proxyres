@@ -120,37 +120,68 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
 
 char *proxy_config_mac_get_bypass_list(void) {
     char *bypass_list = NULL;
+    int32_t bypass_list_len = 0;
+    int32_t bypass_list_count = 0;
+    int32_t max_bypass_list = 0;
+    int32_t exception_count = 0;
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
         return NULL;
 
-    // Get proxy bypass list
+    // Get whether to exclude simple hostnames
+    bool exclude_simple_hostnames = get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesExcludeSimpleHostnames);
+    if (exclude_simple_hostnames)
+        bypass_list_count++;
+
+    // Get exception list
     CFArrayRef exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
     if (exceptions_list) {
-        // Allocate memory to copy exception list
-        int32_t exception_count = CFArrayGetCount(exceptions_list);
-        int32_t max_bypass_list = exception_count * MAX_PROXY_URL + 1;
-        int32_t bypass_list_len = 0;
-
-        bypass_list = (char *)calloc(max_bypass_list, sizeof(char));
-
-        // Enumerate exception array and copy to semi-colon delimited string
-        for (int32_t i = 0; bypass_list && i < exception_count; ++i) {
-            CFStringRef exception = CFArrayGetValueAtIndex(exceptions_list, i);
-            if (exception) {
-                const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);
-                if (exception_utf8) {
-                    snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s,", exception_utf8);
-                    bypass_list_len += strlen(exception_utf8) + 1;
-                }
-            }
-        }
-
-        // Remove last separator
-        if (bypass_list)
-            str_trim_end(bypass_list, ',');
+        exception_count = CFArrayGetCount(exceptions_list);
+        bypass_list_count += exception_count;
     }
+
+    if (!bypass_list_count)
+        goto bypass_list_error;
+
+    // Allocate memory to copy bypass list
+    max_bypass_list = bypass_list_count * MAX_PROXY_URL + 1;
+    bypass_list = (char *)calloc(max_bypass_list, sizeof(char));
+
+    if (!bypass_list)
+        goto bypass_list_error;
+
+    // Add exclusion for simple hostnames to bypass list
+    if (exclude_simple_hostnames) {
+        strncat(bypass_list, "<local>,", max_bypass_list - bypass_list_len - 1);
+        bypass_list_len += 8;
+    }
+
+    // Enumerate exception array and copy to comma delimited string
+    for (int32_t i = 0; exceptions_list && i < exception_count; ++i) {
+        CFStringRef exception = CFArrayGetValueAtIndex(exceptions_list, i);
+        if (exception) {
+            const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);
+            if (exception_utf8) {
+                snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s", exception_utf8);
+                bypass_list_len += strlen(exception_utf8);
+            } else {
+                CFStringGetCString(exception, bypass_list + bypass_list_len, max_bypass_list - bypass_list_len,
+                                   kCFStringEncodingUTF8);
+                bypass_list_len = strlen(bypass_list);
+            }
+
+            // Append comma separation
+            strncat(bypass_list, ",", max_bypass_list - bypass_list_len - 1);
+            bypass_list_len++;
+        }
+    }
+
+    // Remove last separator
+    if (bypass_list)
+        str_trim_end(bypass_list, ',');
+
+bypass_list_error:
 
     CFRelease(proxy_settings);
     return bypass_list;
