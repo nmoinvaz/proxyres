@@ -51,7 +51,7 @@ jobs:
         gsettings set org.gnome.system.proxy.http port 8000
         gsettings set org.gnome.system.proxy.https host 'my.proxy1.com'
         gsettings set org.gnome.system.proxy.https port 8001
-        gsettings set org.gnome.system.proxy.ignore-hosts "['localhost', '127.0.0.0/8']"
+        gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8']"
 
     - name: Check proxy settings (gsettings)
       shell: bash
