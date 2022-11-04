@@ -70,15 +70,15 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
     CFStringRef host_index = kCFNetworkProxiesHTTPProxy;
     CFStringRef port_index = kCFNetworkProxiesHTTPPort;
 
-    if (strcasecmp(protocol, "https") == 0) {
+    if (strncasecmp(protocol, "https", 5) == 0) {
         enable_index = kCFNetworkProxiesHTTPSEnable;
         host_index = kCFNetworkProxiesHTTPSProxy;
         port_index = kCFNetworkProxiesHTTPSPort;
-    } else if (strcasecmp(protocol, "socks") == 0) {
+    } else if (strncasecmp(protocol, "socks", 5) == 0) {
         enable_index = kCFNetworkProxiesSOCKSEnable;
         host_index = kCFNetworkProxiesSOCKSProxy;
         port_index = kCFNetworkProxiesSOCKSPort;
-    } else if (strcasecmp(protocol, "ftp") == 0) {
+    } else if (strncasecmp(protocol, "ftp", 3) == 0) {
         enable_index = kCFNetworkProxiesFTPEnable;
         host_index = kCFNetworkProxiesFTPProxy;
         port_index = kCFNetworkProxiesFTPPort;

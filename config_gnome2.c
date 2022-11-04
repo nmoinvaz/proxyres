@@ -69,12 +69,12 @@ char *proxy_config_gnome2_get_proxy(const char *protocol) {
     uint32_t port = 0;
     char *proxy = NULL;
 
-    if (strcmp(protocol, "http") == 0) {
-        strncpy(host_key, "/system/http_proxy/host", sizeof(host_key));
-        strncpy(port_key, "/system/http_proxy/port", sizeof(port_key));
-    } else if (strcmp(protocol, "https") == 0) {
+    if (strncasecmp(protocol, "https", 5) == 0) {
         strncpy(host_key, "/system/proxy/secure_host", sizeof(host_key));
         strncpy(port_key, "/system/proxy/secure_port", sizeof(port_key));
+    } else if (strncasecmp(protocol, "http", 4) == 0) {
+        strncpy(host_key, "/system/http_proxy/host", sizeof(host_key));
+        strncpy(port_key, "/system/http_proxy/port", sizeof(port_key));
     } else {
         snprintf(host_key, sizeof(host_key), "/system/proxy/%s_host", protocol);
         snprintf(port_key, sizeof(port_key), "/system/proxy/%s_port", protocol);

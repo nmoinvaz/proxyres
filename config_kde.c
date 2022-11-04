@@ -54,7 +54,14 @@ char *proxy_config_kde_get_proxy(const char *protocol) {
     if (!key)
         return NULL;
 
-    strncpy(key, protocol, max_key);
+    // Check if protocol is actually a url
+    char *host = strchr(protocol, ':');
+    if (host) {
+        protocol_len = (int32_t)(host - protocol);
+        strncat(key, protocol, protocol_len);
+    } else {
+        strncat(key, protocol, max_key - 1);
+    }
 
     // Protocol should be all lowercase
     for (int32_t i = 0; i < protocol_len; i++)
