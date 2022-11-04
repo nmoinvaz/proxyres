@@ -137,6 +137,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         proxy_resolver->list = proxy;
         goto mac_done;
     }
+    free(proxy);
 
     target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
     if (!target_url_ref) {
@@ -178,7 +179,6 @@ mac_done:
         proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
                                  proxy_resolver->list);
 
-    free(proxy);
     free(auto_config_url);
 
     if (url_ref)
