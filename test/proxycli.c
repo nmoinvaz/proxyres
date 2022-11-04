@@ -91,7 +91,7 @@ static void resolve_proxy_for_url(const char *url) {
 }
 #endif
 
-static bool resolve_proxy_for_url_async(int argc, char *argv[]) {
+static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
     bool success = false;
     int32_t error = 0;
     
@@ -111,7 +111,8 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[]) {
 
     success = true;
     for (int32_t i = 0; i < argc; i++) {
-        printf("Resolving proxy for %s\n", argv[i]);
+        if (verbose)
+            printf("Resolving proxy for %s\n", argv[i]);
 
         // Wait for proxy to resolve asynchronously
         while (proxy_resolver_is_pending(proxy_resolver[i])) {
@@ -120,7 +121,12 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[]) {
 
         // Get the proxy list for the url
         const char *list = proxy_resolver_get_list(proxy_resolver[i]);
-        printf("  Proxy: %s\n", list ? list : "DIRECT");
+        if (verbose)
+            printf("  Proxy: ");
+        else if (argc > 1)
+            printf("%s=", argv[i]);
+
+        printf("%s\n", list ? list : "DIRECT");
 
         proxy_resolver_get_error(proxy_resolver[i], &error);
         if (error != 0) {
@@ -134,11 +140,12 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[]) {
     return success;
 }
 
-static bool execute_pac_script(const char *script_path, const char *url) {
+static bool execute_pac_script(const char *script_path, const char *url, bool verbose) {
     bool success = false;
     char *script = NULL;
 
-    printf("Executing PAC script %s for %s\n", script_path, url);
+    if (verbose)
+        printf("Executing PAC script %s for %s\n", script_path, url);
 
     // Open PAC script file
     int fd = open(script_path, O_RDONLY | O_BINARY);
@@ -175,7 +182,9 @@ static bool execute_pac_script(const char *script_path, const char *url) {
     if (proxy_execute) {
         if (proxy_execute_get_proxies_for_url(proxy_execute, script, url)) {
             const char *list = proxy_execute_get_list(proxy_execute);
-            printf("  Proxy: %s\n", list ? list : "DIRECT");
+            if (verbose)
+                printf("  Proxy: ");
+            printf("%s\n", list ? list : "DIRECT");
         }
         proxy_execute_delete(&proxy_execute);
     }
@@ -191,7 +200,7 @@ execute_pac_cleanup:
 }
 
 static int print_help(void) {
-    printf("proxyres\n");
+    printf("proxyres [--verbose]\n");
     printf("  config                  - dumps all proxy configuration values\n");
     printf("  execute [file] [urls..] - executes pac file with script\n");
     printf("  resolve [url..]         - resolves proxy for urls\n");
@@ -200,27 +209,34 @@ static int print_help(void) {
 
 int main(int argc, char *argv[]) {
     int exit_code = 0;
+    bool verbose = false;
+    int32_t argi = 1;
 
     if (argc <= 1)
         return print_help();
 
     proxyres_init();
 
-    const char *cmd = argv[1];
+    if (strcmp(argv[argi], "--verbose") == 0) {
+        verbose = true;
+        argi++;
+    }
+
+    const char *cmd = argv[argi++];
     if (strcmp(cmd, "help") == 0) {
         print_help();
     } else if (strcmp(cmd, "config") == 0) {
-        print_proxy_config(argc - 2, argv + 2);
+        print_proxy_config(argc - argi, argv + argi);
     } else if (strcmp(cmd, "execute") == 0) {
         if (argc <= 3)
             return print_help();
-
-        for (int32_t i = 3; i < argc; i++) {
-            if (!execute_pac_script(argv[2], argv[i]))
+        const char *script_path = argv[argi];
+        while (argi < argc) {
+            if (!execute_pac_script(script_path, argv[argi++], verbose))
                 exit_code = 1;
         }
     } else if (strcmp(cmd, "resolve") == 0) {
-        if (!resolve_proxy_for_url_async(argc - 2, argv + 2))
+        if (!resolve_proxy_for_url_async(argc - argi, argv + argi, verbose))
             exit_code = 1;
     }
 
