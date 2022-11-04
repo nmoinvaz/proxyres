@@ -1,0 +1,99 @@
+name: Build - Ubuntu
+on: [workflow_dispatch, push, pull_request]
+env:
+  TERM: xterm-256color
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Build - Ubuntu Clang
+            runs-on: ubuntu-latest
+            compiler: clang
+            cxx-compiler: clang++
+            cmake-args: -G Ninja
+
+    steps:
+    - name: Install packages (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y ninja-build libgconf2-dev libjavascriptcoregtk-4.0-dev
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Generate project
+      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=OFF
+      env:
+        CC: ${{ matrix.compiler }}
+        CXX: ${{ matrix.cxx-compiler }}
+
+    - name: Build project
+      run: cmake --build build --config Release
+
+    - name: Run tests
+      run: ctest --verbose -C Release
+      working-directory: build
+
+    - name: Dump proxy info
+      run: env | grep -i proxy
+
+    - name: Set proxy settings (gsettings)
+      run: |
+        gsettings set org.gnome.system.proxy autoconfig-url 'http://wpad/wpad2.dat'
+        gsettings set org.gnome.system.proxy mode 'auto'
+        gsettings set org.gnome.system.proxy.http host 'my.proxy.com'
+        gsettings set org.gnome.system.proxy.http port 8000
+        gsettings set org.gnome.system.proxy.https host 'my.proxy1.com'
+        gsettings set org.gnome.system.proxy.https port 8001
+        gsettings set org.gnome.system.proxy.ignore-hosts "['localhost', '127.0.0.0/8']"
+
+    - name: Check proxy settings (gsettings)
+      shell: bash
+      run: |
+        out=$(./proxycli config auto_discover)
+        echo "Auto discovery: $out"
+        if [ "$out" = "enabled" ]; then
+          echo "Auto discovery set successfully"
+        else
+          echo "Auto discovery set failed"
+          exit 1
+        fi
+        out=$(./proxycli config auto_config_url)
+        echo "Auto config url: $out"
+        if [ "$out" = "http://wpad/wpad2.dat" ]; then
+          echo "Auto config url set successfully"
+        else
+          echo "Auto config url set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy http)
+        echo "Proxy (http): $out"
+        if [ "$out" = "my.proxy.com:8000" ]; then
+          echo "Proxy (http) set successfully"
+        else
+          echo "Proxy (http) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy https)
+        echo "Proxy (https): $out"
+        if [ "$out" = "my.proxy1.com:8001" ]; then
+          echo "Proxy (https) set successfully"
+        else
+          echo "Proxy (https) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config bypass_list)
+        echo "Proxy bypass: $out"
+        if [ "$out" = "localhost;127.0.0.0/8" ]; then
+          echo "Proxy bypass set successfully"
+        else
+          echo "Proxy bypass set failed"
+          exit 1
+        fi
+      working-directory: build/test

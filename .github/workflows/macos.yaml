@@ -1,4 +1,4 @@
-name: Build
+name: Build - macOS
 on: [workflow_dispatch, push, pull_request]
 env:
   TERM: xterm-256color
@@ -17,19 +17,7 @@ jobs:
             cxx-compiler: clang++
             cmake-args: -G Xcode
 
-          - name: Build - Ubuntu Clang
-            runs-on: ubuntu-latest
-            compiler: clang
-            cxx-compiler: clang++
-            cmake-args: -G Ninja
-
     steps:
-    - name: Install packages (Ubuntu)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt update
-        sudo apt install -y ninja-build libgconf2-dev libjavascriptcoregtk-4.0-dev
-
     - name: Checkout repository
       uses: actions/checkout@v3
 
@@ -42,14 +30,9 @@ jobs:
     - name: Build project
       run: cmake --build build --config Release
 
-    - name: Dump proxy info (Ubuntu)
-      if: runner.os == 'Linux'
-      run: env | grep -i proxy
-
-    - name: Dump proxy info (macOS)
-      if: runner.os == 'macOS'
-      run: scutil --proxy
-
     - name: Run tests
       run: ctest --verbose -C Release
       working-directory: build
+
+    - name: Dump proxy info
+      run: scutil --proxy
