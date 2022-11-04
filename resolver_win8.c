@@ -183,14 +183,14 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
-    if (ie_config.lpszProxy) {
-        // Use explicit proxy list
-        proxy_info.lpszProxy = ie_config.lpszProxy;
-        goto win8_done;
-    } else if (ie_config.lpszAutoConfigUrl) {
+    if (ie_config.lpszAutoConfigUrl) {
         // Use auto configuration script
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = ie_config.lpszAutoConfigUrl;
+    } else if (ie_config.lpszProxy) {
+        // Use explicit proxy list
+        proxy_info.lpszProxy = ie_config.lpszProxy;
+        goto win8_done;
     } else if (!ie_config.fAutoDetect) {
         // Don't do automatic proxy detection
         goto win8_done;

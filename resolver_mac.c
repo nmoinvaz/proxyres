@@ -124,7 +124,6 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
-    char *proxy = NULL;
     char *auto_config_url = NULL;
 
     if (!proxy_resolver || !url)
@@ -132,20 +131,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_mac_reset(proxy_resolver);
 
-    proxy = proxy_config_get_proxy(url);
-    if (proxy) {
-        proxy_resolver->list = proxy;
-        goto mac_done;
-    }
-    free(proxy);
-
-    target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
-    if (!target_url_ref) {
-        proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to create target url reference (%" PRId32 ")\n", proxy_resolver->error);
-        goto mac_error;
-    }
-
+    // Prioritize proxy auto config url over manually configured proxy
     auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
         url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)auto_config_url, strlen(auto_config_url),
@@ -157,6 +143,13 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
             goto mac_error;
         }
 
+        target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
+        if (!target_url_ref) {
+            proxy_resolver->error = ENOMEM;
+            LOG_ERROR("Unable to create target url reference (%" PRId32 ")\n", proxy_resolver->error);
+            goto mac_error;
+        }
+
         CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
 
         CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
@@ -165,6 +158,12 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
         CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
         CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
+        goto mac_done;
+    } else {
+        // No proxy auto config url specified so use manually configured proxy
+        char *proxy = proxy_config_get_proxy(url);
+        if (proxy)
+            proxy_resolver->list = proxy;
     }
 
     goto mac_done;
