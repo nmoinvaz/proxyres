@@ -97,7 +97,7 @@ jobs:
         fi
         out=$(./proxycli config bypass_list)
         echo "Proxy bypass: $out"
-        if [ "$out" = "localhost;127.0.0.0/8" ]; then
+        if [ "$out" = "localhost,127.0.0.0/8" ]; then
           echo "Proxy bypass set successfully"
         else
           echo "Proxy bypass set failed"

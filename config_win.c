@@ -70,8 +70,13 @@ char *proxy_config_win_get_bypass_list(void) {
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
         return NULL;
 
-    if (ie_config.lpszProxyBypass)
+    if (ie_config.lpszProxyBypass) {
         list = wchar_dup_to_utf8(ie_config.lpszProxyBypass);
+
+        // Normalize separators for all platforms to comma
+        if (list)
+            str_change_chr(list, ';', ',');
+    }
 
     free_winhttp_ie_proxy_config(&ie_config);
     return list;

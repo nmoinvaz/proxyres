@@ -11,6 +11,7 @@
 #include "config.h"
 #include "config_i.h"
 #include "config_gnome3.h"
+#include "util.h"
 
 typedef struct g_proxy_config_gnome3_s {
     // GIO module handle
@@ -144,10 +145,8 @@ char *proxy_config_gnome3_get_bypass_list(void) {
                 snprintf(bypass_list + bypass_list_len, max_value - bypass_list_len, "%s,", hosts[i]);
             }
 
-            // Remove the last comma
-            int32_t bypass_list_len = strlen(bypass_list);
-            if (bypass_list_len > 2 && bypass_list[bypass_list_len - 2] == ',')
-                bypass_list[bypass_list_len - 1] = 0;
+            // Remove the last separator
+            str_trim_end(bypass_list, ',');
         }
 
         g_proxy_config_gnome3.g_strfreev(hosts);

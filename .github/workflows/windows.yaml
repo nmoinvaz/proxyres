@@ -80,7 +80,7 @@ jobs:
         fi
         out=$(./proxycli config bypass_list)
         echo "Proxy bypass: $out"
-        if [ "$out" = "*.foo.com;<local>" ]; then
+        if [ "$out" = "*.foo.com,<local>" ]; then
           echo "Proxy bypass set successfully"
         else
           echo "Proxy bypass set failed"

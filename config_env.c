@@ -8,6 +8,7 @@
 #include "config.h"
 #include "config_i.h"
 #include "config_env.h"
+#include "util.h"
 
 // Get the environment variable using all lowercase name and then all uppercase name
 // https://unix.stackexchange.com/questions/212894
@@ -71,10 +72,17 @@ char *proxy_config_env_get_proxy(const char *protocol) {
 }
 
 char *proxy_config_env_get_bypass_list(void) {
-    const char *proxy_bypass = get_proxy_env_var("no_proxy", true);
-    if (!proxy_bypass)
+    const char *no_proxy = get_proxy_env_var("no_proxy", true);
+    if (!no_proxy)
         return NULL;
-    return strdup(proxy_bypass);
+
+    char *bypass_list = strdup(no_proxy);
+    if (!bypass_list)
+        return NULL;
+
+    // Remove last separator
+    str_trim_end(bypass_list, ',');
+    return bypass_list;
 }
 
 bool proxy_config_env_init(void) {

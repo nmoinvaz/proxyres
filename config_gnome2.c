@@ -11,6 +11,7 @@
 #include "config.h"
 #include "config_i.h"
 #include "config_gnome2.h"
+#include "util.h"
 
 typedef struct g_proxy_config_gnome2_s {
     // GConf module handle
@@ -132,10 +133,8 @@ char *proxy_config_gnome2_get_bypass_list(void) {
             // Enumerate the list to get the bypass list string
             g_proxy_config_gnome2.g_slist_foreach(hosts, gs_list_for_each_func, &enum_bypass);
 
-            // Remove the last comma
-            int32_t bypass_list_len = strlen(bypass_list);
-            if (bypass_list_len > 2 && bypass_list[bypass_list_len - 2] == ',')
-                bypass_list[bypass_list_len - 1] = 0;
+            // Remove the last separator
+            str_trim_end(bypass_list, ',');
         }
 
         g_proxy_config_gnome2.g_slist_free_full(hosts, g_proxy_config_gnome2.g_free);

@@ -16,6 +16,31 @@
 #include <errno.h>
 #include <limits.h>
 
+// Replace one character in the string with another
+int32_t str_change_chr(char *str, char from, char to) {
+    int32_t count = 0;
+    while (*str) {
+        if (*str == from) {
+            *str = to;
+            count++;
+        }
+        str++;
+    }
+    return count;
+}
+
+// Trim a character from the end of the string
+int32_t str_trim_end(char *str, char c) {
+    int32_t count = 0;
+    char *end = str + strlen(str) - 1;
+    while (end >= str && *end == c) {
+        *end = 0;
+        end--;
+        count++;
+    }
+    return count;
+}
+
 // Resolve a hostname to an IP address
 char *dns_resolve(const char *host, int32_t *error) {
     char name[256] = {0};

@@ -135,11 +135,15 @@ char *proxy_config_mac_get_bypass_list(void) {
             if (exception) {
                 const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);
                 if (exception_utf8) {
-                    snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s;", exception_utf8);
+                    snprintf(bypass_list + bypass_list_len, max_bypass_list - bypass_list_len, "%s,", exception_utf8);
                     bypass_list_len += strlen(exception_utf8) + 1;
                 }
             }
         }
+
+        // Remove last separator
+        if (bypass_list)
+            str_trim_end(bypass_list, ',');
     }
 
     CFRelease(proxy_settings);
