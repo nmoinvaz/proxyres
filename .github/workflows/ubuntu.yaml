@@ -18,8 +18,7 @@ jobs:
             cmake-args: -G Ninja
 
     steps:
-    - name: Install packages (Ubuntu)
-      if: runner.os == 'Linux'
+    - name: Install packages
       run: |
         sudo apt update
         sudo apt install -y ninja-build libgconf2-dev libjavascriptcoregtk-4.0-dev
@@ -97,3 +96,5 @@ jobs:
           exit 1
         fi
       working-directory: build/test
+      env:
+        XDG_CURRENT_DESKTOP: GNOME
