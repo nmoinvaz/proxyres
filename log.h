@@ -8,5 +8,4 @@
 #else
 #define LOG_INFO(fmt, ...)
 #define LOG_DEBUG(fmt, ...)
-#define LOG_WARN(fmt, ...)
 #endif
