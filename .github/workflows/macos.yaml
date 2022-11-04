@@ -37,16 +37,10 @@ jobs:
     - name: Dump proxy info
       run: scutil --proxy
 
-    - name: Set proxy settings (networksetup)
-      run: |
-        networksetup -setautoproxyurl "Ethernet" http://wpad/wpad3.dat
-        networksetup -setproxyautodiscovery "Ethernet" on
-        networksetup -setwebproxy "Ethernet" my.proxy7.com 8007
-        networksetup -setsecurewebproxy "Ethernet" my.proxy8.com 8008
-        networksetup -setproxybypassdomains "Ethernet" hi.com world.com
+    - name: Turn on proxy auto discovery (networksetup)
+      run: networksetup -setproxyautodiscovery Ethernet on
 
-    - name: Check proxy settings (networksetup)
-      shell: bash
+    - name: Check proxy auto discovery setting (networksetup)
       run: |
         out=$(./proxycli config auto_discover)
         echo "Auto discovery: $out"
@@ -56,6 +50,16 @@ jobs:
           echo "Auto discovery set failed"
           exit 1
         fi
+      working-directory: build/test/Release
+
+    - name: Turn off proxy auto discovery (networksetup)
+      run: networksetup -setproxyautodiscovery Ethernet off
+
+    - name: Set proxy auto config url setting (networksetup)
+      run: networksetup -setautoproxyurl Ethernet http://wpad/wpad3.dat
+
+    - name: Check proxy auto config url setting (networksetup)
+      run: |
         out=$(./proxycli config auto_config_url)
         echo "Auto config url: $out"
         if [ "$out" = "http://wpad/wpad3.dat" ]; then
@@ -64,6 +68,17 @@ jobs:
           echo "Auto config url set failed"
           exit 1
         fi
+      working-directory: build/test/Release
+
+    - name: Set manual proxy settings (networksetup)
+      run: |
+        networksetup -setwebproxy Ethernet my.proxy7.com 8007
+        networksetup -setsecurewebproxy Ethernet my.proxy8.com 8008
+        networksetup -setproxybypassdomains Ethernet hi.com world.com
+
+    - name: Check manual proxy settings (networksetup)
+      shell: bash
+      run: |
         out=$(./proxycli config proxy http)
         echo "Proxy (http): $out"
         if [ "$out" = "my.proxy7.com:8007" ]; then
