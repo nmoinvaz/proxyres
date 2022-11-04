@@ -64,11 +64,7 @@ char *proxy_config_env_get_proxy(const char *protocol) {
     if (!proxy)
         return NULL;
 
-    // Return proxy as a list of proxies
-    int32_t proxy_list_len = strlen(proxy) + 8;
-    char *proxy_list = (char *)malloc(proxy_list_len);
-    snprintf(proxy_list, proxy_list_len, "PROXY %s", proxy);
-    return proxy_list;
+    return strdup(proxy);
 }
 
 char *proxy_config_env_get_bypass_list(void) {
