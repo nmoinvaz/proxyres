@@ -53,11 +53,12 @@ jobs:
       run: |
         gsettings set org.gnome.system.proxy autoconfig-url 'http://wpad/wpad2.dat'
         gsettings set org.gnome.system.proxy mode 'auto'
-        gsettings set org.gnome.system.proxy.http host 'my.proxy.com'
-        gsettings set org.gnome.system.proxy.http port 8000
-        gsettings set org.gnome.system.proxy.https host 'my.proxy1.com'
-        gsettings set org.gnome.system.proxy.https port 8001
+        gsettings set org.gnome.system.proxy.http host 'my.proxy1.com'
+        gsettings set org.gnome.system.proxy.http port 8001
+        gsettings set org.gnome.system.proxy.https host 'my.proxy2.com'
+        gsettings set org.gnome.system.proxy.https port 8002
         gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8']"
+        gsettings set org.gnome.system.proxy use-same-proxy false
 
     - name: Check proxy settings (gsettings)
       shell: bash
@@ -80,7 +81,7 @@ jobs:
         fi
         out=$(./proxycli config proxy http)
         echo "Proxy (http): $out"
-        if [ "$out" = "my.proxy.com:8000" ]; then
+        if [ "$out" = "my.proxy1.com:8001" ]; then
           echo "Proxy (http) set successfully"
         else
           echo "Proxy (http) set failed"
@@ -88,7 +89,7 @@ jobs:
         fi
         out=$(./proxycli config proxy https)
         echo "Proxy (https): $out"
-        if [ "$out" = "my.proxy1.com:8001" ]; then
+        if [ "$out" = "my.proxy2.com:8002" ]; then
           echo "Proxy (https) set successfully"
         else
           echo "Proxy (https) set failed"
@@ -111,8 +112,8 @@ jobs:
 
     - name: Set proxy settings (env)
       run: |
-        echo "http_proxy=http://my.proxy2.com:8000" >> $GITHUB_ENV
-        echo "https_proxy=http://my.proxy3.com:8001" >> $GITHUB_ENV
+        echo "http_proxy=my.proxy3.com:8003" >> $GITHUB_ENV
+        echo "https_proxy=my.proxy4.com:8004" >> $GITHUB_ENV
         echo "no_proxy=localhost,127.0.0.0/8" >> $GITHUB_ENV
 
     - name: Check proxy settings (env)
@@ -120,7 +121,7 @@ jobs:
       run: |
         out=$(./proxycli config proxy http)
         echo "Proxy (http): $out"
-        if [ "$out" = "my.proxy2.com:8000" ]; then
+        if [ "$out" = "my.proxy3.com:8003" ]; then
           echo "Proxy (http) set successfully"
         else
           echo "Proxy (http) set failed"
@@ -128,7 +129,7 @@ jobs:
         fi
         out=$(./proxycli config proxy https)
         echo "Proxy (https): $out"
-        if [ "$out" = "my.proxy3.com:8001" ]; then
+        if [ "$out" = "my.proxy4.com:8004" ]; then
           echo "Proxy (https) set successfully"
         else
           echo "Proxy (https) set failed"
