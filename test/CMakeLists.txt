@@ -52,7 +52,10 @@ set(TEST_SRCS
     test_main.cc
     test_threadpool.cc
     test_util.cc)
-if(UNIX AND NOT APPLE)
+if(WIN32)
+    list(APPEND TEST_SRCS
+        test_util_win.cc)
+elseif(UNIX AND NOT APPLE)
     list(APPEND TEST_SRCS
         test_util_linux.cc)
 endif()

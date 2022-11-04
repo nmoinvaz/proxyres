@@ -46,16 +46,21 @@ char *proxy_config_win_get_auto_config_url(void) {
 
 char *proxy_config_win_get_proxy(const char *protocol) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
-    char *list = NULL;
+    char *proxy = NULL;
 
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
         return NULL;
 
-    if (ie_config.lpszProxy)
-        list = wchar_dup_to_utf8(ie_config.lpszProxy);
+    if (ie_config.lpszProxy) {
+        char *proxy_list = wchar_dup_to_utf8(ie_config.lpszProxy);
+        if (proxy_list) {
+            proxy = get_proxy_by_protocol(protocol, proxy_list);
+            free(proxy_list);
+        }
+    }
 
     free_winhttp_ie_proxy_config(&ie_config);
-    return list;
+    return proxy;
 }
 
 char *proxy_config_win_get_bypass_list(void) {
