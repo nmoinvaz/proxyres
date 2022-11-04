@@ -93,11 +93,11 @@ jobs:
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
 
-    - name: Start http-server in parallel
-      run: |
-        npm install -g npm-run-all http-server
-        npm-run-all -p http-server
-      working-directory: test/pac
+    - name: Serve proxy auto-config files
+      uses: Eun/http-server-action@v1
+      with:
+        directory: ${{ github.workspace }}/test/pac
+        port: 8080
 
     - name: Set proxy auto-config settings (IE)
       run: |
