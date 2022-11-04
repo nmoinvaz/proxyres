@@ -90,9 +90,6 @@ char *proxy_config_gnome3_get_proxy(const char *protocol) {
     uint32_t port = 0;
     char *proxy = NULL;
 
-    if (!proxy_config_gnome3_is_mode("manual"))
-        return NULL;
-
     if (proxy_config_gnome3_use_same_proxy())
         strncpy(scheme, "org.gnome.system.proxy.http", sizeof(scheme));
     else
@@ -126,8 +123,6 @@ char *proxy_config_gnome3_get_bypass_list(void) {
     char **hosts = NULL;
     char *bypass_list = NULL;
 
-    if (!proxy_config_gnome3_is_mode("auto") && !proxy_config_gnome3_is_mode("manual"))
-        return NULL;
 
     settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
