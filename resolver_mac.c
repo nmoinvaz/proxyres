@@ -13,8 +13,8 @@
 #include "resolver_i.h"
 #include "resolver_mac.h"
 
-#define PROXY_RESOLVER_RUN_LOOP     CFSTR("proxy_resolver_mac.run_loop")
-#define PROXY_RESOLVER_TIMEOUT_SEC  10
+#define PROXY_RESOLVER_RUN_LOOP    CFSTR("proxy_resolver_mac.run_loop")
+#define PROXY_RESOLVER_TIMEOUT_SEC 10
 
 typedef struct g_proxy_resolver_mac_s {
     bool reserved;
@@ -83,9 +83,14 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
                 CFStringRef host = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyHostNameKey);
                 if (host) {
                     const char *host_utf8 = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
-                    strncat(proxy_resolver->list, host_utf8, max_list - list_len);
-                    list_len += strlen(host_utf8);
-                    proxy_resolver->list[max_list - 1] = 0;
+                    if (host_utf8) {
+                        strncat(proxy_resolver->list, host_utf8, max_list - list_len - 1);
+                        list_len += strlen(host_utf8);
+                    } else {
+                        CFStringGetCString(host, proxy_resolver->list + list_len, max_list - list_len,
+                                           kCFStringEncodingUTF8);
+                        list_len = strlen(proxy_resolver->list);
+                    }
                 }
                 // Copy proxy port
                 CFNumberRef port = (CFNumberRef)CFDictionaryGetValue(proxy, kCFProxyPortNumberKey);

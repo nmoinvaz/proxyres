@@ -46,9 +46,12 @@ char *proxy_config_mac_get_auto_config_url(void) {
         // Get the auto-config url
         CFStringRef auto_config_url = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);
         if (auto_config_url) {
-            const char *auto_config_url_p = CFStringGetCStringPtr(auto_config_url, kCFStringEncodingUTF8);
-            if (auto_config_url_p) {
-                url = strdup(auto_config_url_p);
+            const char *auto_config_url_utf8 = CFStringGetCStringPtr(auto_config_url, kCFStringEncodingUTF8);
+            if (auto_config_url_utf8) {
+                url = strdup(auto_config_url_utf8);
+            } else {
+                url = (char *)calloc(MAX_PROXY_URL, sizeof(char));
+                CFStringGetCString(auto_config_url, url, MAX_PROXY_URL, kCFStringEncodingUTF8);
             }
         }
     }
@@ -89,12 +92,14 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         // Get the proxy url associated with the protocol
         CFStringRef host = CFDictionaryGetValue(proxy_settings, host_index);
         if (host) {
-            const char *host_p = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
-            if (host_p) {
-                max_proxy = strlen(host_p) + 32;  // Allow enough room for port number
-                proxy = calloc(max_proxy, sizeof(char));
-                strncat(proxy, host_p, max_proxy);
-                proxy[max_proxy - 1] = 0;
+            const char *host_utf8 = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
+            if (host_utf8) {
+                max_proxy = strlen(host_utf8) + 32;  // Allow enough room for port number
+                proxy = (char *)calloc(max_proxy, sizeof(char));
+                strncat(proxy, host_utf8, max_proxy - 1);
+            } else {
+                proxy = (char *)calloc(MAX_PROXY_URL, sizeof(char));
+                CFStringGetCString(host, proxy, MAX_PROXY_URL, kCFStringEncodingUTF8);
             }
         }
 
