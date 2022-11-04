@@ -104,3 +104,41 @@ jobs:
           exit 1
         fi
       working-directory: build/test/Release
+
+    - name: Serve proxy auto config scripts
+      uses: Eun/http-server-action@v1
+      with:
+        directory: ${{ github.workspace }}/test/pac
+        port: 8080
+
+    - name: Set proxy auto config url setting (networksetup)
+      run: networksetup -setautoproxyurl Ethernet http://127.0.0.1:8080/example.js
+
+    - name: Check proxy auto-config setting (networksetup)
+      shell: bash
+      run: |
+        out=$(./proxycli config auto_config_url)
+        echo "Auto config url: $out"
+        if [ "$out" = "http://127.0.0.1:8080/example.js" ]; then
+          echo "Auto config url set successfully"
+        else
+          echo "Auto config url set failed"
+          exit 1
+        fi
+        out=$(./proxycli resolve https://google.com/)
+        echo "Proxy for https://google.com/: $out"
+        if [ "$out" = "DIRECT" ]; then
+          echo "Proxy for https://google.com/ set successfully"
+        else
+          echo "Proxy for https://google.com/ set failed"
+          exit 1
+        fi
+        out=$(./proxycli resolve https://example1.com/)
+        echo "Proxy for https://example1.com/: $out"
+        if [ "$out" = "PROXY no-such-proxy:80" ]; then
+          echo "Proxy for https://example1.com/ set successfully"
+        else
+          echo "Proxy for https://example1.com/ set failed"
+          exit 1
+        fi
+      working-directory: build/test/Release
