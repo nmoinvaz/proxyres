@@ -35,7 +35,7 @@ jobs:
     - name: Dump proxy info
       run: netsh winhttp show proxy
 
-    - name: Set IE proxy settings
+    - name: Set proxy settings (IE)
       run: |
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://wpad/wpad2.dat" /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoDetect /t REG_DWORD /d 1 /f
@@ -43,7 +43,7 @@ jobs:
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyServer /t REG_SZ /d "http=myproxy;https=sproxy:88" /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyOverride /t REG_SZ /d "*.foo.com;<local>" /f
 
-    - name: Check IE proxy settings
+    - name: Check proxy settings (IE)
       shell: bash
       run: |
         out=$(./proxycli config auto_discover)
@@ -88,7 +88,7 @@ jobs:
         fi
       working-directory: build/test/Release
 
-    - name: Turn off IE proxy settings
+    - name: Turn off proxy settings (IE)
       run: |
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
@@ -99,11 +99,11 @@ jobs:
         npm-run-all -p http-server
       working-directory: test/pac
 
-    - name: Set IE proxy auto-config settings
+    - name: Set proxy auto-config settings (IE)
       run: |
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://127.0.0.1:8080/example.js" /f
 
-    - name: Check IE proxy auto-config settings
+    - name: Check proxy auto-config settings (IE)
       shell: bash
       run: |
         out=$(./proxycli config auto_config_url)
