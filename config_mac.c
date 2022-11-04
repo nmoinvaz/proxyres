@@ -9,6 +9,7 @@
 #include "config_i.h"
 #include "config_mac.h"
 #include "proxyres.h"
+#include "util.h"
 
 static bool get_cf_dictionary_bool(CFDictionaryRef dictionary, CFStringRef key) {
     CFNumberRef item = NULL;
