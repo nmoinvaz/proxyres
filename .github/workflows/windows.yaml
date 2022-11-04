@@ -93,17 +93,17 @@ jobs:
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
 
-    - name: Serve proxy auto-config files
+    - name: Serve proxy auto config scripts
       uses: Eun/http-server-action@v1
       with:
         directory: ${{ github.workspace }}/test/pac
         port: 8080
 
-    - name: Set proxy auto-config settings (IE)
+    - name: Set proxy auto config setting (IE)
       run: |
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://127.0.0.1:8080/example.js" /f
 
-    - name: Check proxy auto-config settings (IE)
+    - name: Check proxy auto-config setting (IE)
       shell: bash
       run: |
         out=$(./proxycli config auto_config_url)
