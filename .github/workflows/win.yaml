@@ -28,6 +28,10 @@ jobs:
     - name: Build project
       run: cmake --build build --config Release
 
+    - name: Run tests
+      run: ctest --verbose -C Release
+      working-directory: build
+
     - name: Dump proxy info
       run: netsh winhttp show proxy
 
