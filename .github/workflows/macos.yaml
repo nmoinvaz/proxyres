@@ -36,3 +36,56 @@ jobs:
 
     - name: Dump proxy info
       run: scutil --proxy
+
+    - name: Set proxy settings (networksetup)
+      run: |
+        networksetup -setautoproxyurl "Ethernet" http://wpad/wpad3.dat
+        networksetup -setproxyautodiscovery "Ethernet" on
+        networksetup -setwebproxy "Ethernet" my.proxy7.com 8007
+        networksetup -setsecurewebproxy "Ethernet" my.proxy8.com 8008
+        networksetup -setproxybypassdomains "Ethernet" hi.com world.com
+
+    - name: Check proxy settings (networksetup)
+      shell: bash
+      run: |
+        out=$(./proxycli config auto_discover)
+        echo "Auto discovery: $out"
+        if [ "$out" = "enabled" ]; then
+          echo "Auto discovery set successfully"
+        else
+          echo "Auto discovery set failed"
+          exit 1
+        fi
+        out=$(./proxycli config auto_config_url)
+        echo "Auto config url: $out"
+        if [ "$out" = "http://wpad/wpad3.dat" ]; then
+          echo "Auto config url set successfully"
+        else
+          echo "Auto config url set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy http)
+        echo "Proxy (http): $out"
+        if [ "$out" = "my.proxy7.com:8007" ]; then
+          echo "Proxy (http) set successfully"
+        else
+          echo "Proxy (http) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy https)
+        echo "Proxy (https): $out"
+        if [ "$out" = "my.proxy8.com:8008" ]; then
+          echo "Proxy (https) set successfully"
+        else
+          echo "Proxy (https) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config bypass_list)
+        echo "Proxy bypass: $out"
+        if [ "$out" = "hi.com,world.com" ]; then
+          echo "Proxy bypass set successfully"
+        else
+          echo "Proxy bypass set failed"
+          exit 1
+        fi
+      working-directory: build/test/Release
