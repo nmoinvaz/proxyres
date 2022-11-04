@@ -98,8 +98,9 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
                 proxy = (char *)calloc(max_proxy, sizeof(char));
                 strncat(proxy, host_utf8, max_proxy - 1);
             } else {
-                proxy = (char *)calloc(MAX_PROXY_URL, sizeof(char));
-                CFStringGetCString(host, proxy, MAX_PROXY_URL, kCFStringEncodingUTF8);
+                max_proxy = MAX_PROXY_URL;
+                proxy = (char *)calloc(max_proxy, sizeof(char));
+                CFStringGetCString(host, proxy, max_proxy, kCFStringEncodingUTF8);
             }
         }
 
