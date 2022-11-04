@@ -23,15 +23,6 @@ jobs:
             cxx-compiler: clang++
             cmake-args: -G Ninja
 
-          - name: Build - Windows Win32
-            runs-on: windows-latest
-            compiler: cl
-            cmake-args: -A Win32
-
-          - name: Build - Windows Win64
-            runs-on: windows-latest
-            compiler: cl
-
     steps:
     - name: Install packages (Ubuntu)
       if: runner.os == 'Linux'
@@ -58,10 +49,6 @@ jobs:
     - name: Dump proxy info (macOS)
       if: runner.os == 'macOS'
       run: scutil --proxy
-
-    - name: Dump proxy info (Windows)
-      if: runner.os == 'Windows'
-      run: netsh winhttp show proxy
 
     - name: Run tests
       run: ctest --verbose -C Release
