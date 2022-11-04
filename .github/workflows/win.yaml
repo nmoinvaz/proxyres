@@ -37,6 +37,7 @@ jobs:
 
     - name: Set IE proxy settings
       run: |
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://wpad/wpad2.dat" /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoDetect /t REG_DWORD /d 1 /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 1 /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyServer /t REG_SZ /d "http=myproxy;https=sproxy:88" /f
@@ -47,15 +48,23 @@ jobs:
       run: |
         out=$(./proxycli config auto_discover)
         echo "Auto discovery: $out"
-        if echo $out | grep -q 'enabled'; then
+        if [ "$out" = "enabled" ]; then
           echo "Auto discovery set successfully"
         else
           echo "Auto discovery set failed"
           exit 1
         fi
+        out=$(./proxycli config auto_config_url)
+        echo "Auto config url: $out"
+        if [ "$out" = "http://wpad/wpad2.dat" ]; then
+          echo "Auto config url set successfully"
+        else
+          echo "Auto config url set failed"
+          exit 1
+        fi
         out=$(./proxycli config proxy http)
         echo "Proxy (http): $out"
-        if echo $out | grep -q 'myproxy'; then
+        if [ "$out" = "myproxy" ]; then
           echo "Proxy (http) set successfully"
         else
           echo "Proxy (http) set failed"
@@ -63,7 +72,7 @@ jobs:
         fi
         out=$(./proxycli config proxy https)
         echo "Proxy (https): $out"
-        if echo $out | grep -q 'sproxy:88'; then
+        if [ "$out" = "sproxy:88" ]; then
           echo "Proxy (https) set successfully"
         else
           echo "Proxy (https) set failed"
@@ -71,10 +80,54 @@ jobs:
         fi
         out=$(./proxycli config bypass_list)
         echo "Proxy bypass: $out"
-        if echo $out | grep -q '*.foo.com'; then
+        if [ "$out" = "*.foo.com;<local>" ]; then
           echo "Proxy bypass set successfully"
         else
           echo "Proxy bypass set failed"
+          exit 1
+        fi
+      working-directory: build/test/Release
+
+    - name: Turn off IE proxy settings
+      run: |
+        reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /f
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
+
+    - name: Start http-server in parallel
+      run: |
+        npm install -g npm-run-all http-server
+        npm-run-all -p http-server
+      working-directory: test/pac
+
+    - name: Set IE proxy auto-config settings
+      run: |
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://127.0.0.1:8080/example.js" /f
+
+    - name: Check IE proxy auto-config settings
+      shell: bash
+      run: |
+        out=$(./proxycli config auto_config_url)
+        echo "Auto config url: $out"
+        if [ "$out" = "http://127.0.0.1:8080/example.js" ]; then
+          echo "Auto config url set successfully"
+        else
+          echo "Auto config url set failed"
+          exit 1
+        fi
+        out=$(./proxycli resolve https://google.com/)
+        echo "Proxy for https://google.com/: $out"
+        if [ "$out" = "DIRECT" ]; then
+          echo "Proxy for https://google.com/ set successfully"
+        else
+          echo "Proxy for https://google.com/ set failed"
+          exit 1
+        fi
+        out=$(./proxycli resolve https://example1.com/)
+        echo "Proxy for https://example1.com/: $out"
+        if [ "$out" = "PROXY no-such-proxy:80" ]; then
+          echo "Proxy for https://example1.com/ set successfully"
+        else
+          echo "Proxy for https://example1.com/ set failed"
           exit 1
         fi
       working-directory: build/test/Release
