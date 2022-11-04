@@ -76,6 +76,9 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
             } else if (CFEqual(proxy_type, kCFProxyTypeFTP)) {
                 strncat(proxy_resolver->list, "FTP ", max_list - list_len - 1);
                 list_len += 4;
+            } else {
+                LOG_WARN("Unknown proxy type encountered\n");
+                continue;
             }
 
             if (!CFEqual(proxy_type, kCFProxyTypeNone)) {
