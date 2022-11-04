@@ -58,7 +58,7 @@ char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
             int32_t proxy_len = (int32_t)(config_end - address_start);
             char *proxy = (char *)calloc(proxy_len + 1, sizeof(char));
             if (proxy)
-                strncpy(proxy, address_start, proxy_len);
+                strncat(proxy, address_start, proxy_len);
             return proxy;
         }
         if (!config_end)

@@ -120,21 +120,18 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
 
     for (int32_t i = 0; proxies[i] && i < proxy_count; i++) {
         if (strstr(proxies[i], "direct") == proxies[i]) {
-            strncat(proxy_resolver->list, "DIRECT", max_list - list_len);
+            strncat(proxy_resolver->list, "DIRECT", max_list - list_len - 1);
             list_len += 6;
         } else if (strstr(proxies[i], "http") == proxies[i]) {
-            strncat(proxy_resolver->list, "PROXY ", max_list - list_len);
-            proxy_resolver->list[max_list - 1] = 0;
+            strncat(proxy_resolver->list, "PROXY ", max_list - list_len - 1);
             list_len += 6;
-            strncat(proxy_resolver->list, proxies[i], max_list - list_len);
+            strncat(proxy_resolver->list, proxies[i], max_list - list_len - 1);
             list_len += strlen(proxies[i]);
         }
-        proxy_resolver->list[max_list - 1] = 0;
 
         if (i != proxy_count - 1) {
             // Append semi-colon separator
-            strncat(proxy_resolver->list, ";", max_list - list_len);
-            proxy_resolver->list[max_list - 1] = 0;
+            strncat(proxy_resolver->list, ";", max_list - list_len - 1);
             list_len++;
         }
     }

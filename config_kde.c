@@ -62,7 +62,6 @@ char *proxy_config_kde_get_proxy(const char *protocol) {
 
     // Append "Proxy" to the end of the key
     strncat(key, "Proxy", max_key - protocol_len - 1);
-    key[max_key - 1] = 0;
 
     char *proxy = get_config_value(g_proxy_config_kde.config, "Proxy Settings", key);
     free(key);

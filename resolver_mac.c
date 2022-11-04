@@ -62,22 +62,21 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
 
             // Copy type of connection
             if (CFEqual(proxy_type, kCFProxyTypeNone)) {
-                strncat(proxy_resolver->list, "DIRECT", max_list - list_len);
+                strncat(proxy_resolver->list, "DIRECT", max_list - list_len - 1);
                 list_len += 6;
             } else if (CFEqual(proxy_type, kCFProxyTypeHTTP)) {
-                strncat(proxy_resolver->list, "HTTP ", max_list - list_len);
+                strncat(proxy_resolver->list, "HTTP ", max_list - list_len - 1);
                 list_len += 5;
             } else if (CFEqual(proxy_type, kCFProxyTypeHTTPS)) {
-                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len);
+                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len - 1);
                 list_len += 6;
             } else if (CFEqual(proxy_type, kCFProxyTypeSOCKS)) {
-                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len);
+                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len - 1);
                 list_len += 6;
             } else if (CFEqual(proxy_type, kCFProxyTypeFTP)) {
-                strncat(proxy_resolver->list, "FTP ", max_list - list_len);
+                strncat(proxy_resolver->list, "FTP ", max_list - list_len - 1);
                 list_len += 4;
             }
-            proxy_resolver->list[max_list] = 0;
 
             if (!CFEqual(proxy_type, kCFProxyTypeNone)) {
                 // Copy proxy host
@@ -100,8 +99,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
 
             if (i != proxy_count - 1) {
                 // Append semi-colon separator
-                strncat(proxy_resolver->list, ";", max_list - list_len);
-                proxy_resolver->list[max_list - 1] = 0;
+                strncat(proxy_resolver->list, ";", max_list - list_len - 1);
                 list_len++;
             }
         }

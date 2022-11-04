@@ -107,25 +107,23 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         if (entry->fProxy) {
             switch (entry->ProxyScheme) {
             case INTERNET_SCHEME_HTTP:
-                strncat(proxy_resolver->list, "HTTP ", max_list - list_len);
+                strncat(proxy_resolver->list, "HTTP ", max_list - list_len - 1);
                 list_len += 5;
                 break;
             case INTERNET_SCHEME_HTTPS:
-                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len);
+                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len - 1);
                 list_len += 6;
                 break;
             case INTERNET_SCHEME_SOCKS:
-                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len);
+                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len - 1);
                 list_len += 6;
                 break;
             }
-            proxy_resolver->list[max_list - 1] = 0;
 
             // Convert wide char proxy url to UTF-8
             char *proxy_url = wchar_dup_to_utf8(entry->pwszProxy);
             if (proxy_url) {
-                strncat(proxy_resolver->list, proxy_url, max_list - list_len);
-                proxy_resolver->list[max_list - 1] = 0;
+                strncat(proxy_resolver->list, proxy_url, max_list - list_len - 1);
                 list_len += strlen(proxy_url);
                 free(proxy_url);
             }
@@ -138,15 +136,13 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
             }
         } else {
             // No proxy
-            strncat(proxy_resolver->list, "DIRECT", max_list - list_len);
-            proxy_resolver->list[max_list - 1] = 0;
+            strncat(proxy_resolver->list, "DIRECT", max_list - list_len - 1);
             list_len += 6;
         }
 
         // Separate each proxy url with a semicolon
         if (i != proxy_result.cEntries - 1) {
-            strncat(proxy_resolver->list, ";", max_list - list_len);
-            proxy_resolver->list[max_list - 1] = 0;
+            strncat(proxy_resolver->list, ";", max_list - list_len - 1);
             list_len++;
         }
     }
@@ -263,8 +259,7 @@ win8_done:
         goto win8_error;
     }
 
-    strncat(proxy_resolver->list, proxy, max_list);
-    proxy_resolver->list[max_list - 1] = 0;
+    strncat(proxy_resolver->list, proxy, max_list - 1);
 
 win8_error:
 win8_ok:
