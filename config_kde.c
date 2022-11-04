@@ -46,7 +46,7 @@ char *proxy_config_kde_get_auto_config_url(void) {
 char *proxy_config_kde_get_proxy(const char *protocol) {
     if (!protocol || !check_proxy_type(PROXY_TYPE_FIXED))
         return NULL;
-    
+
     // Construct key name to search for in config
     int32_t protocol_len = strlen(protocol);
     int32_t max_key = protocol_len + 8;
@@ -93,9 +93,7 @@ bool proxy_config_kde_init(void) {
     user_home_path[sizeof(user_home_path) - 1] = 0;
 
     // Remove trailing slash
-    int32_t user_home_path_len = strlen(user_home_path);
-    if (user_home_path[user_home_path_len - 1] == '/')
-        user_home_path[user_home_path_len - 1] = 0;
+    str_trim_end(user_home_path, '/');
 
     // Get config file path based on desktop environment
     int32_t desktop_env = get_desktop_env();
