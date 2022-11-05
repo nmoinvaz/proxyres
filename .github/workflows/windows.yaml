@@ -124,7 +124,7 @@ jobs:
         fi
         out=$(./proxycli resolve https://multi.com/)
         echo "Proxy for https://multi.com/: $out"
-        if [ "$out" = "https://some-such-proxy,https://secure-some-proxy:41" ]; then
+        if [ "$out" = "https://some-such-proxy,https://any-such-proxy:41" ]; then
           echo "Proxy for https://multi.com/ set successfully"
         else
           echo "Proxy for https://multi.com/ set failed"
