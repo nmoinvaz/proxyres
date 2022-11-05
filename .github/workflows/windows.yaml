@@ -96,12 +96,12 @@ jobs:
     - name: Serve proxy auto config scripts
       uses: Eun/http-server-action@v1
       with:
-        directory: ${{ github.workspace }}/test/pac
+        directory: ${{ github.workspace }}/test
         port: 8080
 
     - name: Set proxy auto config setting (IE)
       run: |
-        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://127.0.0.1:8080/example.js" /f
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://127.0.0.1:8080/pac.js" /f
 
     - name: Check proxy resolution (IE)
       shell: bash

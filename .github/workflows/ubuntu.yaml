@@ -148,11 +148,11 @@ jobs:
     - name: Serve proxy auto config scripts
       uses: Eun/http-server-action@v1
       with:
-        directory: ${{ github.workspace }}/test/pac
+        directory: ${{ github.workspace }}/test
         port: 8080
 
     - name: Set proxy auto config setting (gsettings)
-      run: gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/example.js'
+      run: gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/pac.js'
 
     - name: Check proxy resolution (gsettings)
       run: |
