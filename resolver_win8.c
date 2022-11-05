@@ -103,7 +103,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         if (!entry)
             continue;
 
-        // Prefix each URL with the proxy type
+        // Prefix each url with the proxy schema
         if (entry->fProxy) {
             switch (entry->ProxyScheme) {
             case INTERNET_SCHEME_HTTP:
