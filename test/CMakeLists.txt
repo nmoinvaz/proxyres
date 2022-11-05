@@ -7,9 +7,9 @@ add_test(NAME proxycli-help
 add_test(NAME proxycli-config
     COMMAND proxycli config)
 add_test(NAME proxycli-resolve-google
-    COMMAND proxycli resolve https://example1.com/ https://google.com/)
+    COMMAND proxycli resolve https://simple.com/ https://google.com/)
 add_test(NAME proxycli-execute-google
-    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js https://example1.com/ https://google.com/)
+    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac/example.js https://simple.com/ https://google.com/)
 
 if(NOT TARGET GTest::GTest)
     include(FetchContent)

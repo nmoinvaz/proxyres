@@ -26,7 +26,7 @@ function FindProxyForURL(url, host) {
   if (isPlainHostName(host)) {
     return "HTTP plain";
   }
-  if (host == "example1.com") {
+  if (host == "simple.com") {
     return "PROXY no-such-proxy:80";
   }
   if (shExpMatch(url, '*microsoft.com/*')) {
@@ -39,7 +39,7 @@ constexpr execute_param execute_tests[] = {
     {"your-pc", "HTTP plain"},
     {"127.0.0.1", "PROXY localhost:30"},
     {"http://127.0.0.1/", "PROXY localhost:30"},
-    {"http://example1.com/", "PROXY no-such-proxy:80"},
+    {"http://simple.com/", "PROXY no-such-proxy:80"},
     {"http://example2.com/", "DIRECT"},
     {"http://microsoft.com/test", "PROXY microsoft.com:80"}
 };
