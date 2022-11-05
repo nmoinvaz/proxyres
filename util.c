@@ -55,13 +55,28 @@ const char *str_find_first_char(const char *str, const char *chars) {
     return NULL;
 }
 
+// Find first character in string up to max length
+const char *str_find_len_first_char(const char *str, int32_t str_len, const char *chars) {
+    while (str_len && *str) {
+        const char *c = chars;
+        while (*c) {
+            if (*str == *c)
+                return str;
+            c++;
+        }
+        str++;
+        str_len--;
+    }
+    return NULL;
+}
+
 // Find character in string up to max length
-const char *str_find_max_char(const char *str, int32_t max_str, char c) {
-    while (max_str && *str) {
+const char *str_find_len_char(const char *str, int32_t str_len, char c) {
+    while (str_len && *str) {
         if (*str == c)
             return str;
         str++;
-        max_str--;
+        str_len--;
     }
     return NULL;
 }

@@ -100,7 +100,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
             config_end = config_start + strlen(config_start);
 
         // Find start of proxy address
-        const char *schema_end = str_find_max_char(config_start, (int32_t)(config_end - config_start), '=');
+        const char *schema_end = str_find_len_first_char(config_start, (int32_t)(config_end - config_start), ":=");
 
         const char *protocol = NULL;
         size_t protocol_len = 0;
@@ -118,7 +118,9 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
             protocol = config_start;
             protocol_len = (int32_t)(schema_end - config_start);
             // Calculate start of proxy address
-            address_start = schema_end + 1;
+            address_start = schema_end;
+            while (*address_start == '=' || *address_start == ':' || *address_start == '/')
+                address_start++;
         }
 
         // Copy protocol
