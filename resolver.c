@@ -77,9 +77,7 @@ const char *proxy_resolver_get_list(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
-    char *list = NULL;
-    g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base, &list);
-    return list;
+    return g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
 }
 
 bool proxy_resolver_get_error(void *ctx, int32_t *error) {

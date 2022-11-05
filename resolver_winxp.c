@@ -137,8 +137,10 @@ winxp_done:
         break;
     }
 
+    goto winxp_done;
+
+winxp_done:
 winxp_error:
-winxp_ok:
 
     proxy_resolver->pending = false;
 
@@ -166,12 +168,11 @@ winxp_ok:
     return proxy_resolver->error == 0;
 }
 
-bool proxy_resolver_winxp_get_list(void *ctx, char **list) {
+const char *proxy_resolver_winxp_get_list(void *ctx) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (!proxy_resolver || !list)
-        return false;
-    *list = proxy_resolver->list;
-    return (*list != NULL);
+    if (!proxy_resolver)
+        return NULL;
+    return proxy_resolver->list;
 }
 
 bool proxy_resolver_winxp_get_error(void *ctx, int32_t *error) {

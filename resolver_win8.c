@@ -296,12 +296,11 @@ win8_cleanup:
     return proxy_resolver->error == 0;
 }
 
-bool proxy_resolver_win8_get_list(void *ctx, char **list) {
+const char *proxy_resolver_win8_get_list(void *ctx) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (!proxy_resolver || !list)
-        return false;
-    *list = proxy_resolver->list;
-    return (*list != NULL);
+    if (!proxy_resolver)
+        return NULL;
+    return proxy_resolver->list;
 }
 
 bool proxy_resolver_win8_get_error(void *ctx, int32_t *error) {

@@ -227,12 +227,11 @@ gnome3_done:
 }
 #endif
 
-bool proxy_resolver_gnome3_get_list(void *ctx, char **list) {
+const char *proxy_resolver_gnome3_get_list(void *ctx) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (!proxy_resolver || !list)
-        return false;
-    *list = proxy_resolver->list;
-    return (*list != NULL);
+    if (!proxy_resolver)
+        return NULL;
+    return proxy_resolver->list;
 }
 
 bool proxy_resolver_gnome3_get_error(void *ctx, int32_t *error) {

@@ -6,7 +6,7 @@ extern "C" {
 
 bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url);
 
-bool proxy_resolver_mac_get_list(void *ctx, char **list);
+const char *proxy_resolver_mac_get_list(void *ctx);
 bool proxy_resolver_mac_get_error(void *ctx, int32_t *error);
 bool proxy_resolver_mac_is_pending(void *ctx);
 bool proxy_resolver_mac_cancel(void *ctx);
