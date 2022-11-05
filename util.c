@@ -81,6 +81,18 @@ const char *str_find_len_char(const char *str, int32_t str_len, char c) {
     return NULL;
 }
 
+// Find string in string up to max length
+const char *str_find_len_str(const char *str, int32_t str_len, const char *find) {
+    size_t find_len = strlen(find);
+    while (str_len >= find_len && *str) {
+        if (strncmp(str, find, find_len) == 0)
+            return str;
+        str++;
+        str_len--;
+    }
+    return NULL;
+}
+
 // Resolve a hostname to an IP address
 char *dns_resolve(const char *host, int32_t *error) {
     char name[256] = {0};

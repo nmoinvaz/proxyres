@@ -45,23 +45,23 @@ char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
 
     const char *config_start = proxy_list;
     char *config_end = NULL;
-    char *address_start = NULL;
+    char *host_start = NULL;
 
     // Enumerate each proxy in the proxy list
-    while ((address_start = strchr(config_start, '=')) != NULL) {
-        address_start++;
-        config_end = strchr(address_start, ';');
+    while ((host_start = strchr(config_start, '=')) != NULL) {
+        host_start++;
+        config_end = strchr(host_start, ';');
 
         // Check to see if the key in the proxy config matches the protocol
         if (_strnicmp(config_start, protocol_start, protocol_len) == 0 && config_start[protocol_len] == '=') {
             if (!config_end)
-                config_end = address_start + strlen(address_start);
+                config_end = host_start + strlen(host_start);
 
             // Return matching proxy config in proxy list
-            int32_t uri_list_len = (int32_t)(config_end - address_start);
+            int32_t uri_list_len = (int32_t)(config_end - host_start);
             char *proxy = (char *)calloc(uri_list_len + 1, sizeof(char));
             if (proxy)
-                strncat(proxy, address_start, uri_list_len);
+                strncat(proxy, host_start, uri_list_len);
             return proxy;
         }
         if (!config_end)
@@ -90,7 +90,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
 
     const char *config_start = proxy_list;
     const char *config_end = NULL;
-    char *address_start = NULL;
+    char *host_start = NULL;
 
     // Enumerate each proxy in the proxy list.
     do {
@@ -99,28 +99,34 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
         if (!config_end)
             config_end = config_start + strlen(config_start);
 
-        // Find start of proxy address
-        const char *schema_end = str_find_len_first_char(config_start, (int32_t)(config_end - config_start), ":=");
+        // Find schema boundary
+        const char *schema_end = config_start;
+        while (schema_end < config_end && *schema_end) {
+            if ((*schema_end == '=') || (*schema_end == ':' && schema_end[1] == '/' && schema_end[2] == '/')) {
+                break;
+            }
+            schema_end++;
+        }
 
         const char *protocol = NULL;
         size_t protocol_len = 0;
-        const char *address_start = NULL;
-        size_t address_len = 0;
+        const char *host_start = NULL;
+        size_t host_len = 0;
 
-        if (!schema_end) {
+        if (schema_end == config_end) {
             // No schema, assume http
             protocol = "http";
             protocol_len = 4;
-            // Calculate start of proxy address
-            address_start = config_start;
+            // Calculate start of host
+            host_start = config_start;
         } else {
             // Copy the proxy schema
             protocol = config_start;
             protocol_len = (int32_t)(schema_end - config_start);
-            // Calculate start of proxy address
-            address_start = schema_end;
-            while (*address_start == '=' || *address_start == ':' || *address_start == '/')
-                address_start++;
+            // Calculate start of host
+            host_start = schema_end;
+            while (*host_start == '=' || *host_start == ':' || *host_start == '/')
+                host_start++;
         }
 
         // Copy protocol
@@ -133,11 +139,11 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
         uri_list_len += 3;
 
         // Copy proxy address
-        address_len = (int32_t)(config_end - address_start);
-        if (address_len > max_uri_list - 1)
-            address_len = max_uri_list - 1;
-        strncat(uri_list, address_start, address_len);
-        uri_list_len += address_len;
+        host_len = (int32_t)(config_end - host_start);
+        if (host_len > max_uri_list - 1)
+            host_len = max_uri_list - 1;
+        strncat(uri_list, host_start, host_len);
+        uri_list_len += host_len;
 
         // Separate each proxy with comma
         if (config_end != proxy_list_end) {
