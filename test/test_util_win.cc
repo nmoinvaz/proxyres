@@ -46,3 +46,33 @@ TEST_P(util_by_protocol, get_proxy) {
         free(proxy);
     }
 }
+struct convert_proxy_list_to_uri_list_param {
+    const char *proxy_list;
+    const char *expected;
+
+    friend std::ostream &operator<<(std::ostream &os, const convert_proxy_list_to_uri_list_param &param) {
+        return os << "proxy_list: " << param.proxy_list;
+    }
+};
+
+constexpr convert_proxy_list_to_uri_list_param convert_proxy_list_to_uri_list_tests[] = {
+    {"http=127.0.0.1;myproxy1.com", "http://127.0.0.1,http://myproxy1.com"},
+    {"https=mysecureproxy1.com;http=myproxy2.com", "https://mysecureproxy1.com,http://myproxy2.com"},
+    {"myproxy3.com", "http://myproxy3.com"},
+    {"myproxy4.com:8080", "http://myproxy4.com:8080"},
+    {"socks socksprox.com;http httpprox.com", "socks://socksproxy.com,http://httpprox.com"}
+};
+
+class util_to_uri_list : public ::testing::TestWithParam<convert_proxy_list_to_uri_list_param> {};
+
+INSTANTIATE_TEST_SUITE_P(util, util_to_uri_list, testing::ValuesIn(convert_proxy_list_to_uri_list_tests));
+
+TEST_P(util_to_uri_list, convert_proxy_list) {
+    const auto &param = GetParam();
+    char *uri_list = convert_proxy_list_to_uri_list(param.proxy_list);
+    EXPECT_NE(uri_list, nullptr);
+    if (uri_list) {
+        EXPECT_STREQ(uri_list, param.expected);
+        free(uri_list);
+    }
+}

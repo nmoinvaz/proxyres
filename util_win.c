@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+#include "util.h"
+
 // Create a wide char string from a UTF-8 string
 wchar_t *utf8_dup_to_wchar(const char *src) {
     int32_t len = MultiByteToWideChar(CP_UTF8, 0, src, -1, NULL, 0);
@@ -23,7 +25,8 @@ char *wchar_dup_to_utf8(const wchar_t *src) {
     return dup;
 }
 
-// Get proxy by protocol from proxy list in the format of rotocol1=url1;protocol2=url2.
+// Get proxy by protocol from a proxy list that is in the following format:
+//  ([<scheme>=][<scheme>"://"]<server>[":"<port>])
 char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
     char *host = NULL;
     const char *protocol_start = protocol;
@@ -55,10 +58,10 @@ char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
                 config_end = address_start + strlen(address_start);
 
             // Return matching proxy config in proxy list
-            int32_t proxy_len = (int32_t)(config_end - address_start);
-            char *proxy = (char *)calloc(proxy_len + 1, sizeof(char));
+            int32_t uri_list_len = (int32_t)(config_end - address_start);
+            char *proxy = (char *)calloc(uri_list_len + 1, sizeof(char));
             if (proxy)
-                strncat(proxy, address_start, proxy_len);
+                strncat(proxy, address_start, uri_list_len);
             return proxy;
         }
         if (!config_end)
@@ -69,4 +72,80 @@ char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
     }
 
     return strdup(proxy_list);
+}
+
+// Convert WinHTTP proxy list schema to uri list
+char *convert_proxy_list_to_uri_list(const char *proxy_list) {
+    if (!proxy_list)
+        return NULL;
+
+    int32_t proxy_list_len = strlen(proxy_list);
+    const char *proxy_list_end = proxy_list + proxy_list_len;
+
+    int32_t max_uri_list = proxy_list_len + MAX_PROXY_URL;
+    char *uri_list = (char *)calloc(max_uri_list, sizeof(char));
+    if (!uri_list)
+        return NULL;
+
+    const char *config_start = proxy_list;
+    char *config_end = NULL;
+    char *address_start = NULL;
+
+    // Enumerate each proxy in the proxy list.
+    do {
+        // Proxies can be separated by a semi-colon or a whitespace
+        config_end = str_find_first_char(config_start, '; \t\r\n');
+        if (!config_end)
+            config_end = config_start + strlen(config_start);
+
+        // Find start of proxy address
+        const char *schema_end =
+            str_find_char_safe(config_start, (int32_t)(config_end - config_start), '=');
+
+        const char *protocol = NULL;
+        int32_t protocol_len = 0;
+        const char *address_start = NULL;
+        int32_t address_len = 0;
+
+        if (!schema_end) {
+            // No schema, assume http
+            protocol = "http";
+            protocol_len = 4;
+            // Calculate proxy address boundaries
+            address_len = (int32_t)(config_end - config_start);
+            address_start = config_start;
+        } else {
+            // Copy the proxy schema
+            protocol = config_start;
+            protocol_len = (int32_t)(schema_end - config_start);
+            // Calculate proxy address boundaries
+            address_len = (int32_t)(config_end - schema_end);
+            address_start = schema_end + 1;
+        }
+
+        // Copy protocol
+        if (protocol_len > max_uri_list - 1)
+            protocol_len = max_uri_list - 1;
+        strncat(uri_list, protocol, protocol_len);
+        uri_list_len += protocol_len;
+
+        strncat(uri_list, "://", max_uri_list - uri_list_len - 1);
+        uri_list_len += 3;
+
+        // Copy proxy address
+        if (address_len > max_uri_list - 1)
+            address_len = max_uri_list - 1;
+        strncat(uri_list, config_start, address_len);
+        uri_list_len += address_len;
+
+        // Separate each proxy with comma
+        if (config_end != proxy_list_end) {
+            strncat(uri_list, ",", max_uri_list - uri_list_len - 1);
+            uri_list_len += 1;
+        }
+
+        config_start = config_end + 1;
+    } while (config_end < proxy_list_end);
+
+    return uri_list;
 }

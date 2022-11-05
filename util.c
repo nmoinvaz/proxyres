@@ -41,6 +41,30 @@ int32_t str_trim_end(char *str, char c) {
     return count;
 }
 
+// Find first character in string
+char *str_find_first_char(char *str, char *chars) {
+    while (*str) {
+        char *c = chars;
+        while (*c) {
+            if (*str == *c)
+                return str;
+            c++;
+        }
+    }
+    return NULL;
+}
+
+// Find character in string up to max length
+char *str_find_char_safe(char *str, int32_t max_str, char c) {
+    while (max_str && *str) {
+        if (*str == c)
+            return str;
+        str++;
+        max_str--;
+    }
+    return NULL;
+}
+
 // Resolve a hostname to an IP address
 char *dns_resolve(const char *host, int32_t *error) {
     char name[256] = {0};

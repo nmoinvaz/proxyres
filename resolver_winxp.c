@@ -54,7 +54,6 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
-    char *proxy = NULL;
     bool is_ok = false;
 
     proxy_resolver_winxp_reset(proxy_resolver);
@@ -113,24 +112,31 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
 winxp_done:
 
-    // If proxy is null then no proxy is used
-    if (!proxy_info.lpszProxy)
-        goto winxp_ok;
+    switch (proxy_info.dwAccessType) {
+    case WINHTTP_ACCESS_TYPE_NO_PROXY:
+        proxy_resolver->list = strdup("direct://");
+        break;
+    case WINHTTP_ACCESS_TYPE_NAMED_PROXY:
+        // Proxy list is in the following semi-colon delimited format:
+        //  ([<scheme>=][<scheme>"://"]<server>[":"<port>])
 
-    // Copy proxy list to proxy resolver
-    proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
-    if (!proxy)
-        goto winxp_error;
-    size_t max_list = strlen(proxy) + 8;
-    proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-    if (!proxy_resolver->list) {
-        proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")", proxy_resolver->error);
-        goto winxp_error;
+        char *proxy = NULL;
+        if (proxy_info.lpszProxy)
+            proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
+        if (!proxy)
+            goto winxp_error;
+
+        // Convert proxy list to uri list
+        proxy_resolver->list = convert_proxy_list_to_uri_list(proxy);
+        free(proxy);
+        if (!proxy_resolver->list) {
+            proxy_resolver->error = ERROR_OUTOFMEMORY;
+            LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")", proxy_resolver->error);
+            goto winxp_error;
+        }
+        break;
     }
 
-    strncat(proxy_resolver->list, "http://", max_list - 1);
-    strncat(proxy_resolver->list + 7, proxy, max_list - 7 - 1);
 
 winxp_error:
 winxp_ok:
@@ -142,7 +148,6 @@ winxp_ok:
         proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
                                  proxy_resolver->list);
 
-    free(proxy);
     free(url_wide);
 
     // Free proxy info
