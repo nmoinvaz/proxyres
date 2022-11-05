@@ -135,7 +135,7 @@ jobs:
         fi
         out=$(./proxycli resolve https://example1.com/)
         echo "Proxy for https://example1.com/: $out"
-        if [ "$out" = "PROXY no-such-proxy:80" ]; then
+        if [ "$out" = "HTTPS no-such-proxy:80" ]; then
           echo "Proxy for https://example1.com/ set successfully"
         else
           echo "Proxy for https://example1.com/ set failed"
