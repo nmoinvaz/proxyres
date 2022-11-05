@@ -82,6 +82,10 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         enable_index = kCFNetworkProxiesFTPEnable;
         host_index = kCFNetworkProxiesFTPProxy;
         port_index = kCFNetworkProxiesFTPPort;
+    } else if (strncasecmp(protocol, "rtsp", 4) == 0) {
+        enable_index = kCFNetworkProxiesRTSPEnable;
+        host_index = kCFNetworkProxiesRTSPProxy;
+        port_index = kCFNetworkProxiesRTSPPort;
     }
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
