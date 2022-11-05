@@ -119,19 +119,13 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
     int32_t list_len = 0;
 
     for (int32_t i = 0; proxies[i] && i < proxy_count; i++) {
-        if (strstr(proxies[i], "direct") == proxies[i]) {
-            strncat(proxy_resolver->list, "DIRECT", max_list - list_len - 1);
-            list_len += 6;
-        } else if (strstr(proxies[i], "http") == proxies[i]) {
-            strncat(proxy_resolver->list, "PROXY ", max_list - list_len - 1);
-            list_len += 6;
-            strncat(proxy_resolver->list, proxies[i], max_list - list_len - 1);
-            list_len += strlen(proxies[i]);
-        }
+        // Already in the format "scheme://host:port"
+        strncat(proxy_resolver->list, proxies[i], max_list - list_len - 1);
+        list_len += strlen(proxies[i]);
 
         if (i != proxy_count - 1) {
-            // Append semi-colon separator
-            strncat(proxy_resolver->list, ";", max_list - list_len - 1);
+            // Separate each proxy with a comma
+            strncat(proxy_resolver->list, ",", max_list - list_len - 1);
             list_len++;
         }
     }

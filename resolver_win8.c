@@ -107,15 +107,19 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         if (entry->fProxy) {
             switch (entry->ProxyScheme) {
             case INTERNET_SCHEME_HTTP:
-                strncat(proxy_resolver->list, "HTTP ", max_list - list_len - 1);
-                list_len += 5;
+                strncat(proxy_resolver->list, "http://", max_list - list_len - 1);
+                list_len += 7;
                 break;
             case INTERNET_SCHEME_HTTPS:
-                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len - 1);
-                list_len += 6;
+                strncat(proxy_resolver->list, "https://", max_list - list_len - 1);
+                list_len += 8;
                 break;
             case INTERNET_SCHEME_SOCKS:
-                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len - 1);
+                strncat(proxy_resolver->list, "socks://", max_list - list_len - 1);
+                list_len += 8;
+                break;
+            case INTERNET_SCHEME_FTP:
+                strncat(proxy_resolver->list, "ftp://", max_list - list_len - 1);
                 list_len += 6;
                 break;
             }
@@ -136,13 +140,13 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
             }
         } else {
             // No proxy
-            strncat(proxy_resolver->list, "DIRECT", max_list - list_len - 1);
-            list_len += 6;
+            strncat(proxy_resolver->list, "direct://", max_list - list_len - 1);
+            list_len += 9;
         }
 
-        // Separate each proxy url with a semicolon
+        // Separate each proxy url with a comma
         if (i != proxy_result.cEntries - 1) {
-            strncat(proxy_resolver->list, ";", max_list - list_len - 1);
+            strncat(proxy_resolver->list, ",", max_list - list_len - 1);
             list_len++;
         }
     }

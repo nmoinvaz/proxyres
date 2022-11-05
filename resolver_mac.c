@@ -62,20 +62,20 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
 
             // Copy type of connection
             if (CFEqual(proxy_type, kCFProxyTypeNone)) {
-                strncat(proxy_resolver->list, "DIRECT", max_list - list_len - 1);
-                list_len += 6;
+                strncat(proxy_resolver->list, "direct://", max_list - list_len - 1);
+                list_len += 9;
             } else if (CFEqual(proxy_type, kCFProxyTypeHTTP)) {
-                strncat(proxy_resolver->list, "HTTP ", max_list - list_len - 1);
-                list_len += 5;
+                strncat(proxy_resolver->list, "http://", max_list - list_len - 1);
+                list_len += 7;
             } else if (CFEqual(proxy_type, kCFProxyTypeHTTPS)) {
-                strncat(proxy_resolver->list, "HTTPS ", max_list - list_len - 1);
-                list_len += 6;
+                strncat(proxy_resolver->list, "https://", max_list - list_len - 1);
+                list_len += 8;
             } else if (CFEqual(proxy_type, kCFProxyTypeSOCKS)) {
-                strncat(proxy_resolver->list, "SOCKS ", max_list - list_len - 1);
-                list_len += 6;
+                strncat(proxy_resolver->list, "socks://", max_list - list_len - 1);
+                list_len += 8;
             } else if (CFEqual(proxy_type, kCFProxyTypeFTP)) {
-                strncat(proxy_resolver->list, "FTP ", max_list - list_len - 1);
-                list_len += 4;
+                strncat(proxy_resolver->list, "ftp://", max_list - list_len - 1);
+                list_len += 6;
             } else {
                 LOG_WARN("Unknown proxy type encountered\n");
                 continue;
@@ -106,8 +106,8 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
             }
 
             if (i != proxy_count - 1) {
-                // Append semi-colon separator
-                strncat(proxy_resolver->list, ";", max_list - list_len - 1);
+                // Separate each proxy with a comma
+                strncat(proxy_resolver->list, ",", max_list - list_len - 1);
                 list_len++;
             }
         }

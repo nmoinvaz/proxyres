@@ -129,8 +129,8 @@ winxp_done:
         goto winxp_error;
     }
 
-    strncat(proxy_resolver->list, "PROXY ", max_list - 1);
-    strncat(proxy_resolver->list + 6, proxy, max_list - 6 - 1);
+    strncat(proxy_resolver->list, "http://", max_list - 1);
+    strncat(proxy_resolver->list + 7, proxy, max_list - 7 - 1);
 
 winxp_error:
 winxp_ok:
