@@ -137,7 +137,6 @@ winxp_done:
         break;
     }
 
-
 winxp_error:
 winxp_ok:
 

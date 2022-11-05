@@ -42,20 +42,21 @@ int32_t str_trim_end(char *str, char c) {
 }
 
 // Find first character in string
-char *str_find_first_char(char *str, char *chars) {
+const char *str_find_first_char(const char *str, const char *chars) {
     while (*str) {
-        char *c = chars;
+        const char *c = chars;
         while (*c) {
             if (*str == *c)
                 return str;
             c++;
         }
+        str++;
     }
     return NULL;
 }
 
 // Find character in string up to max length
-char *str_find_char_safe(char *str, int32_t max_str, char c) {
+const char *str_find_max_char(const char *str, int32_t max_str, char c) {
     while (max_str && *str) {
         if (*str == c)
             return str;

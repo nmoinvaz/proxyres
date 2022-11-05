@@ -60,7 +60,7 @@ constexpr convert_proxy_list_to_uri_list_param convert_proxy_list_to_uri_list_te
     {"https=mysecureproxy1.com;http=myproxy2.com", "https://mysecureproxy1.com,http://myproxy2.com"},
     {"myproxy3.com", "http://myproxy3.com"},
     {"myproxy4.com:8080", "http://myproxy4.com:8080"},
-    {"socks socksprox.com;http httpprox.com", "socks://socksproxy.com,http://httpprox.com"}
+    {"socks=socksprox.com http=httpprox.com", "socks://socksprox.com,http://httpprox.com"}
 };
 
 class util_to_uri_list : public ::testing::TestWithParam<convert_proxy_list_to_uri_list_param> {};

@@ -8,6 +8,7 @@
 #include "config_i.h"
 #include "config_win.h"
 
+#include "util.h"
 #include "util_win.h"
 
 static void free_winhttp_ie_proxy_config(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG *ie_config) {

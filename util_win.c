@@ -30,7 +30,7 @@ char *wchar_dup_to_utf8(const wchar_t *src) {
 char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
     char *host = NULL;
     const char *protocol_start = protocol;
-    int32_t protocol_len = 0;
+    size_t protocol_len = 0;
 
     // Get protocol start and length if incase input is a url
     host = strstr(protocol, "://");
@@ -79,47 +79,45 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
     if (!proxy_list)
         return NULL;
 
-    int32_t proxy_list_len = strlen(proxy_list);
+    size_t proxy_list_len = strlen(proxy_list);
     const char *proxy_list_end = proxy_list + proxy_list_len;
 
-    int32_t max_uri_list = proxy_list_len + MAX_PROXY_URL;
+    size_t uri_list_len = 0;
+    size_t max_uri_list = proxy_list_len + 128;  // Extra space for schema separators
     char *uri_list = (char *)calloc(max_uri_list, sizeof(char));
     if (!uri_list)
         return NULL;
 
     const char *config_start = proxy_list;
-    char *config_end = NULL;
+    const char *config_end = NULL;
     char *address_start = NULL;
 
     // Enumerate each proxy in the proxy list.
     do {
         // Proxies can be separated by a semi-colon or a whitespace
-        config_end = str_find_first_char(config_start, '; \t\r\n');
+        config_end = str_find_first_char(config_start, "; \t\r\n");
         if (!config_end)
             config_end = config_start + strlen(config_start);
 
         // Find start of proxy address
-        const char *schema_end =
-            str_find_char_safe(config_start, (int32_t)(config_end - config_start), '=');
+        const char *schema_end = str_find_max_char(config_start, (int32_t)(config_end - config_start), '=');
 
         const char *protocol = NULL;
-        int32_t protocol_len = 0;
+        size_t protocol_len = 0;
         const char *address_start = NULL;
-        int32_t address_len = 0;
+        size_t address_len = 0;
 
         if (!schema_end) {
             // No schema, assume http
             protocol = "http";
             protocol_len = 4;
-            // Calculate proxy address boundaries
-            address_len = (int32_t)(config_end - config_start);
+            // Calculate start of proxy address
             address_start = config_start;
         } else {
             // Copy the proxy schema
             protocol = config_start;
             protocol_len = (int32_t)(schema_end - config_start);
-            // Calculate proxy address boundaries
-            address_len = (int32_t)(config_end - schema_end);
+            // Calculate start of proxy address
             address_start = schema_end + 1;
         }
 
@@ -133,9 +131,10 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
         uri_list_len += 3;
 
         // Copy proxy address
+        address_len = (int32_t)(config_end - address_start);
         if (address_len > max_uri_list - 1)
             address_len = max_uri_list - 1;
-        strncat(uri_list, config_start, address_len);
+        strncat(uri_list, address_start, address_len);
         uri_list_len += address_len;
 
         // Separate each proxy with comma
