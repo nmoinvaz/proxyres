@@ -141,12 +141,12 @@ jobs:
           echo "Proxy for https://simple.com/ set failed"
           exit 1
         fi
-        out=$(./proxycli resolve https://multi.com/)
-        echo "Proxy for https://multi.com/: $out"
+        out=$(./proxycli resolve https://multi-legacy.com/)
+        echo "Proxy for https://multi-legacy.com/: $out"
         if [ "$out" = "https://some-such-proxy,https://secure-some-proxy:41" ]; then
-          echo "Proxy for https://multi.com/ set successfully"
+          echo "Proxy for https://multi-legacy.com/ set successfully"
         else
-          echo "Proxy for https://multi.com/ set failed"
+          echo "Proxy for https://multi-legacy.com/ set failed"
           exit 1
         fi
       working-directory: build/test/Release
