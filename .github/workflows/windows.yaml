@@ -103,17 +103,9 @@ jobs:
       run: |
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /t REG_SZ /d "http://127.0.0.1:8080/example.js" /f
 
-    - name: Check proxy auto-config setting (IE)
+    - name: Check proxy resolution (IE)
       shell: bash
       run: |
-        out=$(./proxycli config auto_config_url)
-        echo "Auto config url: $out"
-        if [ "$out" = "http://127.0.0.1:8080/example.js" ]; then
-          echo "Auto config url set successfully"
-        else
-          echo "Auto config url set failed"
-          exit 1
-        fi
         out=$(./proxycli resolve https://google.com/)
         echo "Proxy for https://google.com/: $out"
         if [ "$out" = "DIRECT" ]; then

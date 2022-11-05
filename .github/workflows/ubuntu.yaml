@@ -39,6 +39,44 @@ jobs:
       run: ctest --verbose -C Release
       working-directory: build
 
+    - name: Dump proxy info (env)
+      run: env | grep -i proxy
+
+    - name: Set proxy settings (env)
+      run: |
+        echo "http_proxy=my.proxy3.com:8003" >> $GITHUB_ENV
+        echo "https_proxy=my.proxy4.com:8004" >> $GITHUB_ENV
+        echo "no_proxy=localhost,127.0.0.0/8" >> $GITHUB_ENV
+
+    - name: Check proxy settings (env)
+      shell: bash
+      run: |
+        out=$(./proxycli config proxy http)
+        echo "Proxy (http): $out"
+        if [ "$out" = "my.proxy3.com:8003" ]; then
+          echo "Proxy (http) set successfully"
+        else
+          echo "Proxy (http) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy https)
+        echo "Proxy (https): $out"
+        if [ "$out" = "my.proxy4.com:8004" ]; then
+          echo "Proxy (https) set successfully"
+        else
+          echo "Proxy (https) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config bypass_list)
+        echo "Proxy bypass: $out"
+        if [ "$out" = "localhost,127.0.0.0/8" ]; then
+          echo "Proxy bypass set successfully"
+        else
+          echo "Proxy bypass set failed"
+          exit 1
+        fi
+      working-directory: build/test
+
     - name: Dump proxy info (gsettings)
       run: |
         gsettings get org.gnome.system.proxy autoconfig-url
@@ -107,40 +145,33 @@ jobs:
       env:
         XDG_CURRENT_DESKTOP: GNOME
 
-    - name: Dump proxy info (env)
-      run: env | grep -i proxy
+    - name: Serve proxy auto config scripts
+      uses: Eun/http-server-action@v1
+      with:
+        directory: ${{ github.workspace }}/test/pac
+        port: 8080
 
-    - name: Set proxy settings (env)
-      run: |
-        echo "http_proxy=my.proxy3.com:8003" >> $GITHUB_ENV
-        echo "https_proxy=my.proxy4.com:8004" >> $GITHUB_ENV
-        echo "no_proxy=localhost,127.0.0.0/8" >> $GITHUB_ENV
+    - name: Set proxy auto config setting (gsettings)
+      run: gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/example.js'
 
-    - name: Check proxy settings (env)
-      shell: bash
+    - name: Check proxy resolution (gsettings)
       run: |
-        out=$(./proxycli config proxy http)
-        echo "Proxy (http): $out"
-        if [ "$out" = "my.proxy3.com:8003" ]; then
-          echo "Proxy (http) set successfully"
+        out=$(./proxycli resolve https://google.com/)
+        echo "Proxy for https://google.com/: $out"
+        if [ "$out" = "DIRECT" ]; then
+          echo "Proxy for https://google.com/ set successfully"
         else
-          echo "Proxy (http) set failed"
+          echo "Proxy for https://google.com/ set failed"
           exit 1
         fi
-        out=$(./proxycli config proxy https)
-        echo "Proxy (https): $out"
-        if [ "$out" = "my.proxy4.com:8004" ]; then
-          echo "Proxy (https) set successfully"
+        out=$(./proxycli resolve https://example1.com/)
+        echo "Proxy for https://example1.com/: $out"
+        if [ "$out" = "HTTPS no-such-proxy:80" ]; then
+          echo "Proxy for https://example1.com/ set successfully"
         else
-          echo "Proxy (https) set failed"
-          exit 1
-        fi
-        out=$(./proxycli config bypass_list)
-        echo "Proxy bypass: $out"
-        if [ "$out" = "localhost,127.0.0.0/8" ]; then
-          echo "Proxy bypass set successfully"
-        else
-          echo "Proxy bypass set failed"
+          echo "Proxy for https://example1.com/ set failed"
           exit 1
         fi
       working-directory: build/test
+      env:
+        XDG_CURRENT_DESKTOP: GNOME

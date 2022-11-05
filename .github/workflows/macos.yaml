@@ -114,7 +114,7 @@ jobs:
     - name: Set proxy auto config url setting (networksetup)
       run: networksetup -setautoproxyurl Ethernet http://127.0.0.1:8080/example.js
 
-    - name: Check proxy auto-config setting (networksetup)
+    - name: Check proxy resolution (networksetup)
       shell: bash
       run: |
         out=$(./proxycli config auto_config_url)
