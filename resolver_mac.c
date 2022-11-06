@@ -140,14 +140,14 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         if (!url_ref) {
             proxy_resolver->error = ENOMEM;
             LOG_ERROR("Unable to create auto config url reference (%" PRId32 ")\n", proxy_resolver->error);
-            goto mac_error;
+            goto mac_done;
         }
 
         target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
         if (!target_url_ref) {
             proxy_resolver->error = ENOMEM;
             LOG_ERROR("Unable to create target url reference (%" PRId32 ")\n", proxy_resolver->error);
-            goto mac_error;
+            goto mac_done;
         }
 
         CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
@@ -158,7 +158,6 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
         CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
         CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
-        goto mac_done;
     } else {
         // No proxy auto config url specified so use manually configured proxy
         char *proxy = proxy_config_get_proxy(url);
@@ -166,9 +165,6 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
             proxy_resolver->list = proxy;
     }
 
-    goto mac_done;
-
-mac_error:
 mac_done:
 
     proxy_resolver->pending = false;

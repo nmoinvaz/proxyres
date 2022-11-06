@@ -69,13 +69,13 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         if (!options.lpszAutoConfigUrl) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
             LOG_ERROR("Unable to allocate memory for auto config url (%" PRId32 ")", proxy_resolver->error);
-            goto winxp_error;
+            goto winxp_done;
         }
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
         proxy_resolver->list = proxy;
         goto winxp_done;
-    } else if (proxy_config_get_auto_discovery()) {
+    } else if (proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
         goto winxp_done;
     } else {
@@ -87,7 +87,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     // Convert url to wide char for WinHttpGetProxyForUrl
     url_wide = utf8_dup_to_wchar(url);
     if (!url_wide)
-        goto winxp_error;
+        goto winxp_done;
 
     // For performance reasons try fAutoLogonIfChallenged = false then try fAutoLogonIfChallenged = true
     // https://docs.microsoft.com/en-us/windows/win32/api/winhttp/ns-winhttp-winhttp_autoproxy_options
@@ -109,7 +109,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
             }
 
             proxy_resolver->error = error;
-            goto winxp_error;
+            goto winxp_done;
         }
     }
 
@@ -123,7 +123,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         if (proxy_info.lpszProxy)
             proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
         if (!proxy)
-            goto winxp_error;
+            goto winxp_done;
 
         // Convert proxy list to uri list
         proxy_resolver->list = convert_proxy_list_to_uri_list(proxy);
@@ -132,13 +132,12 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         if (!proxy_resolver->list) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
             LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")", proxy_resolver->error);
-            goto winxp_error;
+            goto winxp_done;
         }
         break;
     }
 
 winxp_done:
-winxp_error:
 
     proxy_resolver->pending = false;
 

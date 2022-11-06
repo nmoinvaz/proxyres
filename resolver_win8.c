@@ -73,18 +73,18 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         // Failed to detect proxy auto configuration url so use DIRECT connection
         if (async_result->dwError == ERROR_WINHTTP_AUTODETECTION_FAILED) {
             LOG_DEBUG("Proxy resolution returned code (%d)\n", async_result->dwError);
-            goto win8_complete;
+            goto win8_async_done;
         }
 
         proxy_resolver->error = async_result->dwError;
         LOG_ERROR("Unable to resolve proxy for url (%" PRId32 ")\n", proxy_resolver->error);
-        goto win8_complete;
+        goto win8_async_done;
     }
 
     proxy_resolver->error = g_proxy_resolver_win8.winhttp_get_proxy_result(proxy_resolver->resolver, &proxy_result);
     if (proxy_resolver->error != ERROR_SUCCESS) {
         LOG_ERROR("Unable to retrieve proxy result (%" PRId32 ")\n", proxy_resolver->error);
-        goto win8_complete;
+        goto win8_async_done;
     }
 
     // Allocate string to construct the proxy list into
@@ -92,8 +92,8 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
     if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for proxy list\n");
-        goto win8_complete;
+        LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")\n", proxy_resolver->error);
+        goto win8_async_done;
     }
 
     size_t list_len = 0;
@@ -152,7 +152,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         }
     }
 
-win8_complete:
+win8_async_done:
 
     // Free proxy result
     if (proxy_result.cEntries > 0)
@@ -190,13 +190,13 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
         if (!options.lpszAutoConfigUrl) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
             LOG_ERROR("Unable to allocate memory for auto config url (%" PRId32 ")", proxy_resolver->error);
-            goto win8_error;
+            goto win8_done;
         }
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
         proxy_resolver->list = proxy;
         goto win8_done;
-    } else if (!proxy_config_get_auto_discovery()) {
+    } else if (!proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
         goto win8_done;
     } else {
@@ -209,7 +209,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     if (!proxy_resolver->resolver) {
         proxy_resolver->error = GetLastError();
         LOG_ERROR("Unable to create proxy resolver (%" PRId32 ")", proxy_resolver->error);
-        goto win8_error;
+        goto win8_done;
     }
 
     if (WinHttpSetStatusCallback(proxy_resolver->resolver,
@@ -218,13 +218,13 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
                                  (DWORD_PTR)NULL) == WINHTTP_INVALID_STATUS_CALLBACK) {
         proxy_resolver->error = GetLastError();
         LOG_ERROR("Unable to install status callback (%" PRId32 ")", proxy_resolver->error);
-        goto win8_error;
+        goto win8_done;
     }
 
     // Convert url to wide char for WinHttpGetProxyForUrlEx
     url_wide = utf8_dup_to_wchar(url);
     if (!url_wide)
-        goto win8_error;
+        goto win8_done;
 
     // For performance reasons try fAutoLogonIfChallenged = false then try fAutoLogonIfChallenged = true
     // https://docs.microsoft.com/en-us/windows/win32/api/winhttp/ns-winhttp-winhttp_autoproxy_options
@@ -240,7 +240,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     if (error != ERROR_IO_PENDING) {
         proxy_resolver->error = error;
         LOG_ERROR("Unable to get proxy for url %s (%" PRId32 ")", url, proxy_resolver->error);
-        goto win8_error;
+        goto win8_done;
     }
 
     // WinHttpGetProxyForUrlEx always executes asynchronously
@@ -248,7 +248,6 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     goto win8_cleanup;
 
 win8_done:
-win8_error:
 
     proxy_resolver->pending = false;
 
