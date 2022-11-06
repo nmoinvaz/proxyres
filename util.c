@@ -93,7 +93,7 @@ const char *str_find_len_str(const char *str, int32_t str_len, const char *find)
     return NULL;
 }
 
-// Resolve a hostname to an IP address
+// Resolve a host to an IP address string
 char *dns_resolve(const char *host, int32_t *error) {
     char name[256] = {0};
     struct addrinfo hints = {0};
@@ -107,9 +107,8 @@ char *dns_resolve(const char *host, int32_t *error) {
         if (err != 0)
             goto my_ip_address_error;
     } else {
-        strncpy(name, host, sizeof(name));
+        strncat(name, host, sizeof(name) - 1);
     }
-    name[sizeof(name) - 1] = 0;
 
     hints.ai_flags = AI_NUMERICHOST;
     hints.ai_family = PF_UNSPEC;
