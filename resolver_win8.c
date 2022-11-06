@@ -334,7 +334,6 @@ bool proxy_resolver_win8_is_async(void) {
 }
 
 bool proxy_resolver_win8_init(void) {
-    return false;
     // Dynamically load WinHTTP and CreateProxyResolver which is only avaialble on Windows 8 or higher
     g_proxy_resolver_win8.win_http = LoadLibraryExA("winhttp.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!g_proxy_resolver_win8.win_http)

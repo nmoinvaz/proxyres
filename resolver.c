@@ -59,10 +59,10 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
 
     // Call get_proxies_for_url directly since the underlying interface is asynchronous
     if (g_proxy_resolver.proxy_resolver_i->is_async()) {
-        bool ok = g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(ctx, url);
+        bool is_ok = g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(proxy_resolver->base, url);
         LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved = %s\n", (intptr_t)proxy_resolver->base,
                  proxy_resolver_get_list(proxy_resolver) ? proxy_resolver_get_list(proxy_resolver) : "DIRECT");
-        return ok;
+        return is_ok;
     }
 
     free(proxy_resolver->url);
