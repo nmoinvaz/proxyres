@@ -67,6 +67,18 @@ static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver)
     proxy_resolver_gnome3_cleanup(proxy_resolver);
 }
 
+static void proxy_resolver_gnome3_delete_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
+    if (proxy_resolver->cancellable) {
+        g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
+        proxy_resolver->cancellable = NULL;
+    }
+
+    if (proxy_resolver->resolver) {
+        g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->resolver);
+        proxy_resolver->resolver = NULL;
+    }
+}
+
 static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
     // Get reference to the default proxy resolver
     proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
@@ -79,23 +91,12 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
     // Create cancellable object in case we need to cancel operation
     proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
     if (!proxy_resolver->cancellable) {
+        proxy_resolver_gnome3_delete_resolver(proxy_resolver);
         proxy_resolver->error = ENOMEM;
         LOG_ERROR("Unable to create cancellable object (%" PRId32 ")\n", proxy_resolver->error);
         return false;
     }
     return true;
-}
-
-static void proxy_resolver_gnome3_delete_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
-    if (proxy_resolver->cancellable) {
-        g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
-        proxy_resolver->cancellable = NULL;
-    }
-
-    if (proxy_resolver->resolver) {
-        g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->resolver);
-        proxy_resolver->resolver = NULL;
-    }
 }
 
 static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_resolver, char **proxies, GError *error) {
@@ -133,59 +134,6 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
     return true;
 }
 
-#ifdef USE_ASYNC_LOOKUP
-// g_proxy_resolver_lookup_async requires g_main_loop to be running in the main thread
-void proxy_resolver_gnome3_async_ready_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
-    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)user_data;
-    GError *error = NULL;
-
-    // Get list of proxies from resolver
-    char **proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish(proxy_resolver->resolver, res, &error);
-    proxy_resolver_gnome3_read_proxies(proxy_resolver, proxies);
-
-    proxy_resolver->pending = false;
-
-    if (error)
-        g_proxy_resolver_gnome3.g_error_free(error);
-    if (proxies)
-        g_proxy_resolver_gnome3.g_strfreev(proxies);
-
-    // Trigger resolve callback
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
-    proxy_resolver_gnome3_delete_resolver(proxy_resolver);
-}
-
-bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
-    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-
-    proxy_resolver_gnome3_reset(proxy_resolver);
-
-    if (!proxy_resolver_gnome3_create_resolver(proxy_resolver))
-        goto gnome3_error;
-
-    proxy_resolver->pending = true;
-
-    // Start async proxy resolution
-    g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async(proxy_resolver->resolver, url, proxy_resolver->cancellable,
-                                                          proxy_resolver_gnome3_async_ready_callback, proxy_resolver);
-
-    return true;
-
-gnome3_error:
-
-    // Trigger resolve callback
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
-    proxy_resolver_gnome3_delete_resolver(proxy_resolver);
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
-    return false;
-}
-#else
 bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
     GError *error = NULL;
@@ -193,26 +141,19 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_gnome3_reset(proxy_resolver);
 
-    if (!proxy_resolver_gnome3_create_resolver(proxy_resolver))
-        goto gnome3_error;
+    if (proxy_resolver_gnome3_create_resolver(proxy_resolver)) {
+        // Get list of proxies from resolver
+        proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, url,
+                                                                proxy_resolver->cancellable, &error);
+        proxy_resolver_gnome3_get_proxies(proxy_resolver, proxies, error);
 
-    // Get list of proxies from resolver
-    proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, url,
-                                                              proxy_resolver->cancellable, &error);
-    proxy_resolver_gnome3_get_proxies(proxy_resolver, proxies, error);
-    goto gnome3_done;
-
-gnome3_error:
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
-
-gnome3_done:
-
-    if (error) {
-        LOG_ERROR("%s (%" PRId32 ")\n", error->message, error->code);
-        g_proxy_resolver_gnome3.g_error_free(error);
+        if (error) {
+            LOG_ERROR("%s (%" PRId32 ")\n", error->message, error->code);
+            g_proxy_resolver_gnome3.g_error_free(error);
+        }
+        if (proxies)
+            g_proxy_resolver_gnome3.g_strfreev(proxies);
     }
-    if (proxies)
-        g_proxy_resolver_gnome3.g_strfreev(proxies);
 
     proxy_resolver->pending = false;
 
@@ -225,7 +166,6 @@ gnome3_done:
 
     return proxy_resolver->error == 0;
 }
-#endif
 
 const char *proxy_resolver_gnome3_get_list(void *ctx) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
