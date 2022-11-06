@@ -135,7 +135,7 @@ static void js_print_exception(JSContextRef ctx, JSValueRef exception) {
 }
 
 static JSValueRef proxy_execute_jscore_dns_resolve(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
-                                                      size_t argc, const JSValueRef argv[], JSValueRef *exception) {
+                                                   size_t argc, const JSValueRef argv[], JSValueRef *exception) {
     if (argc != 1)
         return NULL;
     if (!g_proxy_execute_jscore.JSValueIsString(ctx, argv[0]))
@@ -166,7 +166,7 @@ static JSValueRef proxy_execute_jscore_dns_resolve(JSContextRef ctx, JSObjectRef
 }
 
 static JSValueRef proxy_execute_jscore_my_ip_address(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
-                                                        size_t argc, const JSValueRef argv[], JSValueRef *exception) {
+                                                     size_t argc, const JSValueRef argv[], JSValueRef *exception) {
     char *address = dns_resolve(NULL, NULL);
     if (!address)
         return NULL;
@@ -206,12 +206,12 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     if (!function_name)
         goto jscoregtk_execute_cleanup;
     function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
-                                                                          proxy_execute_jscore_dns_resolve);
+                                                                       proxy_execute_jscore_dns_resolve);
     if (!function)
         goto jscoregtk_execute_cleanup;
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
-                                                  function_name, function, kJSPropertyAttributeNone, NULL);
+                                               function_name, function, kJSPropertyAttributeNone, NULL);
     g_proxy_execute_jscore.JSStringRelease(function_name);
     function_name = NULL;
 
@@ -220,12 +220,12 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     if (!function_name)
         goto jscoregtk_execute_cleanup;
     function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
-                                                                          proxy_execute_jscore_my_ip_address);
+                                                                       proxy_execute_jscore_my_ip_address);
     if (!function)
         goto jscoregtk_execute_cleanup;
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
-                                                  function_name, function, kJSPropertyAttributeNone, NULL);
+                                               function_name, function, kJSPropertyAttributeNone, NULL);
     g_proxy_execute_jscore.JSStringRelease(function_name);
     function_name = NULL;
 
@@ -303,8 +303,7 @@ bool proxy_execute_jscore_get_error(void *ctx, int32_t *error) {
 }
 
 void *proxy_execute_jscore_create(void) {
-    proxy_execute_jscore_s *proxy_execute =
-        (proxy_execute_jscore_s *)calloc(1, sizeof(proxy_execute_jscore_s));
+    proxy_execute_jscore_s *proxy_execute = (proxy_execute_jscore_s *)calloc(1, sizeof(proxy_execute_jscore_s));
     return proxy_execute;
 }
 
@@ -324,8 +323,11 @@ bool proxy_execute_jscore_delete(void **ctx) {
 /*********************************************************************/
 
 bool proxy_execute_jscore_init(void) {
+    if (g_proxy_execute_jscore.module)
+        return true;
 #ifdef __APPLE__
-    g_proxy_execute_jscore.module = dlopen("/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
+    g_proxy_execute_jscore.module = dlopen(
+        "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
 #else
     g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
     if (g_proxy_execute_jscore.module == NULL)
@@ -362,8 +364,7 @@ bool proxy_execute_jscore_init(void) {
     if (!g_proxy_execute_jscore.JSObjectSetPrivate)
         goto jscore_init_error;
     // Context functions
-    g_proxy_execute_jscore.JSContextGetGlobalObject =
-        dlsym(g_proxy_execute_jscore.module, "JSContextGetGlobalObject");
+    g_proxy_execute_jscore.JSContextGetGlobalObject = dlsym(g_proxy_execute_jscore.module, "JSContextGetGlobalObject");
     if (!g_proxy_execute_jscore.JSContextGetGlobalObject)
         goto jscore_init_error;
     // Value functions
@@ -396,8 +397,7 @@ bool proxy_execute_jscore_init(void) {
         dlsym(g_proxy_execute_jscore.module, "JSStringCreateWithUTF8CString");
     if (!g_proxy_execute_jscore.JSStringCreateWithUTF8CString)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringGetUTF8CString =
-        dlsym(g_proxy_execute_jscore.module, "JSStringGetUTF8CString");
+    g_proxy_execute_jscore.JSStringGetUTF8CString = dlsym(g_proxy_execute_jscore.module, "JSStringGetUTF8CString");
     if (!g_proxy_execute_jscore.JSStringGetUTF8CString)
         goto jscore_init_error;
     g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
@@ -415,8 +415,7 @@ bool proxy_execute_jscore_init(void) {
     g_proxy_execute_jscore.JSGlobalContextCreate = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextCreate");
     if (!g_proxy_execute_jscore.JSGlobalContextCreate)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSGlobalContextRelease =
-        dlsym(g_proxy_execute_jscore.module, "JSGlobalContextRelease");
+    g_proxy_execute_jscore.JSGlobalContextRelease = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextRelease");
     if (!g_proxy_execute_jscore.JSGlobalContextRelease)
         goto jscore_init_error;
     // Execute functions
