@@ -137,7 +137,6 @@ winxp_done:
         break;
     }
 
-winxp_cleanup:
 winxp_error:
 
     proxy_resolver->pending = false;
