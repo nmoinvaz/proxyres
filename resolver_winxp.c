@@ -54,6 +54,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
+    char *proxy = NULL;
     bool is_ok = false;
 
     proxy_resolver_winxp_reset(proxy_resolver);
@@ -71,6 +72,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         options.lpszAutoConfigUrl = ie_config.lpszAutoConfigUrl;
     } else if (ie_config.lpszProxy) {
         // Use explicit proxy list
+        proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
         proxy_info.lpszProxy = ie_config.lpszProxy;
         goto winxp_done;
     } else if (!ie_config.fAutoDetect) {
@@ -102,6 +104,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
             // Failed to detect proxy auto configuration url so use DIRECT connection
             if (error == ERROR_WINHTTP_AUTODETECTION_FAILED) {
                 LOG_DEBUG("Proxy resolution returned code (%d)\n", error);
+                proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NO_PROXY;
                 goto winxp_done;
             }
 
@@ -117,10 +120,6 @@ winxp_done:
         proxy_resolver->list = strdup("direct://");
         break;
     case WINHTTP_ACCESS_TYPE_NAMED_PROXY:
-        // Proxy list is in the following semi-colon delimited format:
-        //  ([<scheme>=][<scheme>"://"]<server>[":"<port>])
-
-        char *proxy = NULL;
         if (proxy_info.lpszProxy)
             proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
         if (!proxy)
@@ -129,6 +128,7 @@ winxp_done:
         // Convert proxy list to uri list
         proxy_resolver->list = convert_proxy_list_to_uri_list(proxy);
         free(proxy);
+
         if (!proxy_resolver->list) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
             LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")", proxy_resolver->error);
@@ -137,9 +137,7 @@ winxp_done:
         break;
     }
 
-    goto winxp_done;
-
-winxp_done:
+winxp_cleanup:
 winxp_error:
 
     proxy_resolver->pending = false;
@@ -152,7 +150,7 @@ winxp_error:
     free(url_wide);
 
     // Free proxy info
-    if (proxy_info.lpszProxy)
+    if (proxy_info.lpszProxy && proxy_info.lpszProxy != ie_config.lpszProxy)
         GlobalFree(proxy_info.lpszProxy);
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
