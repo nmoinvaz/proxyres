@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <winhttp.h>
 
+#include "config.h"
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
@@ -168,7 +169,6 @@ win8_complete:
 bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
     char *proxy = NULL;
@@ -180,22 +180,23 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_win8_reset(proxy_resolver);
 
-    // Get current user proxy configuration
-    if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config)) {
-        proxy_resolver->error = GetLastError();
-        return false;
-    }
-
     // Set proxy options for calls to WinHttpGetProxyForUrl
-    if (ie_config.lpszAutoConfigUrl) {
+    const char *auto_config_url = proxy_config_get_auto_config_url();
+    if (auto_config_url) {
         // Use auto configuration script
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
-        options.lpszAutoConfigUrl = ie_config.lpszAutoConfigUrl;
-    } else if (ie_config.lpszProxy) {
+        options.lpszAutoConfigUrl = utf8_dup_to_wchar(auto_config_url);
+
+        if (!options.lpszAutoConfigUrl) {
+            proxy_resolver->error = ERROR_OUTOFMEMORY;
+            LOG_ERROR("Unable to allocate memory for auto config url (%" PRId32 ")", proxy_resolver->error);
+            goto win8_error;
+        }
+    } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
-        proxy_info.lpszProxy = ie_config.lpszProxy;
+        proxy_resolver->list = proxy;
         goto win8_done;
-    } else if (!ie_config.fAutoDetect) {
+    } else if (!proxy_config_get_auto_discovery()) {
         // Don't do automatic proxy detection
         goto win8_done;
     } else {
@@ -242,31 +243,12 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
         goto win8_error;
     }
 
+    // WinHttpGetProxyForUrlEx always executes asynchronously
     proxy_resolver->pending = true;
     goto win8_cleanup;
 
 win8_done:
-    // If proxy is null then no proxy is used
-    if (!proxy_info.lpszProxy)
-        goto win8_ok;
-
-    // Copy proxy list to proxy resolver
-    proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
-    if (!proxy)
-        goto win8_error;
-    size_t max_list = strlen(proxy) + 1;
-    proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-
-    if (!proxy_resolver->list) {
-        proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")", proxy_resolver->error);
-        goto win8_error;
-    }
-
-    strncat(proxy_resolver->list, proxy, max_list - 1);
-
 win8_error:
-win8_ok:
 
     proxy_resolver->pending = false;
 
@@ -284,14 +266,6 @@ win8_cleanup:
         GlobalFree(proxy_info.lpszProxy);
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
-
-    // Free IE proxy configuration
-    if (ie_config.lpszProxy)
-        GlobalFree(ie_config.lpszProxy);
-    if (ie_config.lpszProxyBypass)
-        GlobalFree(ie_config.lpszProxyBypass);
-    if (ie_config.lpszAutoConfigUrl)
-        GlobalFree(ie_config.lpszAutoConfigUrl);
 
     return proxy_resolver->error == 0;
 }

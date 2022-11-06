@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <winhttp.h>
 
+#include "config.h"
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
@@ -51,7 +52,6 @@ static void proxy_resolver_winxp_reset(proxy_resolver_winxp_s *proxy_resolver) {
 bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
     char *proxy = NULL;
@@ -59,23 +59,23 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_winxp_reset(proxy_resolver);
 
-    // Get current user proxy configuration
-    if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config)) {
-        proxy_resolver->error = GetLastError();
-        goto winxp_error;
-    }
-
     // Set proxy options for calls to WinHttpGetProxyForUrl
-    if (ie_config.lpszAutoConfigUrl) {
+    const char *auto_config_url = proxy_config_get_auto_config_url();
+    if (auto_config_url) {
         // Use auto configuration script
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
-        options.lpszAutoConfigUrl = ie_config.lpszAutoConfigUrl;
-    } else if (ie_config.lpszProxy) {
+        options.lpszAutoConfigUrl = utf8_dup_to_wchar(auto_config_url);
+
+        if (!options.lpszAutoConfigUrl) {
+            proxy_resolver->error = ERROR_OUTOFMEMORY;
+            LOG_ERROR("Unable to allocate memory for auto config url (%" PRId32 ")", proxy_resolver->error);
+            goto winxp_error;
+        }
+    } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
-        proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-        proxy_info.lpszProxy = ie_config.lpszProxy;
+        proxy_resolver->list = proxy;
         goto winxp_done;
-    } else if (!ie_config.fAutoDetect) {
+    } else if (proxy_config_get_auto_discovery()) {
         // Don't do automatic proxy detection
         goto winxp_done;
     } else {
@@ -113,13 +113,13 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         }
     }
 
-winxp_done:
-
     switch (proxy_info.dwAccessType) {
     case WINHTTP_ACCESS_TYPE_NO_PROXY:
+        // Use direct connection
         proxy_resolver->list = strdup("direct://");
         break;
     case WINHTTP_ACCESS_TYPE_NAMED_PROXY:
+        // Using manually configured proxy
         if (proxy_info.lpszProxy)
             proxy = wchar_dup_to_utf8(proxy_info.lpszProxy);
         if (!proxy)
@@ -137,6 +137,7 @@ winxp_done:
         break;
     }
 
+winxp_done:
 winxp_error:
 
     proxy_resolver->pending = false;
@@ -149,18 +150,10 @@ winxp_error:
     free(url_wide);
 
     // Free proxy info
-    if (proxy_info.lpszProxy && proxy_info.lpszProxy != ie_config.lpszProxy)
+    if (proxy_info.lpszProxy)
         GlobalFree(proxy_info.lpszProxy);
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
-
-    // Free IE proxy configuration
-    if (ie_config.lpszProxy)
-        GlobalFree(ie_config.lpszProxy);
-    if (ie_config.lpszProxyBypass)
-        GlobalFree(ie_config.lpszProxyBypass);
-    if (ie_config.lpszAutoConfigUrl)
-        GlobalFree(ie_config.lpszAutoConfigUrl);
 
     return proxy_resolver->error == 0;
 }
