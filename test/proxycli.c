@@ -92,9 +92,9 @@ static void resolve_proxy_for_url(const char *url) {
 #endif
 
 static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
-    bool success = false;
+    bool is_ok = false;
     int32_t error = 0;
-    
+
     void **proxy_resolver = (void **)calloc(argc, sizeof(void *));
     if (!proxy_resolver)
         return false;
@@ -109,7 +109,7 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
         proxy_resolver_get_proxies_for_url(proxy_resolver[i], argv[i]);
     }
 
-    success = true;
+    is_ok = true;
     for (int32_t i = 0; i < argc; i++) {
         if (verbose)
             printf("Resolving proxy for %s\n", argv[i]);
@@ -131,17 +131,17 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
         proxy_resolver_get_error(proxy_resolver[i], &error);
         if (error != 0) {
             LOG_ERROR("Unable to resolve proxy (%d)\n", error);
-            success = false;
+            is_ok = false;
         }
 
         proxy_resolver_delete(&proxy_resolver[i]);
     }
-    
-    return success;
+
+    return is_ok;
 }
 
 static bool execute_pac_script(const char *script_path, const char *url, bool verbose) {
-    bool success = false;
+    bool is_ok = false;
     char *script = NULL;
 
     if (verbose)
@@ -189,14 +189,14 @@ static bool execute_pac_script(const char *script_path, const char *url, bool ve
         proxy_execute_delete(&proxy_execute);
     }
 
-    success = true;
+    is_ok = true;
 
 execute_pac_cleanup:
 
     close(fd);
     free(script);
 
-    return success;
+    return is_ok;
 }
 
 static int print_help(void) {

@@ -192,7 +192,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     JSGlobalContextRef global = NULL;
     JSValueRef exception = NULL;
     char find_proxy[4096];
-    bool success = false;
+    bool is_ok = false;
 
     if (!proxy_execute)
         goto jscoregtk_execute_cleanup;
@@ -276,7 +276,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
         g_proxy_execute_jscore.JSStringRelease(proxy_string);
     }
 
-    success = true;
+    is_ok = true;
 
 jscoregtk_execute_cleanup:
 
@@ -288,7 +288,7 @@ jscoregtk_execute_cleanup:
         g_proxy_execute_jscore.JSGlobalContextRelease(global);
     }
 
-    return success;
+    return is_ok;
 }
 
 const char *proxy_execute_jscore_get_list(void *ctx) {

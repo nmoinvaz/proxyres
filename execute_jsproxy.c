@@ -88,7 +88,7 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     AUTO_PROXY_SCRIPT_BUFFER ap_script = {sizeof(AUTO_PROXY_SCRIPT_BUFFER), (char *)script, (DWORD)strlen(script)};
     DWORD proxy_len = 0;
     char *proxy = NULL;
-    bool success = false;
+    bool is_ok = false;
 
     if (!g_proxy_execute_jsproxy.InternetInitializeAutoProxyDll(0, 0, 0, &ap_helpers, &ap_script)) {
         proxy_execute_jsproxy->error = GetLastError();
@@ -101,22 +101,22 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     if (!host)
         return false;
 
-    success = g_proxy_execute_jsproxy.InternetGetProxyInfo(url, (DWORD)strlen(url) + 1, host, (DWORD)strlen(host) + 1,
+    is_ok = g_proxy_execute_jsproxy.InternetGetProxyInfo(url, (DWORD)strlen(url) + 1, host, (DWORD)strlen(host) + 1,
                                                            &proxy, &proxy_len);
-    if (!success) {
+    if (!is_ok) {
         proxy_execute_jsproxy->error = GetLastError();
         LOG_ERROR("Failed to execute InternetGetProxyInfo (%d)\n", proxy_execute_jsproxy->error);
     }
 
     free(host);
 
-    proxy_execute_jsproxy->list = success ? strdup(proxy) : NULL;
+    proxy_execute_jsproxy->list = is_ok ? strdup(proxy) : NULL;
 
     if (proxy)
         GlobalFree(proxy);
 
     g_proxy_execute_jsproxy.InternetDeInitializeAutoProxyDll(NULL, 0);
-    return success;
+    return is_ok;
 }
 
 const char *proxy_execute_jsproxy_get_list(void *ctx) {
