@@ -26,8 +26,6 @@ typedef struct g_proxy_resolver_gnome3_s {
     GProxyResolver *(*g_proxy_resolver_get_default)(void);
     gchar **(*g_proxy_resolver_lookup)(GProxyResolver *resolver, const gchar *uri, GCancellable *cancellable,
                                        GError **error);
-    void (*g_proxy_resolver_lookup_async)(GProxyResolver *resolver, const gchar *uri, GCancellable *cancellable,
-                                          GAsyncReadyCallback callback, gpointer user_data);
     gchar **(*g_proxy_resolver_lookup_finish)(GProxyResolver *resolver, GAsyncResult *result, GError **error);
     // Glib module handle
     void *glib_module;
@@ -73,10 +71,11 @@ static void proxy_resolver_gnome3_delete_resolver(proxy_resolver_gnome3_s *proxy
         proxy_resolver->cancellable = NULL;
     }
 
+    /* Don't unref default resolver
     if (proxy_resolver->resolver) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->resolver);
         proxy_resolver->resolver = NULL;
-    }
+    }*/
 }
 
 static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
@@ -88,6 +87,14 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
         return false;
     }
 
+    // Check to see if proxy resolution is supported;
+    if (!g_proxy_resolver_gnome3.g_proxy_resolver_is_supported(proxy_resolver->resolver)) {
+        proxy_resolver_gnome3_delete_resolver(proxy_resolver);
+        proxy_resolver->error = ENOTSUP;
+        LOG_ERROR("Proxy resolver is not supported (%" PRId32 ")\n", proxy_resolver->error);
+        return false;
+    }
+
     // Create cancellable object in case we need to cancel operation
     proxy_resolver->cancellable = g_proxy_resolver_gnome3.g_cancellable_new();
     if (!proxy_resolver->cancellable) {
@@ -96,12 +103,14 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
         LOG_ERROR("Unable to create cancellable object (%" PRId32 ")\n", proxy_resolver->error);
         return false;
     }
+
     return true;
 }
 
 static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_resolver, char **proxies, GError *error) {
     int32_t proxy_count = g_proxy_resolver_gnome3.g_strv_length(proxies);
     int32_t max_list = (proxy_count + 1) * MAX_PROXY_URL;
+    int32_t list_len = 0;
 
     if (!proxies) {
         proxy_resolver->error = error->code;
@@ -117,10 +126,8 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
         return false;
     }
 
-    int32_t list_len = 0;
-
     for (int32_t i = 0; proxies[i] && i < proxy_count; i++) {
-        // Already in the format "scheme://host:port"
+        // Copy string since it is already in the format "scheme://host:port"
         strncat(proxy_resolver->list, proxies[i], max_list - list_len - 1);
         list_len += strlen(proxies[i]);
 
@@ -277,10 +284,6 @@ bool proxy_resolver_gnome3_init(void) {
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup");
     if (!g_proxy_resolver_gnome3.g_proxy_resolver_lookup)
-        goto gnome3_init_error;
-    g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async =
-        dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup_async");
-    if (!g_proxy_resolver_gnome3.g_proxy_resolver_lookup_async)
         goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup_finish");
