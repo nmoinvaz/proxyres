@@ -1,7 +1,9 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -14,6 +16,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #define socketerr errno
+#define SOCKET int
 #endif
 #include <errno.h>
 

@@ -85,9 +85,10 @@ constexpr convert_proxy_list_to_uri_list_param convert_proxy_list_to_uri_list_te
     {"PROXY 127.0.0.1:8080", "http://127.0.0.1:8080"},
     {"PROXY 127.0.0.1:443", "https://127.0.0.1:443"},
     {"HTTP myproxy1.com:80;SOCKS myproxy2.com:1080", "http://myproxy1.com:80,socks://myproxy2.com:1080"},
-    {"HTTP myproxy3.com:80;SOCKS myproxy4.com:1080;DIRECT", "http://myproxy3.com:80,socks://myproxy4.com:1080,direct://"}
-    {"PROXY proxy1.example.com:80; PROXY proxy2.example.com:8080", "http://proxy1.example.com:80,http://proxy2.example.com:8080"}
-};
+    {"HTTP myproxy3.com:80;SOCKS myproxy4.com:1080;DIRECT",
+     "http://myproxy3.com:80,socks://myproxy4.com:1080,direct://"},
+    {"PROXY proxy1.example.com:80; PROXY proxy2.example.com:8080",
+     "http://proxy1.example.com:80,http://proxy2.example.com:8080"}};
 
 class util_uri_list : public ::testing::TestWithParam<convert_proxy_list_to_uri_list_param> {};
 
