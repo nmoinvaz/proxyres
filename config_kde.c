@@ -13,6 +13,7 @@
 #include "config.h"
 #include "config_i.h"
 #include "config_kde.h"
+#include "util.h"
 #include "util_linux.h"
 
 typedef struct g_proxy_config_kde_s {
