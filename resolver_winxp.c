@@ -126,7 +126,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
             goto winxp_done;
 
         // Convert proxy list to uri list
-        proxy_resolver->list = convert_proxy_list_to_uri_list(proxy);
+        proxy_resolver->list = convert_winhttp_proxy_list_to_uri_list(proxy);
         free(proxy);
 
         if (!proxy_resolver->list) {

@@ -97,7 +97,7 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
     }
 
     // Don't include port in FindProxyForURL function
-    char *host = parse_url_host(url);
+    char *host = get_url_host(url);
     if (!host)
         return false;
 

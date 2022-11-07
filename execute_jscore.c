@@ -250,7 +250,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     }
 
     // Construct the call FindProxyForURL
-    char *host = parse_url_host(url);
+    char *host = get_url_host(url);
     snprintf(find_proxy, sizeof(find_proxy), "FindProxyForURL(\"%s\", \"%s\");", url, host ? host : url);
     free(host);
 

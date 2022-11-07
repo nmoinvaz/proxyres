@@ -45,7 +45,7 @@ char *proxy_config_win_get_auto_config_url(void) {
     return auto_config_url;
 }
 
-char *proxy_config_win_get_proxy(const char *protocol) {
+char *proxy_config_win_get_proxy(const char *scheme) {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
     char *proxy = NULL;
 
@@ -55,7 +55,7 @@ char *proxy_config_win_get_proxy(const char *protocol) {
     if (ie_config.lpszProxy) {
         char *proxy_list = wchar_dup_to_utf8(ie_config.lpszProxy);
         if (proxy_list) {
-            proxy = get_proxy_by_protocol(protocol, proxy_list);
+            proxy = get_winhttp_proxy_by_scheme(scheme, proxy_list);
             free(proxy_list);
         }
     }

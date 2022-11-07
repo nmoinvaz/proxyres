@@ -25,35 +25,59 @@ char *wchar_dup_to_utf8(const wchar_t *src) {
     return dup;
 }
 
-// Get proxy by protocol from a proxy list that is in the following format:
-//  ([<scheme>=][<scheme>"://"]<server>[":"<port>])
-char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
-    char *host = NULL;
-    const char *protocol_start = protocol;
-    size_t protocol_len = 0;
+// Get proxy by scheme from a WinHTTP proxy list.
+// The proxy list contains one or more strings separated by a semicolons or whitespace:
+//    ([<scheme>=][<scheme>"://"]<server>[":"<port>])
+char *get_winhttp_proxy_by_scheme(const char *url_or_scheme, const char *proxy_list) {
+    size_t proxy_list_len = strlen(proxy_list);
+    const char *proxy_list_end = proxy_list + proxy_list_len;
 
-    // Get protocol start and length if incase input is a url
-    host = strstr(protocol, "://");
-    if (host) {
-        protocol_len = (int32_t)(host - protocol);
-    } else if (strcmpi(protocol, "http") && strcmpi(protocol, "https") && strcmpi(protocol, "socks")) {
-        protocol_start = "http";
-        protocol_len = 4;
-    } else {
-        protocol_len = strlen(protocol);
-    }
+    // Get scheme from url
+    char *url_scheme = get_url_scheme(url_or_scheme, url_or_scheme);
+    int32_t url_scheme_len = strlen(url_scheme);
 
     const char *config_start = proxy_list;
-    char *config_end = NULL;
-    char *host_start = NULL;
+    const char *config_end = NULL;
 
-    // Enumerate each proxy in the proxy list
-    while ((host_start = strchr(config_start, '=')) != NULL) {
-        host_start++;
-        config_end = strchr(host_start, ';');
+    // Enumerate each proxy in the proxy list.
+    do {
+        // Proxies can be separated by a semi-colon or a whitespace
+        config_end = str_find_first_char(config_start, "; \t\r\n");
+        if (!config_end)
+            config_end = config_start + strlen(config_start);
 
-        // Check to see if the key in the proxy config matches the protocol
-        if (_strnicmp(config_start, protocol_start, protocol_len) == 0 && config_start[protocol_len] == '=') {
+        // Find scheme boundary
+        const char *scheme_end = config_start;
+        while (scheme_end < config_end && *scheme_end) {
+            if ((*scheme_end == '=') || (*scheme_end == ':' && scheme_end[1] == '/' && scheme_end[2] == '/')) {
+                break;
+            }
+            scheme_end++;
+        }
+
+        const char *scheme = NULL;
+        size_t scheme_len = 0;
+        const char *host_start = NULL;
+        size_t host_len = 0;
+
+        if (scheme_end == config_end) {
+            // No scheme, assume http
+            scheme = "http";
+            scheme_len = 4;
+            // Calculate start of host
+            host_start = config_start;
+        } else {
+            // Copy the proxy scheme
+            scheme = config_start;
+            scheme_len = (int32_t)(scheme_end - config_start);
+            // Calculate start of host
+            host_start = scheme_end;
+            while (*host_start == '=' || *host_start == ':' || *host_start == '/')
+                host_start++;
+        }
+
+        // Check to see if the scheme in the proxy config matches the url scheme
+        if (url_scheme_len == scheme_len && _strnicmp(url_scheme, scheme, scheme_len) == 0) {
             if (!config_end)
                 config_end = host_start + strlen(host_start);
 
@@ -64,18 +88,18 @@ char *get_proxy_by_protocol(const char *protocol, const char *proxy_list) {
                 strncat(proxy, host_start, uri_list_len);
             return proxy;
         }
-        if (!config_end)
-            break;
 
-        // Continue to next proxy config
+        // Continue to next proxy
         config_start = config_end + 1;
-    }
+    } while (config_end < proxy_list_end);
 
     return strdup(proxy_list);
 }
 
-// Convert WinHTTP proxy list schema to uri list
-char *convert_proxy_list_to_uri_list(const char *proxy_list) {
+// Convert WinHTTP proxy list to uri list.
+// The proxy list contains one or more strings separated by a semicolons or whitespace:
+//    ([<scheme>=][<scheme>"://"]<server>[":"<port>])
+char *convert_winhttp_proxy_list_to_uri_list(const char *proxy_list) {
     if (!proxy_list)
         return NULL;
 
@@ -83,7 +107,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
     const char *proxy_list_end = proxy_list + proxy_list_len;
 
     size_t uri_list_len = 0;
-    size_t max_uri_list = proxy_list_len + 128;  // Extra space for schema separators
+    size_t max_uri_list = proxy_list_len + 128;  // Extra space for scheme separators
     char *uri_list = (char *)calloc(max_uri_list, sizeof(char));
     if (!uri_list)
         return NULL;
@@ -99,41 +123,41 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
         if (!config_end)
             config_end = config_start + strlen(config_start);
 
-        // Find schema boundary
-        const char *schema_end = config_start;
-        while (schema_end < config_end && *schema_end) {
-            if ((*schema_end == '=') || (*schema_end == ':' && schema_end[1] == '/' && schema_end[2] == '/')) {
+        // Find scheme boundary
+        const char *scheme_end = config_start;
+        while (scheme_end < config_end && *scheme_end) {
+            if ((*scheme_end == '=') || (*scheme_end == ':' && scheme_end[1] == '/' && scheme_end[2] == '/')) {
                 break;
             }
-            schema_end++;
+            scheme_end++;
         }
 
-        const char *protocol = NULL;
-        size_t protocol_len = 0;
+        const char *scheme = NULL;
+        size_t scheme_len = 0;
         const char *host_start = NULL;
         size_t host_len = 0;
 
-        if (schema_end == config_end) {
-            // No schema, assume http
-            protocol = "http";
-            protocol_len = 4;
+        if (scheme_end == config_end) {
+            // No scheme, assume http
+            scheme = "http";
+            scheme_len = 4;
             // Calculate start of host
             host_start = config_start;
         } else {
-            // Copy the proxy schema
-            protocol = config_start;
-            protocol_len = (int32_t)(schema_end - config_start);
+            // Copy the proxy scheme
+            scheme = config_start;
+            scheme_len = (int32_t)(scheme_end - config_start);
             // Calculate start of host
-            host_start = schema_end;
+            host_start = scheme_end;
             while (*host_start == '=' || *host_start == ':' || *host_start == '/')
                 host_start++;
         }
 
-        // Copy protocol
-        if (protocol_len > max_uri_list - 1)
-            protocol_len = max_uri_list - 1;
-        strncat(uri_list, protocol, protocol_len);
-        uri_list_len += protocol_len;
+        // Copy scheme
+        if (scheme_len > max_uri_list - 1)
+            scheme_len = max_uri_list - 1;
+        strncat(uri_list, scheme, scheme_len);
+        uri_list_len += scheme_len;
 
         strncat(uri_list, "://", max_uri_list - uri_list_len - 1);
         uri_list_len += 3;
@@ -151,6 +175,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
             uri_list_len += 1;
         }
 
+        // Continue to next proxy
         config_start = config_end + 1;
     } while (config_end < proxy_list_end);
 
