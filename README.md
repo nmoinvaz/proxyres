@@ -12,7 +12,7 @@ Read the user's proxy configuration.
 
 Resolves proxies for a given URL based on the operating system's proxy configuration.
 
-* Supports manually specified proxies for specific protocols.
+* Supports manually specified proxies for specific schemes.
 * Supports Web Proxy Auto-Discovery Protocol (WPAD).
 * Evaluates any discovered [Proxy Auto-Configuration (PAC)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file) to determine the proxies for the URL.
 

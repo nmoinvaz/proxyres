@@ -43,32 +43,32 @@ char *proxy_config_kde_get_auto_config_url(void) {
     return get_config_value(g_proxy_config_kde.config, "Proxy Settings", "Proxy Config Script");
 }
 
-char *proxy_config_kde_get_proxy(const char *protocol) {
-    if (!protocol || !check_proxy_type(PROXY_TYPE_FIXED))
+char *proxy_config_kde_get_proxy(const char *scheme) {
+    if (!scheme || !check_proxy_type(PROXY_TYPE_FIXED))
         return NULL;
 
     // Construct key name to search for in config
-    int32_t protocol_len = strlen(protocol);
-    int32_t max_key = protocol_len + 8;
+    int32_t scheme_len = strlen(scheme);
+    int32_t max_key = scheme_len + 8;
     char *key = (char *)calloc(max_key, sizeof(char));
     if (!key)
         return NULL;
 
-    // Check if protocol is actually a url
-    char *host = strchr(protocol, ':');
+    // Check if scheme is actually a url
+    char *host = strchr(scheme, ':');
     if (host) {
-        protocol_len = (int32_t)(host - protocol);
-        strncat(key, protocol, protocol_len);
+        scheme_len = (int32_t)(host - scheme);
+        strncat(key, scheme, scheme_len);
     } else {
-        strncat(key, protocol, max_key - 1);
+        strncat(key, scheme, max_key - 1);
     }
 
-    // Protocol should be all lowercase
-    for (int32_t i = 0; i < protocol_len; i++)
+    // Scheme should be all lowercase
+    for (int32_t i = 0; i < scheme_len; i++)
         key[i] = tolower(key[i]);
 
     // Append "Proxy" to the end of the key
-    strncat(key, "Proxy", max_key - protocol_len - 1);
+    strncat(key, "Proxy", max_key - scheme_len - 1);
 
     char *proxy = get_config_value(g_proxy_config_kde.config, "Proxy Settings", key);
     free(key);

@@ -62,22 +62,22 @@ char *proxy_config_gnome2_get_auto_config_url(void) {
     return auto_config_url;
 }
 
-char *proxy_config_gnome2_get_proxy(const char *protocol) {
+char *proxy_config_gnome2_get_proxy(const char *scheme) {
     char host_key[128];
     char port_key[128];
     char *host = NULL;
     uint32_t port = 0;
     char *proxy = NULL;
 
-    if (strncasecmp(protocol, "https", 5) == 0) {
+    if (strncasecmp(scheme, "https", 5) == 0) {
         strncpy(host_key, "/system/proxy/secure_host", sizeof(host_key));
         strncpy(port_key, "/system/proxy/secure_port", sizeof(port_key));
-    } else if (strncasecmp(protocol, "http", 4) == 0) {
+    } else if (strncasecmp(scheme, "http", 4) == 0) {
         strncpy(host_key, "/system/http_proxy/host", sizeof(host_key));
         strncpy(port_key, "/system/http_proxy/port", sizeof(port_key));
     } else {
-        snprintf(host_key, sizeof(host_key), "/system/proxy/%s_host", protocol);
-        snprintf(port_key, sizeof(port_key), "/system/proxy/%s_port", protocol);
+        snprintf(host_key, sizeof(host_key), "/system/proxy/%s_host", scheme);
+        snprintf(port_key, sizeof(port_key), "/system/proxy/%s_port", scheme);
     }
 
     host = g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default, host_key, NULL);

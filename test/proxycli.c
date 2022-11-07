@@ -46,8 +46,8 @@ static void print_proxy_config(int32_t option_count, char *options[]) {
     if (!option_count || strcmp(*options, "proxy") == 0) {
         if (!option_count)
             printf("  Proxy: ");
-        const char *protocol = option_count > 1 ? options[1] : "http";
-        char *proxy = proxy_config_get_proxy(protocol);
+        const char *scheme = option_count > 1 ? options[1] : "http";
+        char *proxy = proxy_config_get_proxy(scheme);
         if (proxy) {
             printf("%s\n", proxy);
             free(proxy);

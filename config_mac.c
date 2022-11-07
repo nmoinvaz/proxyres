@@ -60,7 +60,7 @@ char *proxy_config_mac_get_auto_config_url(void) {
     return url;
 }
 
-char *proxy_config_mac_get_proxy(const char *protocol) {
+char *proxy_config_mac_get_proxy(const char *scheme) {
     char *proxy = NULL;
     int32_t max_proxy = 0;
 
@@ -70,19 +70,19 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
     CFStringRef host_index = kCFNetworkProxiesHTTPProxy;
     CFStringRef port_index = kCFNetworkProxiesHTTPPort;
 
-    if (strncasecmp(protocol, "https", 5) == 0) {
+    if (strncasecmp(scheme, "https", 5) == 0) {
         enable_index = kCFNetworkProxiesHTTPSEnable;
         host_index = kCFNetworkProxiesHTTPSProxy;
         port_index = kCFNetworkProxiesHTTPSPort;
-    } else if (strncasecmp(protocol, "socks", 5) == 0) {
+    } else if (strncasecmp(scheme, "socks", 5) == 0) {
         enable_index = kCFNetworkProxiesSOCKSEnable;
         host_index = kCFNetworkProxiesSOCKSProxy;
         port_index = kCFNetworkProxiesSOCKSPort;
-    } else if (strncasecmp(protocol, "ftp", 3) == 0) {
+    } else if (strncasecmp(scheme, "ftp", 3) == 0) {
         enable_index = kCFNetworkProxiesFTPEnable;
         host_index = kCFNetworkProxiesFTPProxy;
         port_index = kCFNetworkProxiesFTPPort;
-    } else if (strncasecmp(protocol, "rtsp", 4) == 0) {
+    } else if (strncasecmp(scheme, "rtsp", 4) == 0) {
         enable_index = kCFNetworkProxiesRTSPEnable;
         host_index = kCFNetworkProxiesRTSPProxy;
         port_index = kCFNetworkProxiesRTSPPort;
@@ -93,7 +93,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
         return NULL;
 
     if (get_cf_dictionary_bool(proxy_settings, enable_index) == true) {
-        // Get the proxy url associated with the protocol
+        // Get the proxy url associated with the scheme
         CFStringRef host = CFDictionaryGetValue(proxy_settings, host_index);
         if (host) {
             const char *host_utf8 = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
@@ -108,7 +108,7 @@ char *proxy_config_mac_get_proxy(const char *protocol) {
             }
         }
 
-        // Get the proxy port associated with the protocol
+        // Get the proxy port associated with the scheme
         CFNumberRef port = CFDictionaryGetValue(proxy_settings, port_index);
         if (proxy && port) {
             // Append the proxy port to the proxy url

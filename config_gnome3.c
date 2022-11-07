@@ -84,19 +84,19 @@ static bool proxy_config_gnome3_use_same_proxy(void) {
     return use_same_proxy;
 }
 
-char *proxy_config_gnome3_get_proxy(const char *protocol) {
+char *proxy_config_gnome3_get_proxy(const char *scheme) {
     GSettings *settings;
-    char scheme[128];
+    char settings_path[128];
     char *host = NULL;
     uint32_t port = 0;
     char *proxy = NULL;
 
     if (proxy_config_gnome3_use_same_proxy())
-        strncpy(scheme, "org.gnome.system.proxy.http", sizeof(scheme));
+        strncpy(settings_path, "org.gnome.system.proxy.http", sizeof(scheme));
     else
-        snprintf(scheme, sizeof(scheme), "org.gnome.system.proxy.%s", protocol);
+        snprintf(settings_path, sizeof(settings_path), "org.gnome.system.proxy.%s", scheme);
 
-    settings = g_proxy_config_gnome3.g_settings_new(scheme);
+    settings = g_proxy_config_gnome3.g_settings_new(settings_path);
     if (!settings)
         return false;
 

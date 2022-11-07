@@ -46,18 +46,18 @@ char *proxy_config_env_get_auto_config_url(void) {
     return NULL;
 }
 
-char *proxy_config_env_get_proxy(const char *protocol) {
-    if (!protocol)
+char *proxy_config_env_get_proxy(const char *scheme) {
+    if (!scheme)
         return NULL;
 
-    // Construct name of environment variable based on proxy protocol
-    int32_t name_len = strlen(protocol) + 8;
+    // Construct name of environment variable based on proxy scheme
+    int32_t name_len = strlen(scheme) + 8;
     char *name = (char *)malloc(name_len);
-    snprintf(name, name_len, "%s_proxy", protocol);
+    snprintf(name, name_len, "%s_proxy", scheme);
 
     // Don't check HTTP_PROXY due to CGI environment variable creation
     // https://everything.curl.dev/usingcurl/proxies/env
-    bool check_uppercase = strcmp(protocol, "http") != 0;
+    bool check_uppercase = strcmp(scheme, "http") != 0;
 
     char *proxy = get_proxy_env_var(name, check_uppercase);
     free(name);

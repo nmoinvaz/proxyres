@@ -45,12 +45,12 @@ char *proxy_config_get_auto_config_url(void) {
     return g_proxy_config.proxy_config_i->get_auto_config_url();
 }
 
-char *proxy_config_get_proxy(const char *protocol) {
+char *proxy_config_get_proxy(const char *scheme) {
     if (g_proxy_config.proxy)
         return strdup(g_proxy_config.proxy);
     if (!g_proxy_config.proxy_config_i)
         return NULL;
-    return g_proxy_config.proxy_config_i->get_proxy(protocol);
+    return g_proxy_config.proxy_config_i->get_proxy(scheme);
 }
 
 char *proxy_config_get_bypass_list(void) {
