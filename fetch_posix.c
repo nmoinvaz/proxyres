@@ -121,7 +121,7 @@ char *fetch_get(const char *url, int32_t *error) {
     }
 
     // Parse the content length
-    const int32_t content_length = atoi(content_length_header + 16);
+    const size_t content_length = strtoul(content_length_header + 16, NULL, 0);
     if (content_length <= 0) {
         err = EIO;
         LOG_ERROR("Invalid Content-Length header (%" PRId32 ")\n", err);
@@ -146,14 +146,14 @@ char *fetch_get(const char *url, int32_t *error) {
     body_start += 4;
 
     // Copy the response body into the buffer
-    const int32_t response_header_len = (int32_t)(body_start - response);
-    int32_t body_length = response_len - response_header_len;
+    const size_t response_header_len = (size_t)(body_start - response);
+    size_t body_length = response_len - response_header_len;
     memcpy(body, body_start, body_length);
 
     // Read the remaining body
     if (content_length > body_length) {
         do {
-            count = recv(sfd, body + body_length, content_length - body_length, 0);
+            count = recv(sfd, body + body_length, (int)(content_length - body_length), 0);
             if (count <= 0)
                 break;
             body_length += count;

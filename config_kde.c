@@ -29,7 +29,7 @@ static bool check_proxy_type(int type) {
     char *proxy_type = get_config_value(g_proxy_config_kde.config, "Proxy Settings", "ProxyType");
     if (!proxy_type)
         return false;
-    bool is_equal = atoi(proxy_type) == type;
+    bool is_equal = strtoul(proxy_type, NULL, 0) == type;
     free(proxy_type);
     return is_equal;
 }

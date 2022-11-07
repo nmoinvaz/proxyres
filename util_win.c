@@ -34,7 +34,7 @@ char *get_winhttp_proxy_by_scheme(const char *url_or_scheme, const char *proxy_l
 
     // Get scheme from url
     char *url_scheme = get_url_scheme(url_or_scheme, url_or_scheme);
-    int32_t url_scheme_len = strlen(url_scheme);
+    size_t url_scheme_len = strlen(url_scheme);
 
     const char *config_start = proxy_list;
     const char *config_end = NULL;
@@ -69,7 +69,7 @@ char *get_winhttp_proxy_by_scheme(const char *url_or_scheme, const char *proxy_l
         } else {
             // Copy the proxy scheme
             scheme = config_start;
-            scheme_len = (int32_t)(scheme_end - config_start);
+            scheme_len = (size_t)(scheme_end - config_start);
             // Calculate start of host
             host_start = scheme_end;
             while (*host_start == '=' || *host_start == ':' || *host_start == '/')
@@ -82,7 +82,7 @@ char *get_winhttp_proxy_by_scheme(const char *url_or_scheme, const char *proxy_l
                 config_end = host_start + strlen(host_start);
 
             // Return matching proxy config in proxy list
-            int32_t uri_list_len = (int32_t)(config_end - host_start);
+            size_t uri_list_len = (size_t)(config_end - host_start);
             char *proxy = (char *)calloc(uri_list_len + 1, sizeof(char));
             if (proxy)
                 strncat(proxy, host_start, uri_list_len);
@@ -163,7 +163,7 @@ char *convert_winhttp_proxy_list_to_uri_list(const char *proxy_list) {
         uri_list_len += 3;
 
         // Copy proxy address
-        host_len = (int32_t)(config_end - host_start);
+        host_len = (size_t)(config_end - host_start);
         if (host_len > max_uri_list - 1)
             host_len = max_uri_list - 1;
         strncat(uri_list, host_start, host_len);

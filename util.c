@@ -59,7 +59,7 @@ const char *str_find_first_char(const char *str, const char *chars) {
 }
 
 // Find character in string up to max length
-const char *str_find_len_char(const char *str, int32_t str_len, char c) {
+const char *str_find_len_char(const char *str, size_t str_len, char c) {
     while (str_len && *str) {
         if (*str == c)
             return str;
@@ -70,7 +70,7 @@ const char *str_find_len_char(const char *str, int32_t str_len, char c) {
 }
 
 // Find string in string up to max length
-const char *str_find_len_str(const char *str, int32_t str_len, const char *find) {
+const char *str_find_len_str(const char *str, size_t str_len, const char *find) {
     size_t find_len = strlen(find);
     while (str_len >= find_len && *str) {
         if (strncmp(str, find, find_len) == 0)
@@ -82,7 +82,7 @@ const char *str_find_len_str(const char *str, int32_t str_len, const char *find)
 }
 
 // Find string case-insensitve in string up to max length
-const char *str_find_len_case_str(const char *str, int32_t str_len, const char *find) {
+const char *str_find_len_case_str(const char *str, size_t str_len, const char *find) {
     size_t find_len = strlen(find);
     while (str_len >= find_len && *str) {
         if (strncasecmp(str, find, find_len) == 0)
@@ -271,7 +271,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
         config_end = strchr(config_start, ';');
         if (!config_end)
             config_end = config_start + strlen(config_start);
-        int32_t config_len = (int32_t)(config_end - config_start);
+        size_t config_len = (size_t)(config_end - config_start);
 
         // Find type boundary
         const char *host_start = config_start;
@@ -297,7 +297,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
             scheme = "socks5://";
             host_start += 7;
         }
-        int32_t host_len = (int32_t)(config_end - host_start);
+        size_t host_len = (size_t)(config_end - host_start);
 
         // Determine scheme for type PROXY
         if (scheme == NULL) {
@@ -306,7 +306,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
             int32_t port = 80;
             if (port_start) {
                 port_start++;
-                port = atoi(port_start);
+                port = strtoul(port_start, NULL, 0);
             }
 
             // Use scheme based on port specified
