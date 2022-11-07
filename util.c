@@ -245,6 +245,9 @@ char *get_url_scheme(const char *url, const char *fallback) {
 //    returnValue = type host,":",port,[{ ";",returnValue }];
 //    type        = "DIRECT" | "PROXY" | "SOCKS" | "HTTP" | "HTTPS" | "SOCKS4" | "SOCKS5"
 char *convert_proxy_list_to_uri_list(const char *proxy_list) {
+    if (!proxy_list)
+        return NULL;
+
     size_t proxy_list_len = strlen(proxy_list);
     const char *proxy_list_end = proxy_list + proxy_list_len;
 
@@ -260,6 +263,10 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
 
     // Enumerate each proxy in the proxy list.
     do {
+        // Ignore leading whitespace
+        while (*config_start == ' ')
+            config_start++;
+
         // Proxies can be separated by a semi-colon or a whitespace
         config_end = strchr(config_start, ';');
         if (!config_end)
