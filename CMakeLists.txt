@@ -6,6 +6,7 @@ set(PROXYRES_HDRS
     config.h
     config_i.h
     execute.h
+    fetch.h
     log.h
     mozilla_js.h
     proxyres.h
@@ -16,6 +17,7 @@ set(PROXYRES_HDRS
 set(PROXYRES_SRCS
     config.c
     execute.c
+    fetch_posix.c
     proxyres.c
     resolver.c
     util.c)

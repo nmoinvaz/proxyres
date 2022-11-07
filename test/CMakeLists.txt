@@ -49,6 +49,7 @@ endif()
 set(TEST_SRCS
     test_config.cc
     test_execute.cc
+    test_fetch.cc
     test_main.cc
     test_threadpool.cc
     test_util.cc)
