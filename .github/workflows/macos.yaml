@@ -34,6 +34,19 @@ jobs:
       run: ctest --verbose -C Release
       working-directory: build
 
+    - name: Install test dependencies
+      run: npm install -g pm2 http-server
+
+    - name: Run test http server
+      run: |
+        pm2 start http-server -- -p 8080
+        sleep 15
+      working-directory: test
+
+    - name: Download pac from http server
+      run: curl -v http://127.0.0.1:8080/pac.js
+      working-directory: test
+
     - name: Dump proxy info
       run: scutil --proxy
 
@@ -104,12 +117,6 @@ jobs:
           exit 1
         fi
       working-directory: build/test/Release
-
-    - name: Serve proxy auto config scripts
-      uses: Eun/http-server-action@v1
-      with:
-        directory: ${{ github.workspace }}/test
-        port: 8080
 
     - name: Set proxy auto config url setting (networksetup)
       run: networksetup -setautoproxyurl Ethernet http://127.0.0.1:8080/pac.js

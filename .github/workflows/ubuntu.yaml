@@ -18,7 +18,7 @@ jobs:
             cmake-args: -G Ninja
 
     steps:
-    - name: Install packages
+    - name: Install dependencies
       run: |
         sudo apt update
         sudo apt install -y ninja-build libgconf2-dev libjavascriptcoregtk-4.0-dev
@@ -39,43 +39,18 @@ jobs:
       run: ctest --verbose -C Release
       working-directory: build
 
-    - name: Dump proxy info (env)
-      run: env | grep -i proxy
+    - name: Install test dependencies
+      run: npm install -g pm2 http-server
 
-    - name: Set proxy settings (env)
+    - name: Run test http server
       run: |
-        echo "http_proxy=my.proxy3.com:8003" >> $GITHUB_ENV
-        echo "https_proxy=my.proxy4.com:8004" >> $GITHUB_ENV
-        echo "no_proxy=localhost,127.0.0.0/8" >> $GITHUB_ENV
+        pm2 start http-server -- -p 8080
+        sleep 15
+      working-directory: test
 
-    - name: Check proxy settings (env)
-      shell: bash
-      run: |
-        out=$(./proxycli config proxy http)
-        echo "Proxy (http): $out"
-        if [ "$out" = "my.proxy3.com:8003" ]; then
-          echo "Proxy (http) set successfully"
-        else
-          echo "Proxy (http) set failed"
-          exit 1
-        fi
-        out=$(./proxycli config proxy https)
-        echo "Proxy (https): $out"
-        if [ "$out" = "my.proxy4.com:8004" ]; then
-          echo "Proxy (https) set successfully"
-        else
-          echo "Proxy (https) set failed"
-          exit 1
-        fi
-        out=$(./proxycli config bypass_list)
-        echo "Proxy bypass: $out"
-        if [ "$out" = "localhost,127.0.0.0/8" ]; then
-          echo "Proxy bypass set successfully"
-        else
-          echo "Proxy bypass set failed"
-          exit 1
-        fi
-      working-directory: build/test
+    - name: Download pac from http server
+      run: curl -v http://127.0.0.1:8080/pac.js
+      working-directory: test
 
     - name: Dump proxy info (gsettings)
       run: |
@@ -145,12 +120,6 @@ jobs:
       env:
         XDG_CURRENT_DESKTOP: GNOME
 
-    - name: Serve proxy auto config scripts
-      uses: Eun/http-server-action@v1
-      with:
-        directory: ${{ github.workspace }}/test
-        port: 8080
-
     - name: Set proxy auto config setting (gsettings)
       run: |
         gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/pac.js'
@@ -184,3 +153,40 @@ jobs:
       working-directory: build/test
       env:
         XDG_CURRENT_DESKTOP: GNOME
+
+    # Run env tests after gsettings since environment variables are set for all
+    # subsequent steps.
+    - name: Set proxy settings (env)
+      run: |
+        echo "http_proxy=my.proxy3.com:8003" >> $GITHUB_ENV
+        echo "https_proxy=my.proxy4.com:8004" >> $GITHUB_ENV
+        echo "no_proxy=localhost,127.0.0.0/8" >> $GITHUB_ENV
+
+    - name: Check proxy settings (env)
+      shell: bash
+      run: |
+        out=$(./proxycli config proxy http)
+        echo "Proxy (http): $out"
+        if [ "$out" = "my.proxy3.com:8003" ]; then
+          echo "Proxy (http) set successfully"
+        else
+          echo "Proxy (http) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy https)
+        echo "Proxy (https): $out"
+        if [ "$out" = "my.proxy4.com:8004" ]; then
+          echo "Proxy (https) set successfully"
+        else
+          echo "Proxy (https) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config bypass_list)
+        echo "Proxy bypass: $out"
+        if [ "$out" = "localhost,127.0.0.0/8" ]; then
+          echo "Proxy bypass set successfully"
+        else
+          echo "Proxy bypass set failed"
+          exit 1
+        fi
+      working-directory: build/test

@@ -19,6 +19,9 @@ jobs:
             runs-on: windows-latest
 
     steps:
+    - name: Install dependencies
+      run: choco install curl
+
     - name: Checkout repository
       uses: actions/checkout@v3
 
@@ -31,6 +34,22 @@ jobs:
     - name: Run tests
       run: ctest --verbose -C Release
       working-directory: build
+
+    - name: Install test dependencies
+      run: npm install -g pm2 http-server
+
+    - name: Run test http server
+      shell: bash
+      run: |
+        npm install node-cmd
+        echo "var cmd=require('node-cmd'); cmd.run('http-server -p 8080');" > server.js
+        pm2 start server.js
+        sleep 15
+      working-directory: test
+
+    - name: Download pac from http server
+      run: curl -v http://127.0.0.1:8080/pac.js
+      working-directory: test
 
     - name: Dump proxy info
       run: netsh winhttp show proxy
@@ -92,12 +111,6 @@ jobs:
       run: |
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /f
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
-
-    - name: Serve proxy auto config scripts
-      uses: Eun/http-server-action@v1
-      with:
-        directory: ${{ github.workspace }}/test
-        port: 8080
 
     - name: Set proxy auto config setting (IE)
       run: |
