@@ -33,6 +33,9 @@ char *fetch_get(const char *url, int32_t *error) {
     int32_t err = 0;
     int32_t count = 0;
 
+    if (!url)
+        return NULL;
+
     // Check to make sure we are only using http:// urls
     if (strstr(url, "https://")) {
         err = ENOTSUP;
