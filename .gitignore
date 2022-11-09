@@ -1,4 +1,5 @@
 /build
-/node_modules
 /.vscode
-/Testing
+**/Testing
+**/node_modules
+**/.yarn
