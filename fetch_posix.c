@@ -4,21 +4,25 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#define close closesocket
-#define socketerr WSAGetLastError()
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#endif
+
+#ifdef _WIN32
+#define socketerr WSAGetLastError()
+#else
 #define socketerr errno
 #define SOCKET int
+#define closesocket close
 #endif
-#include <errno.h>
 
 #include "log.h"
 #include "util.h"
@@ -171,7 +175,7 @@ download_cleanup:
     if (address_info)
         freeaddrinfo(address_info);
     if (sfd)
-        close(sfd);
+        closesocket(sfd);
 
     free(host);
 
