@@ -53,6 +53,10 @@ set(TEST_SRCS
     test_main.cc
     test_threadpool.cc
     test_util.cc)
+if(PROXYRES_TEST_WPAD)
+    list(APPEND TEST_SRCS
+        test_wpad.cc)
+endif()
 if(WIN32)
     list(APPEND TEST_SRCS
         test_util_win.cc)

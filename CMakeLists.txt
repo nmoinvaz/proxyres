@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
+
 project(proxyres)
 
 set(PROXYRES_HDRS
@@ -13,14 +15,16 @@ set(PROXYRES_HDRS
     resolver.h
     resolver_i.h
     threadpool.h
-    util.h)
+    util.h
+    wpad_dhcp.h)
 set(PROXYRES_SRCS
     config.c
     execute.c
     fetch_posix.c
     proxyres.c
     resolver.c
-    util.c)
+    util.c
+    wpad_dhcp.c)
 if(WIN32)
     list(APPEND PROXYRES_HDRS
         config_win.h
@@ -72,7 +76,10 @@ elseif(UNIX)
 endif()
 
 if(WIN32)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1)
+    add_compile_definitions(
+        _CRT_SECURE_NO_WARNINGS=1
+        _CRT_NONSTDC_NO_WARNINGS=1
+        _WINSOCK_DEPRECATED_NO_WARNINGS=1)
 elseif(APPLE)
 elseif(UNIX)
     add_compile_definitions(_GNU_SOURCE=1)
