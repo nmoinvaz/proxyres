@@ -198,8 +198,10 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
         goto jscoregtk_execute_cleanup;
 
     global = g_proxy_execute_jscore.JSGlobalContextCreate(NULL);
-    if (!global)
+    if (!global) {
+        LOG_ERROR("Failed to create global JS context\n");
         goto jscoregtk_execute_cleanup;
+    }
 
     // Register dnsResolve C function
     function_name = g_proxy_execute_jscore.JSStringCreateWithUTF8CString("dnsResolve");
@@ -207,8 +209,10 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
         goto jscoregtk_execute_cleanup;
     function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
                                                                        proxy_execute_jscore_dns_resolve);
-    if (!function)
+    if (!function) {
+        LOG_ERROR("Unable to hook native function for dnsResolve\n");
         goto jscoregtk_execute_cleanup;
+    }
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
                                                function_name, function, kJSPropertyAttributeNone, NULL);
@@ -221,8 +225,10 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
         goto jscoregtk_execute_cleanup;
     function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
                                                                        proxy_execute_jscore_my_ip_address);
-    if (!function)
+    if (!function) {
+        LOG_ERROR("Unable to hook native function for myIpAddress\n");
         goto jscoregtk_execute_cleanup;
+    }
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
                                                function_name, function, kJSPropertyAttributeNone, NULL);
@@ -231,11 +237,14 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
 
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
     JSStringRef utils_javascript = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(MOZILLA_PAC_JAVASCRIPT);
-    if (!utils_javascript)
+    if (!utils_javascript) {
+        LOG_ERROR("Unable to load Mozilla's JavaScript PAC utilities\n");
         goto jscoregtk_execute_cleanup;
+    }
     g_proxy_execute_jscore.JSEvaluateScript(global, utils_javascript, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(utils_javascript);
     if (exception) {
+        LOG_ERROR("Unable to execute Mozilla's JavaScript PAC utilities\n");
         js_print_exception(global, exception);
         goto jscoregtk_execute_cleanup;
     }
@@ -245,6 +254,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     g_proxy_execute_jscore.JSEvaluateScript(global, script_string, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(script_string);
     if (exception) {
+        LOG_ERROR("Unable to execute PAC script\n");
         js_print_exception(global, exception);
         goto jscoregtk_execute_cleanup;
     }
@@ -262,21 +272,23 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
         g_proxy_execute_jscore.JSEvaluateScript(global, find_proxy_string, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(find_proxy_string);
     if (exception) {
+        LOG_ERROR("Unable to execute FindProxyForURL\n");
         js_print_exception(global, exception);
         goto jscoregtk_execute_cleanup;
     }
 
-    if (!g_proxy_execute_jscore.JSValueIsString(global, proxy_value))
+    if (!g_proxy_execute_jscore.JSValueIsString(global, proxy_value)) {
+        LOG_ERROR("Incorrect return type from FindProxyForURL\n");
         goto jscoregtk_execute_cleanup;
+    }
 
     // Get the result of the call to FindProxyForURL
     JSStringRef proxy_string = g_proxy_execute_jscore.JSValueToStringCopy(global, proxy_value, NULL);
     if (proxy_string) {
         proxy_execute->list = js_string_dup_to_utf8(proxy_string);
         g_proxy_execute_jscore.JSStringRelease(proxy_string);
+        is_ok = true;
     }
-
-    is_ok = true;
 
 jscoregtk_execute_cleanup:
 
