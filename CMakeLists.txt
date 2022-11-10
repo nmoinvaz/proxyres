@@ -18,6 +18,7 @@ set(PROXYRES_HDRS
     resolver_posix.h
     threadpool.h
     util.h
+    util_socket.h
     wpad_dhcp.h
     wpad_dns.h)
 set(PROXYRES_SRCS

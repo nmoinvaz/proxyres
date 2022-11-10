@@ -3,21 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#define strncasecmp _strnicmp
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#endif
-#include <errno.h>
 #include <limits.h>
 
+#ifdef _WIN32
+#define strncasecmp _strnicmp
+#endif
+
 #include "util.h"
+#include "util_socket.h"
 
 // Replace one character in the string with another
 int32_t str_change_chr(char *str, char from, char to) {
