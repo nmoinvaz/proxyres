@@ -20,5 +20,3 @@
 #define SOCKET      int
 #define closesocket close
 #endif
-
-#define HOST_MAX (260)
