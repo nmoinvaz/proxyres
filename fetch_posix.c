@@ -27,7 +27,7 @@
 #include "log.h"
 #include "util.h"
 
-// Blocking http request used for retrieving proxy automatic configuration
+// Fetch proxy auto configuration using HTTP only
 char *fetch_get(const char *url, int32_t *error) {
     struct addrinfo hints = {0};
     struct addrinfo *address_info = NULL;
@@ -72,7 +72,7 @@ char *fetch_get(const char *url, int32_t *error) {
     err = getaddrinfo(host, port, &hints, &address_info);
     if (err != 0) {
         err = socketerr;
-        LOG_ERROR("Unable to resolve host (%" PRId32 ")\n", err);
+        LOG_ERROR("Unable to resolve host %s (%" PRId32 ")\n", host, err);
         goto download_cleanup;
     }
 
@@ -97,6 +97,7 @@ char *fetch_get(const char *url, int32_t *error) {
     snprintf(request, sizeof(request),
         "GET %s HTTP/1.0\r\n"
         "Host: %s\r\n"
+        "Accept: application/x-ns-proxy-autoconfig\r\n"
         "Connection: close\r\n"
         "\r\n", get_url_path(url), host);
 
