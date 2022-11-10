@@ -142,8 +142,9 @@ bool proxy_resolver_init(void) {
     if (proxy_resolver_mac_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_mac_get_interface();
 #elif defined(__linux__)
+    /* Does not work for manually specified proxy auto-config urls
     if (proxy_resolver_gnome3_init())
-        g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();
+        g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
 #elif defined(_WIN32)
     if (proxy_resolver_win8_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_win8_get_interface();
