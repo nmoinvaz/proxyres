@@ -32,7 +32,7 @@ typedef struct proxy_resolver_winxp_s {
     void *user_data;
     proxy_resolver_resolved_cb callback;
     // Resolution pending
-    bool pending;
+    HANDLE pending_event;
     // Proxy list
     char *list;
 } proxy_resolver_winxp_s;
@@ -43,7 +43,7 @@ static void proxy_resolver_winxp_cleanup(proxy_resolver_winxp_s *proxy_resolver)
 }
 
 static void proxy_resolver_winxp_reset(proxy_resolver_winxp_s *proxy_resolver) {
-    proxy_resolver->pending = false;
+    ResetEvent(proxy_resolver->pending_event);
     proxy_resolver->error = 0;
 
     proxy_resolver_winxp_cleanup(proxy_resolver);
@@ -139,7 +139,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
 winxp_done:
 
-    proxy_resolver->pending = false;
+    SetEvent(proxy_resolver->pending_event);
 
     // Trigger user callback once done
     if (proxy_resolver->callback)
@@ -176,7 +176,9 @@ bool proxy_resolver_winxp_is_pending(void *ctx) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return proxy_resolver->pending;
+    if (WaitForSingleObject(proxy_resolver->pending_event, 0) == WAIT_TIMEOUT)
+        return true;
+    return false;
 }
 
 bool proxy_resolver_winxp_cancel(void *ctx) {
@@ -201,6 +203,13 @@ bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, prox
 
 void *proxy_resolver_winxp_create(void) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)calloc(1, sizeof(proxy_resolver_winxp_s));
+    if (!proxy_resolver)
+        return NULL;
+    proxy_resolver->pending_event = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (!proxy_resolver->pending_event) {
+        free(proxy_resolver);
+        return NULL;
+    }
     return proxy_resolver;
 }
 
@@ -213,6 +222,7 @@ bool proxy_resolver_winxp_delete(void **ctx) {
         return false;
     proxy_resolver_winxp_cancel(ctx);
     proxy_resolver_winxp_cleanup(proxy_resolver);
+    CloseHandle(proxy_resolver->pending_event);
     free(proxy_resolver);
     return true;
 }
