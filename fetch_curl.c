@@ -6,6 +6,7 @@
 #include "curl/curl.h"
 
 #include "log.h"
+#include "util.h"
 
 typedef struct script_s {
     char *buffer;
@@ -14,20 +15,26 @@ typedef struct script_s {
 
 static size_t fetch_write_script(void *contents, size_t size, size_t nscriptb, void *userp) {
     script_s *script = (script_s *)userp;
-    size_t realsize = size * nscriptb;
+    size_t new_size = size * nscriptb;
+    size_t total_size = script->size + new_size;
 
-    char *ptr = realloc(script->buffer, script->size + realsize + 1);
+    if (total_size > SCRIPT_MAX) {
+        LOG_ERROR("Script size exceeds maximum (%" PRId32 ")\n", total_size);
+        return 0;
+    }
+
+    char *ptr = realloc(script->buffer, total_size + 1);
     if (!ptr) {
         LOG_ERROR("Not enough memory to realloc\n");
         return 0;
     }
 
     script->buffer = ptr;
-    memcpy(script->buffer + script->size, contents, realsize);
-    script->size += realsize;
+    memcpy(script->buffer + script->size, contents, new_size);
+    script->size += new_size;
     script->buffer[script->size] = 0;
 
-    return realsize;
+    return new_size;
 }
 
 // Fetch proxy auto configuration using CURL
