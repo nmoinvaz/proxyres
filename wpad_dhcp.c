@@ -234,7 +234,9 @@ char *wpad_dhcp(int32_t timeout_sec) {
         address.sin_port = serv->s_port;
 
     if (bind(sfd, (struct sockaddr *)&address, sizeof(address)) == -1) {
-        LOG_ERROR("Unable to bind udp socket (%d)\n", socketerr);
+        // Ignore failure if port is already bound
+        if (socketerr != EACCES)
+            LOG_ERROR("Unable to bind udp socket (%d)\n", socketerr);
         closesocket(sfd);
         return NULL;
     }
