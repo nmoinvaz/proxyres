@@ -123,9 +123,18 @@ jobs:
     - name: Set proxy auto config setting (gsettings)
       run: |
         gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/pac.js'
+        gsettings get org.gnome.system.proxy autoconfig-url
 
     - name: Check proxy resolution (gsettings)
       run: |
+        out=$(./proxycli config auto_config_url)
+        echo "Auto config url: $out"
+        if [ "$out" = "http://127.0.0.1:8080/pac.js" ]; then
+          echo "Auto config url set successfully"
+        else
+          echo "Auto config url set failed"
+          exit 1
+        fi
         out=$(./proxycli resolve https://google.com/)
         echo "Proxy for https://google.com/: $out"
         if [ "$out" = "direct://" ]; then
