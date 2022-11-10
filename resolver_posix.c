@@ -100,8 +100,15 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
             return false;
         }
 
+        // Get return value from FindProxyForURL
         const char *list = proxy_execute_get_list(proxy_execute);
-        proxy_resolver->list = convert_proxy_list_to_uri_list(list);
+
+        // When PROXY is returned then use scheme associated with the URL
+        char *scheme = get_url_scheme(url, "http");
+
+        // Convert return value from FindProxyForURL to uri list
+        proxy_resolver->list = convert_proxy_list_to_uri_list(list, scheme);
+        free(scheme);
 
         proxy_execute_delete(proxy_execute);
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {

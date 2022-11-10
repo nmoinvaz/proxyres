@@ -237,7 +237,7 @@ char *get_url_scheme(const char *url, const char *fallback) {
 // The proxy list contains one or more proxies separated by semicolons:
 //    returnValue = type host,":",port,[{ ";",returnValue }];
 //    type        = "DIRECT" | "PROXY" | "SOCKS" | "HTTP" | "HTTPS" | "SOCKS4" | "SOCKS5"
-char *convert_proxy_list_to_uri_list(const char *proxy_list) {
+char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallback_scheme) {
     if (!proxy_list)
         return NULL;
 
@@ -268,26 +268,26 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
 
         // Find type boundary
         const char *host_start = config_start;
-        const char *scheme = NULL;
+        const char *scheme = fallback_scheme;
         if (!strncasecmp(config_start, "PROXY ", 6)) {
             host_start += 6;
         } else if (!strncasecmp(config_start, "DIRECT", 6)) {
-            scheme = "direct://";
+            scheme = "direct";
             host_start += 6;
         } else if (!strncasecmp(config_start, "HTTP ", 5)) {
-            scheme = "http://";
+            scheme = "http";
             host_start += 5;
         } else if (!strncasecmp(config_start, "HTTPS ", 6)) {
-            scheme = "https://";
+            scheme = "https";
             host_start += 6;
         } else if (!strncasecmp(config_start, "SOCKS ", 6)) {
-            scheme = "socks://";
+            scheme = "socks";
             host_start += 6;
         } else if (!strncasecmp(config_start, "SOCKS4 ", 7)) {
-            scheme = "socks4://";
+            scheme = "socks4";
             host_start += 7;
         } else if (!strncasecmp(config_start, "SOCKS5 ", 7)) {
-            scheme = "socks5://";
+            scheme = "socks5";
             host_start += 7;
         }
         size_t host_len = (size_t)(config_end - host_start);
@@ -304,15 +304,18 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list) {
 
             // Use scheme based on port specified
             switch (port) {
-                case 443: scheme = "https://"; break;
-                case 80: scheme = "http://"; break;
-                case 1080: scheme = "socks://"; break;
-                default: scheme = "http://"; break;
+                case 443: scheme = "https"; break;
+                case 80: scheme = "http"; break;
+                case 1080: scheme = "socks"; break;
+                default: scheme = "http"; break;
             }
         }
 
         // Append proxy to uri list
         strncat(uri_list, scheme, max_uri_list - uri_list_len - 1);
+        uri_list_len += strlen(scheme);
+        strncat(uri_list, "://", max_uri_list - uri_list_len - 1);
+        uri_list_len += 3;
         if (host_len > max_uri_list)
             host_len = max_uri_list - 1;
         strncat(uri_list, host_start, host_len);

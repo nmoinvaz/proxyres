@@ -19,7 +19,7 @@ char *dns_resolve(const char *host, int32_t *error);
 char *get_url_host(const char *url);
 const char *get_url_path(const char *url);
 char *get_url_scheme(const char *url, const char *fallback);
-char *convert_proxy_list_to_uri_list(const char *proxy_list);
+char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallback_scheme);
 
 #ifdef __cplusplus
 }
