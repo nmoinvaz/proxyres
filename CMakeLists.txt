@@ -90,6 +90,12 @@ elseif(UNIX)
     add_compile_definitions(_GNU_SOURCE=1)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(_DEBUG)
+else()
+    add_compile_definitions(_NDEBUG)
+endif()
+
 add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
 target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
