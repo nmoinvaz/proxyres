@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <limits.h>
 
-#define HOST_MAX 260
+#include "util.h"
 
 // Replace one character in the string with another
 int32_t str_change_chr(char *str, char from, char to) {

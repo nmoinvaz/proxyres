@@ -4,6 +4,9 @@
 extern "C" {
 #endif
 
+#define HOST_MAX (260)
+#define SCRIPT_MAX (256 * 1024)
+
 int32_t str_change_chr(char *str, char from, char to);
 int32_t str_trim_end(char *str, char c);
 const char *str_find_first_char(const char *str, const char *chars);

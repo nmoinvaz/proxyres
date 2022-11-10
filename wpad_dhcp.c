@@ -17,8 +17,6 @@
 #endif
 #include <time.h>
 
-#define HOST_MAX 256
-
 #ifdef _WIN32
 #define socketerr WSAGetLastError()
 #else
@@ -28,6 +26,7 @@
 #endif
 
 #include "log.h"
+#include "util.h"
 
 #define DHCP_MAGIC          ("\x63\x82\x53\x63")
 #define DHCP_MAGIC_LEN      (4)
