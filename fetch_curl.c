@@ -19,7 +19,7 @@ static size_t fetch_write_script(void *contents, size_t size, size_t nscriptb, v
     size_t total_size = script->size + new_size;
 
     if (total_size > SCRIPT_MAX) {
-        LOG_ERROR("Script size exceeds maximum (%" PRId32 ")\n", total_size);
+        LOG_ERROR("Script size exceeds maximum (%" PRId64 ")\n", (int64_t)total_size);
         return 0;
     }
 
