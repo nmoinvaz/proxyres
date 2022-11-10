@@ -10,6 +10,7 @@
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
+#include "resolver_posix.h"
 #if defined(__APPLE__)
 #include "resolver_mac.h"
 #elif defined(__linux__)
@@ -149,6 +150,9 @@ bool proxy_resolver_init(void) {
     else if (proxy_resolver_winxp_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winxp_get_interface();
 #endif
+    if (!g_proxy_resolver.proxy_resolver_i)
+        g_proxy_resolver.proxy_resolver_i = proxy_resolver_posix_get_interface();
+
     if (!g_proxy_resolver.proxy_resolver_i) {
         LOG_ERROR("No proxy resolver available\n");
         return false;

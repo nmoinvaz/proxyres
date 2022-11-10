@@ -15,6 +15,7 @@ set(PROXYRES_HDRS
     proxyres.h
     resolver.h
     resolver_i.h
+    resolver_posix.h
     threadpool.h
     util.h
     wpad_dhcp.h
@@ -24,6 +25,7 @@ set(PROXYRES_SRCS
     execute.c
     proxyres.c
     resolver.c
+    resolver_posix.c
     util.c
     wpad_dhcp.c
     wpad_dns.c)
