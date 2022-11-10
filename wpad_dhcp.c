@@ -96,7 +96,7 @@ bool dhcp_send_inform(SOCKET sfd, uint32_t request_xid) {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_NONE;
-    if (serv = getservbyname("bootps", "udp"))
+    if ((serv = getservbyname("bootps", "udp")) != NULL)
         address.sin_port = serv->s_port;
 
     // Construct request
@@ -153,7 +153,7 @@ static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
     return true;
 }
 
-static char *dhcp_get_option(dhcp_msg *reply, uint8_t type, uint8_t *length) {
+static uint8_t *dhcp_get_option(dhcp_msg *reply, uint8_t type, uint8_t *length) {
     uint8_t *opts = reply->options + DHCP_MAGIC_LEN;
     uint8_t *opts_end = reply->options + sizeof(reply->options);
 
@@ -171,9 +171,9 @@ static char *dhcp_get_option(dhcp_msg *reply, uint8_t type, uint8_t *length) {
         // Check if option type matches
         if (opt_type == type) {
             // Allocate buffer to return option value
-            char *value = calloc(opt_length + 1, sizeof(char));
+            uint8_t *value = calloc(opt_length + 1, sizeof(char));
             if (value)
-                strncat(value, (char *)opts, opt_length);
+                memcpy(value, opts, opt_length);
 
             // Optionally return option length
             if (length)
@@ -230,7 +230,7 @@ char *wpad_dhcp(int32_t timeout_sec) {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    if (serv = getservbyname("bootpc", "udp"))
+    if ((serv = getservbyname("bootpc", "udp")) != NULL)
         address.sin_port = serv->s_port;
 
     if (bind(sfd, (struct sockaddr *)&address, sizeof(address)) == -1) {
@@ -280,5 +280,5 @@ char *wpad_dhcp(int32_t timeout_sec) {
         return NULL;
     }
 
-    return opt;
+    return (char *)opt;
 }

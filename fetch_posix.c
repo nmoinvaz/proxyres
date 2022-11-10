@@ -72,7 +72,7 @@ char *fetch_get(const char *url, int32_t *error) {
     err = getaddrinfo(host, port, &hints, &address_info);
     if (err != 0) {
         err = socketerr;
-        LOG_ERROR("Unable to resolve host %s (%" PRId32 ")\n", host, err);
+        LOG_DEBUG("Unable to resolve host %s (%" PRId32 ")\n", host, err);
         goto download_cleanup;
     }
 
