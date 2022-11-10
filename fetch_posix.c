@@ -88,7 +88,7 @@ char *fetch_get(const char *url, int32_t *error) {
     err = connect(sfd, address_info->ai_addr, (int)address_info->ai_addrlen);
     if (err != 0) {
         err = socketerr;
-        LOG_ERROR("Unable to connect to host (%" PRId32 ")\n", err);
+        LOG_ERROR("Unable to connect to host %s (%" PRId32 ")\n", host, err);
         goto download_cleanup;
     }
 

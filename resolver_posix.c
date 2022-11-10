@@ -59,9 +59,11 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
 
     if (proxy_config_get_auto_discover()) {
         // Detect proxy auto configuration using DHCP
+        LOG_DEBUG("Discovering proxy auto config using WPAD DHCP\n");
         auto_config_url = wpad_dhcp(WPAD_DHCP_TIMEOUT);
         if (!auto_config_url) {
             // Detect proxy auto configuration using DNS
+            LOG_DEBUG("Discovering proxy auto config using WPAD DNS\n");
             script = wpad_dns(NULL);
         }
     }
@@ -76,9 +78,10 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
             free(g_proxy_resolver_posix.script);
             g_proxy_resolver_posix.script = script;
         } else if (!g_proxy_resolver_posix.script) {
+            LOG_DEBUG("Fetching proxy auto config script from %s\n", auto_config_url);
             g_proxy_resolver_posix.script = fetch_get(auto_config_url, &proxy_resolver->error);
             if (!g_proxy_resolver_posix.script) {
-                LOG_ERROR("Unable to download auto-config script (%" PRId32 ")\n", proxy_resolver->error);
+                LOG_ERROR("Unable to download auto config script (%" PRId32 ")\n", proxy_resolver->error);
                 return false;
             }
         }
