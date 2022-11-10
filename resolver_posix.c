@@ -52,6 +52,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
     char **proxies = NULL;
     char *proxy = NULL;
+    char *script = NULL;
     const char *auto_config_url = NULL;
 
     proxy_resolver_posix_reset(proxy_resolver);
@@ -61,17 +62,20 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         auto_config_url = wpad_dhcp(WPAD_DHCP_TIMEOUT);
         if (!auto_config_url) {
             // Detect proxy auto configuration using DNS
-            auto_config_url = wpad_dns(NULL);
+            script = wpad_dns(NULL);
         }
     }
 
     // Use manually specified proxy auto configuration
-    if (!auto_config_url)
+    if (!auto_config_url && !script)
         auto_config_url = proxy_config_get_auto_config_url();
 
-    if (auto_config_url) {
+    if (auto_config_url || script) {
         // Download proxy auto-config script if found
-        if (!g_proxy_resolver_posix.script) {
+        if (script) {
+            free(g_proxy_resolver_posix.script);
+            g_proxy_resolver_posix.script = script;
+        } else if (!g_proxy_resolver_posix.script) {
             g_proxy_resolver_posix.script = fetch_get(auto_config_url, &proxy_resolver->error);
             if (!g_proxy_resolver_posix.script) {
                 LOG_ERROR("Unable to download auto-config script (%" PRId32 ")\n", proxy_resolver->error);
@@ -100,6 +104,10 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
         proxy_resolver->list = proxy;
+    } else {
+        // Use DIRECT connection
+        free(proxy_resolver->list);
+        proxy_resolver->list = NULL;
     }
 
     return true;
