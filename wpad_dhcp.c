@@ -98,12 +98,14 @@ bool dhcp_send_inform(SOCKET sfd, uint32_t request_xid) {
     struct sockaddr_in address = {0};
     struct servent *serv;
 
-    // Get hostent for local machine
+    // Get local hostname
     if (gethostname(hostname, sizeof(hostname)) == -1) {
         LOG_ERROR("Unable to get hostname (%d)\n", socketerr);
         return false;
     }
     hostname[sizeof(hostname) - 1] = 0;
+
+    // Get hostent for local hostname
     struct hostent *localent = gethostbyname(hostname);
     if (!localent) {
         LOG_ERROR("Unable to get hostent for %s (%d)\n", hostname, socketerr);
@@ -267,7 +269,7 @@ char *wpad_dhcp(int32_t timeout_sec) {
     }
 
     if (!dhcp_wait_for_reply(sfd, timeout_sec)) {
-        LOG_ERROR("Unable to receive DHCP reply\n");
+        LOG_DEBUG("Unable to receive DHCP reply\n");
         closesocket(sfd);
         return NULL;
     }

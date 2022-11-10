@@ -17,14 +17,16 @@ set(PROXYRES_HDRS
     resolver_i.h
     threadpool.h
     util.h
-    wpad_dhcp.h)
+    wpad_dhcp.h
+    wpad_dns.h)
 set(PROXYRES_SRCS
     config.c
     execute.c
     proxyres.c
     resolver.c
     util.c
-    wpad_dhcp.c)
+    wpad_dhcp.c
+    wpad_dns.c)
 if(WIN32)
     list(APPEND PROXYRES_HDRS
         config_win.h
