@@ -11,12 +11,19 @@ extern "C" {
 
 TEST(fetch, get) {
     int32_t error = 0;
+#ifdef HAVE_LIBCURL
+    const char *url = "https://google.com/";
+    const char *expected_string = "world's information";
+#else
+    const char *url = "http://google.com/";
+    const char *expected_string = "document has moved";
+#endif
     char *body = fetch_get("http://google.com", &error);
     EXPECT_EQ(error, 0);
     EXPECT_NE(body, nullptr);
     if (body) {
-        EXPECT_TRUE(strstr(body, "google") != nullptr);
-        EXPECT_TRUE(strstr(body, "document has moved") != nullptr);
+        EXPECT_TRUE(strstr(body, expected_string) != nullptr);
         free(body);
     }
 }
+

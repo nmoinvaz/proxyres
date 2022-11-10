@@ -189,3 +189,11 @@ download_cleanup:
 
     return body;
 }
+
+bool fetch_init(void) {
+    return true;
+}
+
+bool fetch_uninit(void) {
+    return true;
+}
