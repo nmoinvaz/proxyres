@@ -51,6 +51,7 @@ set(TEST_SRCS
     test_execute.cc
     test_fetch.cc
     test_main.cc
+    test_net_adapter.cc
     test_threadpool.cc
     test_util.cc)
 if(PROXYRES_TEST_WPAD)

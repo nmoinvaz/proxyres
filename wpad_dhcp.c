@@ -7,8 +7,12 @@
 #include <time.h>
 
 #include "log.h"
+#include "net_adapter.h"
 #include "util.h"
 #include "util_socket.h"
+
+#define DHCP_SERVER_PORT    (67)
+#define DHCP_CLIENT_PORT    (68)
 
 #define DHCP_MAGIC          ("\x63\x82\x53\x63")
 #define DHCP_MAGIC_LEN      (4)
@@ -25,19 +29,19 @@
 #define DHCP_OPT_WPAD       (0xfc)
 #define DHCP_OPT_END        (0xff)
 
-#define DHCP_OPT_MAX_LENGTH (312)
+#define DHCP_OPT_MIN_LENGTH (312)
 
 #define ETHERNET_TYPE       (1)
 #define ETHERNET_LENGTH     (6)
 
 typedef struct dhcp_msg {
-    uint8_t op;    /* operation */
-    uint8_t htype; /* hardware address type */
-    uint8_t hlen;  /* hardware address len */
-    uint8_t hops;
-    uint32_t xid;  /* transaction id */
-    uint16_t secs; /* seconds since protocol start */
-    uint16_t flags;
+    uint8_t op;         /* operation */
+    uint8_t htype;      /* hardware address type */
+    uint8_t hlen;       /* hardware address len */
+    uint8_t hops;       /* message hops */
+    uint32_t xid;       /* transaction id */
+    uint16_t secs;      /* seconds since protocol start */
+    uint16_t flags;     /* 0 = unicast, 1 = broadcast */
     uint32_t ciaddr;    /* client IP */
     uint32_t yiaddr;    /* your IP */
     uint32_t siaddr;    /* server IP */
@@ -45,7 +49,7 @@ typedef struct dhcp_msg {
     uint8_t chaddr[16]; /* client hardware address */
     uint8_t sname[64];  /* server name */
     uint8_t file[128];  /* bootstrap file */
-    uint8_t options[DHCP_OPT_MAX_LENGTH];
+    uint8_t options[DHCP_OPT_MIN_LENGTH];
 } dhcp_msg;
 
 typedef struct dhcp_option {
@@ -73,84 +77,6 @@ static inline uint8_t *dhcp_copy_option(uint8_t *options, dhcp_option *option) {
         options += option->length;
     }
     return options;
-}
-
-bool dhcp_send_inform(SOCKET sfd, uint32_t request_xid) {
-    char hostname[HOST_MAX] = {0};
-    struct sockaddr_in address = {0};
-    struct servent *serv;
-
-    // Get local hostname
-    if (gethostname(hostname, sizeof(hostname)) == -1) {
-        LOG_ERROR("Unable to get hostname (%d)\n", socketerr);
-        return false;
-    }
-    hostname[sizeof(hostname) - 1] = 0;
-
-    // Get hostent for local hostname
-    struct hostent *localent = gethostbyname(hostname);
-    if (!localent) {
-        LOG_ERROR("Unable to get hostent for %s (%d)\n", hostname, socketerr);
-        return false;
-    }
-
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_NONE;
-    if ((serv = getservbyname("bootps", "udp")) != NULL)
-        address.sin_port = serv->s_port;
-
-    // Construct request
-    struct dhcp_msg request = {0};
-
-    request.op = DHCP_BOOT_REQUEST;
-    request.htype = ETHERNET_TYPE;
-    request.hlen = ETHERNET_LENGTH;
-    request.xid = request_xid;
-    request.ciaddr = *(uint32_t *)*localent->h_addr_list;
-
-    uint8_t *opts = request.options;
-
-    // Construct request signature
-    opts = dhcp_copy_magic(opts);
-
-    // Construct request options
-    dhcp_option opt_msg_type = {DHCP_OPT_MSGTYPE, 1, DHCP_INFORM};
-    opts = dhcp_copy_option(opts, &opt_msg_type);
-    dhcp_option opt_param_req = {DHCP_OPT_PARAMREQ, 1, DHCP_OPT_WPAD};
-    opts = dhcp_copy_option(opts, &opt_param_req);
-    dhcp_option opt_end = {DHCP_OPT_END, 0, 0};
-    opts = dhcp_copy_option(opts, &opt_end);
-
-    // Broadcast DHCP request
-    int32_t request_len = (int32_t)(opts - (uint8_t *)&request);
-    int sent = sendto(sfd, (const char *)&request, request_len, 0, (struct sockaddr *)&address, sizeof(address));
-    return sent == request_len;
-}
-
-static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
-    int response_len = recvfrom(sfd, (char *)reply, sizeof(dhcp_msg), 0, NULL, NULL);
-
-    if (response_len <= sizeof(dhcp_msg) - DHCP_OPT_MAX_LENGTH) {
-        LOG_ERROR("Unable to read DHCP response (%d:%d)\n", response_len, socketerr);
-        return false;
-    }
-
-    if (reply->op != DHCP_BOOT_REPLY) {
-        LOG_ERROR("Invalid DHCP response (op=%d)\n", reply->op);
-        return false;
-    }
-
-    if (reply->xid != request_xid) {
-        LOG_ERROR("Invalid DHCP response (xid %" PRIx32 ")\n", reply->xid);
-        return false;
-    }
-
-    if (!dhcp_check_magic(reply->options)) {
-        LOG_ERROR("Invalid DHCP response (magic %" PRIx32 ")\n", *(uint32_t *)reply->options);
-        return false;
-    }
-
-    return true;
 }
 
 static uint8_t *dhcp_get_option(dhcp_msg *reply, uint8_t type, uint8_t *length) {
@@ -188,6 +114,75 @@ static uint8_t *dhcp_get_option(dhcp_msg *reply, uint8_t type, uint8_t *length) 
     return NULL;
 }
 
+static bool dhcp_send_inform(SOCKET sfd, uint32_t xid, net_adapter_s *adapter) {
+    struct sockaddr_in address = {0};
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_NONE;
+    address.sin_port = htons(DHCP_SERVER_PORT);
+
+    // Construct request
+    struct dhcp_msg request = {0};
+
+    request.op = DHCP_BOOT_REQUEST;
+
+    if (adapter->is_ethernet) {
+        request.htype = ETHERNET_TYPE;
+        request.hlen = adapter->mac_length;
+        if (request.hlen > sizeof(request.chaddr))
+            request.hlen = sizeof(request.chaddr);
+        memcpy(request.chaddr, adapter->mac, request.hlen);
+    }
+
+    request.xid = xid;
+    request.ciaddr = *(uint32_t *)adapter->ip;
+    request.yiaddr = *(uint32_t *)adapter->ip;
+    request.siaddr = *(uint32_t *)adapter->dhcp;
+
+    uint8_t *opts = request.options;
+
+    // Construct request signature
+    opts = dhcp_copy_magic(opts);
+
+    // Construct request options
+    dhcp_option opt_msg_type = {DHCP_OPT_MSGTYPE, 1, DHCP_INFORM};
+    opts = dhcp_copy_option(opts, &opt_msg_type);
+    dhcp_option opt_param_req = {DHCP_OPT_PARAMREQ, 1, DHCP_OPT_WPAD};
+    opts = dhcp_copy_option(opts, &opt_param_req);
+    dhcp_option opt_end = {DHCP_OPT_END, 0, 0};
+    opts = dhcp_copy_option(opts, &opt_end);
+
+    // Broadcast DHCP request
+    int32_t request_len = (int32_t)(opts - (uint8_t *)&request);
+    int sent = sendto(sfd, (const char *)&request, request_len, 0, (struct sockaddr *)&address, sizeof(address));
+    return sent == request_len;
+}
+
+static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
+    int response_len = recvfrom(sfd, (char *)reply, sizeof(dhcp_msg), 0, NULL, NULL);
+
+    if (response_len <= sizeof(dhcp_msg) - DHCP_OPT_MIN_LENGTH) {
+        LOG_ERROR("Unable to read DHCP response (%d:%d)\n", response_len, socketerr);
+        return false;
+    }
+
+    if (reply->op != DHCP_BOOT_REPLY) {
+        LOG_ERROR("Invalid DHCP response (op=%d)\n", reply->op);
+        return false;
+    }
+
+    if (reply->xid != request_xid) {
+        LOG_ERROR("Invalid DHCP response (xid %" PRIx32 ")\n", reply->xid);
+        return false;
+    }
+
+    if (!dhcp_check_magic(reply->options)) {
+        LOG_ERROR("Invalid DHCP response (magic %" PRIx32 ")\n", *(uint32_t *)reply->options);
+        return false;
+    }
+    return true;
+}
+
 static bool dhcp_wait_for_reply(SOCKET sfd, int32_t timeout_sec) {
     fd_set read_fds;
     struct timeval tv;
@@ -206,18 +201,8 @@ static bool dhcp_wait_for_reply(SOCKET sfd, int32_t timeout_sec) {
     return true;
 }
 
-char *wpad_dhcp(int32_t timeout_sec) {
-    struct sockaddr_in address = {0};
-    struct protoent *proto;
-    struct servent *serv;
-    SOCKET sfd;
-
-    if ((proto = getprotobyname("udp")) == NULL) {
-        LOG_ERROR("Unable to get protocol by name\n");
-        return NULL;
-    }
-
-    sfd = socket(AF_INET, SOCK_DGRAM, proto->p_proto);
+char *wpad_dhcp_adapter(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
+    SOCKET sfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sfd == -1) {
         LOG_ERROR("Unable to create udp socket\n");
         return NULL;
@@ -228,10 +213,11 @@ char *wpad_dhcp(int32_t timeout_sec) {
     int reuseaddr = 1;
     setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuseaddr, sizeof(reuseaddr));
 
+    struct sockaddr_in address = {0};
+
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    if ((serv = getservbyname("bootpc", "udp")) != NULL)
-        address.sin_port = serv->s_port;
+    address.sin_addr.s_addr = *(uint32_t *)bind_ip;
+    address.sin_port = htons(DHCP_CLIENT_PORT);
 
     if (bind(sfd, (struct sockaddr *)&address, sizeof(address)) == -1) {
         // Ignore failure if port is already bound
@@ -241,12 +227,12 @@ char *wpad_dhcp(int32_t timeout_sec) {
         return NULL;
     }
 
+    // Generate random transaction id
     srand((int)time(NULL));
-
     uint32_t request_xid = rand();
 
     // Send DHCPINFORM request to DHCP server
-    if (!dhcp_send_inform(sfd, request_xid)) {
+    if (!dhcp_send_inform(sfd, request_xid, adapter)) {
         LOG_ERROR("Unable to send DHCP inform\n");
         closesocket(sfd);
         return NULL;
@@ -283,4 +269,37 @@ char *wpad_dhcp(int32_t timeout_sec) {
     }
 
     return (char *)opt;
+}
+
+typedef struct wpad_dhcp_adapter_enum_s {
+    char *url;
+    int32_t timeout_sec;
+} wpad_dhcp_adapter_enum_s;
+
+static bool wpad_dhcp_enum_adapter(void *user_data, net_adapter_s *adapter) {
+    wpad_dhcp_adapter_enum_s *adapter_enum = (wpad_dhcp_adapter_enum_s *)user_data;
+
+    // Check adapter is connected and DHCPv4 capable
+    if (!adapter->is_connected || !adapter->is_dhcp_v4)
+        return true;
+
+    // Check adapter has valid mac, ip, and dns
+    if (!*adapter->mac || !*adapter->ip || !*adapter->primary_dns)
+        return true;
+
+    // Get WPAD from adapter's DHCP server
+    adapter_enum->url = wpad_dhcp_adapter(adapter->ip, adapter, adapter_enum->timeout_sec);
+    if (adapter_enum->url)
+        return false;
+
+    return true;
+}
+
+char *wpad_dhcp(int32_t timeout_sec) {
+    wpad_dhcp_adapter_enum_s adapter_enum = {NULL, timeout_sec};
+
+    // Enumerate each network adapter and send DHCP request for WPAD
+    net_adapter_enum(&adapter_enum, wpad_dhcp_enum_adapter);
+
+    return adapter_enum.url;
 }

@@ -11,6 +11,7 @@
 #include "fetch.h"
 #include "log.h"
 #include "execute.h"
+#include "net_adapter.h"
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_posix.h"
@@ -61,6 +62,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         // Detect proxy auto configuration using DHCP
         LOG_DEBUG("Discovering proxy auto config using WPAD DHCP\n");
         auto_config_url = wpad_dhcp(WPAD_DHCP_TIMEOUT);
+        // Detect proxy auto configuration using DNS
         if (!auto_config_url) {
             // Detect proxy auto configuration using DNS
             LOG_DEBUG("Discovering proxy auto config using WPAD DNS\n");

@@ -12,6 +12,7 @@ set(PROXYRES_HDRS
     fetch.h
     log.h
     mozilla_js.h
+    net_adapter.h
     proxyres.h
     resolver.h
     resolver_i.h
@@ -25,6 +26,7 @@ set(PROXYRES_SRCS
     config.c
     execute.c
     proxyres.c
+    net_adapter.c
     resolver.c
     resolver_posix.c
     util.c
@@ -40,6 +42,7 @@ if(WIN32)
     list(APPEND PROXYRES_SRCS
         config_win.c
         execute_jsproxy.c
+        net_adapter_winxp.c
         resolver_win8.c
         resolver_winxp.c
         util_win.c)
@@ -164,7 +167,7 @@ else()
 endif()
 
 if(WIN32)
-    target_link_libraries(proxyres winhttp ws2_32)
+    target_link_libraries(proxyres iphlpapi.lib winhttp ws2_32)
 elseif(APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries(proxyres PRIVATE ${CFNETWORK_LIBRARY})
