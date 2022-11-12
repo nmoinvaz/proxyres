@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
 
-option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
 option(PROXYRES_CURL "Enable building against CURL" OFF)
+option(PROXYRES_JSPROXY "Enable building with deprecated Windows JSProxy support" OFF)
+
+option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
 
 project(proxyres)
 
@@ -9,6 +11,7 @@ set(PROXYRES_HDRS
     config.h
     config_i.h
     execute.h
+    execute_i.h
     fetch.h
     log.h
     mozilla_js.h
@@ -35,17 +38,24 @@ set(PROXYRES_SRCS
 if(WIN32)
     list(APPEND PROXYRES_HDRS
         config_win.h
-        execute_jsproxy.h
+        execute_wsh.h
         resolver_win8.h
         resolver_winxp.h
         util_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
-        execute_jsproxy.c
+        execute_wsh.c
         net_adapter_winxp.c
         resolver_win8.c
         resolver_winxp.c
         util_win.c)
+    if(PROXYRES_JSPROXY)
+        list(APPEND PROXYRES_HDRS
+            execute_jsproxy.h)
+        list(APPEND PROXYRES_SRCS
+            execute_jsproxy.c)
+        add_compile_definitions(HAVE_JSPROXY)
+    endif()
     if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION GREATER_EQUAL 6.1)
         list(APPEND PROXYRES_SRCS
             threadpool_winvista.c)
@@ -87,7 +97,8 @@ if(WIN32)
     add_compile_definitions(
         _CRT_SECURE_NO_WARNINGS=1
         _CRT_NONSTDC_NO_WARNINGS=1
-        _WINSOCK_DEPRECATED_NO_WARNINGS=1)
+        _WINSOCK_DEPRECATED_NO_WARNINGS=1
+        COBJMACROS)
 elseif(APPLE)
 elseif(UNIX)
     add_compile_definitions(_GNU_SOURCE=1)

@@ -20,6 +20,9 @@ struct execute_param {
 
 static const char *script = R"(
 function FindProxyForURL(url, host) {
+  if (host == "localhost") {
+    return "PROXY " + dnsResolve(host) + ":80";
+  }
   if (host == "127.0.0.1") {
     return "PROXY localhost:30";
   }
@@ -35,14 +38,13 @@ function FindProxyForURL(url, host) {
   return "DIRECT";
 })";
 
-constexpr execute_param execute_tests[] = {
-    {"your-pc", "HTTP plain"},
-    {"127.0.0.1", "PROXY localhost:30"},
-    {"http://127.0.0.1/", "PROXY localhost:30"},
-    {"http://simple.com/", "PROXY no-such-proxy:80"},
-    {"http://example2.com/", "DIRECT"},
-    {"http://microsoft.com/test", "PROXY microsoft.com:80"}
-};
+constexpr execute_param execute_tests[] = {{"your-pc", "HTTP plain"},
+                                           {"127.0.0.1", "PROXY localhost:30"},
+                                           {"localhost", "PROXY 127.0.0.1:80"},
+                                           {"http://127.0.0.1/", "PROXY localhost:30"},
+                                           {"http://simple.com/", "PROXY no-such-proxy:80"},
+                                           {"http://example2.com/", "DIRECT"},
+                                           {"http://microsoft.com/test", "PROXY microsoft.com:80"}};
 
 class execute : public ::testing::TestWithParam<execute_param> {};
 

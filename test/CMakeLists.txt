@@ -72,7 +72,7 @@ target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
 add_test(NAME gtest_proxyres
     COMMAND gtest_proxyres)
 
-if(WIN32)
+if(WIN32 AND PROXYRES_JSPROXY)
     # Windows 11 or greater no longer supports PAC script execution in wininet
     if(CMAKE_HOST_SYSTEM_VERSION GREATER_EQUAL 10.0.22000)
         if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")

@@ -1,63 +1,73 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "execute.h"
+#include "execute_i.h"
 #ifdef _WIN32
+#ifdef HAVE_JSPROXY
 #include "execute_jsproxy.h"
+#endif
+#include "execute_wsh.h"
 #else
 #include "execute_jscore.h"
 #endif
 
+typedef struct g_proxy_execute_s {
+    proxy_execute_i_s *proxy_execute_i;
+} g_proxy_execute_s;
+
+g_proxy_execute_s g_proxy_execute;
+
 bool proxy_execute_get_proxies_for_url(void *ctx, const char *script, const char *url) {
-#ifdef _WIN32
-    return proxy_execute_jsproxy_get_proxies_for_url(ctx, script, url);
-#else
-    return proxy_execute_jscore_get_proxies_for_url(ctx, script, url);
-#endif
+    if (!g_proxy_execute.proxy_execute_i)
+        return false;
+    return g_proxy_execute.proxy_execute_i->get_proxies_for_url(ctx, script, url);
 }
 
 const char *proxy_execute_get_list(void *ctx) {
-#ifdef _WIN32
-    return proxy_execute_jsproxy_get_list(ctx);
-#else
-    return proxy_execute_jscore_get_list(ctx);
-#endif
+    if (!g_proxy_execute.proxy_execute_i)
+        return NULL;
+    return g_proxy_execute.proxy_execute_i->get_list(ctx);
 }
 
 bool proxy_execute_get_error(void *ctx, int32_t *error) {
-#ifdef _WIN32
-    return proxy_execute_jsproxy_get_error(ctx, error);
-#else
-    return proxy_execute_jscore_get_error(ctx, error);
-#endif
+    if (!g_proxy_execute.proxy_execute_i)
+        return false;
+    return g_proxy_execute.proxy_execute_i->get_error(ctx, error);
 }
 
 void *proxy_execute_create(void) {
-#ifdef _WIN32
-    return proxy_execute_jsproxy_create();
-#else
-    return proxy_execute_jscore_create();
-#endif
+    if (!g_proxy_execute.proxy_execute_i)
+        return NULL;
+    return g_proxy_execute.proxy_execute_i->create();
 }
 bool proxy_execute_delete(void *ctx) {
-#ifdef _WIN32
-    return proxy_execute_jsproxy_delete(ctx);
-#else
-    return proxy_execute_jscore_delete(ctx);
-#endif
+    if (!g_proxy_execute.proxy_execute_i)
+        return NULL;
+    return g_proxy_execute.proxy_execute_i->delete(ctx);
 }
 
 bool proxy_execute_init(void) {
 #ifdef _WIN32
-    return proxy_execute_jsproxy_init();
-#else
-    return proxy_execute_jscore_init();
+    if (proxy_execute_wsh_init())
+        g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
+#ifdef HAVE_JSPROXY
+    else if (proxy_execute_jsproxy_init())
+        g_proxy_execute.proxy_execute_i = proxy_execute_jsproxy_get_interface();
 #endif
+#else
+    if (proxy_execute_jscore_init())
+        g_proxy_execute.proxy_execute_i = proxy_execute_jscore_get_interface();
+#endif
+    if (!g_proxy_execute.proxy_execute_i)
+        return false;
+    return true;
 }
 
 bool proxy_execute_uninit(void) {
-#ifdef _WIN32
-    return proxy_execute_jsproxy_uninit();
-#else
-    return proxy_execute_jscore_uninit();
-#endif
+    if (g_proxy_execute.proxy_execute_i) {
+        g_proxy_execute.proxy_execute_i->uninit();
+
+    memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
+    return true;
 }

@@ -14,6 +14,8 @@ bool proxy_execute_jsproxy_delete(void **ctx);
 bool proxy_execute_jsproxy_init(void);
 bool proxy_execute_jsproxy_uninit(void);
 
+proxy_execute_i_s *proxy_execute_jsproxy_get_interface(void);
+
 #ifdef __cplusplus
 }
 #endif

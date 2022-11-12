@@ -9,6 +9,7 @@
 #include <JavaScriptCore/JavaScript.h>
 
 #include "execute.h"
+#include "execute_i.h"
 #include "execute_jscore.h"
 #include "log.h"
 #include "mozilla_js.h"
@@ -452,4 +453,11 @@ bool proxy_execute_jscore_uninit(void) {
 
     memset(&g_proxy_execute_jscore, 0, sizeof(g_proxy_execute_jscore));
     return true;
+}
+
+proxy_execute_i_s *proxy_execute_jscore_get_interface(void) {
+    static proxy_execute_i_s proxy_execute_jscore_i = {proxy_execute_get_proxies_for_url, proxy_execute_get_list,
+                                                       proxy_execute_get_error,           proxy_execute_jscore_execute,
+                                                       proxy_execute_jscore_init,         proxy_execute_jscore_uninit};
+    return &proxy_execute_jscore_i;
 }

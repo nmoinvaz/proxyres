@@ -64,7 +64,6 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         auto_config_url = wpad_dhcp(WPAD_DHCP_TIMEOUT);
         // Detect proxy auto configuration using DNS
         if (!auto_config_url) {
-            // Detect proxy auto configuration using DNS
             LOG_DEBUG("Discovering proxy auto config using WPAD DNS\n");
             script = wpad_dns(NULL);
         }

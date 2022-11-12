@@ -7,6 +7,8 @@
 #include <winineti.h>
 
 #include "execute.h"
+#include "execute_i.h"
+#include "execute_dns.h"
 #include "execute_jsproxy.h"
 #include "log.h"
 #include "util.h"
@@ -102,7 +104,7 @@ bool proxy_execute_jsproxy_get_proxies_for_url(void *ctx, const char *script, co
         return false;
 
     is_ok = g_proxy_execute_jsproxy.InternetGetProxyInfo(url, (DWORD)strlen(url) + 1, host, (DWORD)strlen(host) + 1,
-                                                           &proxy, &proxy_len);
+                                                         &proxy, &proxy_len);
     if (!is_ok) {
         proxy_execute_jsproxy->error = GetLastError();
         LOG_ERROR("Failed to execute InternetGetProxyInfo (%d)\n", proxy_execute_jsproxy->error);
@@ -181,4 +183,15 @@ bool proxy_execute_jsproxy_uninit(void) {
 
     memset(&g_proxy_execute_jsproxy, 0, sizeof(g_proxy_execute_jsproxy));
     return true;
+}
+
+proxy_execute_i_s *proxy_execute_jscore_get_interface(void) {
+    static proxy_execute_i_s proxy_execute_jscore_i = {proxy_execute_jsproxy_get_proxies_for_url,
+                                                       proxy_execute_jsproxy_get_list,
+                                                       proxy_execute_jsproxy_get_error,
+                                                       proxy_execute_jsproxy_create,
+                                                       proxy_execute_jsproxy_delete,
+                                                       proxy_execute_jsproxy_init,
+                                                       proxy_execute_jsproxy_uninit};
+    return &proxy_execute_jscore_i;
 }
