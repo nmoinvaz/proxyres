@@ -201,15 +201,15 @@ bool proxy_resolver_posix_uninit(void) {
 
 proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_posix_i = {proxy_resolver_posix_get_proxies_for_url,
-                                                         proxy_resolver_posix_get_list,
-                                                         proxy_resolver_posix_get_error,
-                                                         proxy_resolver_posix_is_pending,
-                                                         proxy_resolver_posix_cancel,
-                                                         proxy_resolver_posix_set_resolved_callback,
-                                                         proxy_resolver_posix_create,
-                                                         proxy_resolver_posix_delete,
-                                                         proxy_resolver_posix_is_async,
-                                                         proxy_resolver_posix_init,
-                                                         proxy_resolver_posix_uninit};
+                                                        proxy_resolver_posix_get_list,
+                                                        proxy_resolver_posix_get_error,
+                                                        proxy_resolver_posix_is_pending,
+                                                        proxy_resolver_posix_cancel,
+                                                        proxy_resolver_posix_set_resolved_callback,
+                                                        proxy_resolver_posix_create,
+                                                        proxy_resolver_posix_delete,
+                                                        proxy_resolver_posix_is_async,
+                                                        proxy_resolver_posix_init,
+                                                        proxy_resolver_posix_uninit};
     return &proxy_resolver_posix_i;
 }
