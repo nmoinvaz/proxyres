@@ -145,3 +145,15 @@ jobs:
           exit 1
         fi
       working-directory: build/test/Release
+
+    - name: Upload build errors
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: Build Errors - ${{ matrix.name }}
+        path: |
+          **/CMakeFiles/CMakeOutput.log
+          **/CMakeFiles/CMakeError.log
+          **/Testing/Temporary/LastTest.log
+          **/*.log
+        retention-days: 3

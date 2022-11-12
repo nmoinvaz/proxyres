@@ -1,3 +1,3 @@
 var cmd = require("node-cmd");
 
-cmd.run("yarn run dhcp_server");
+cmd.run("yarn run dhcp_server > dhcp_server.log");
