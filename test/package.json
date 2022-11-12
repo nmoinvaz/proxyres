@@ -7,7 +7,6 @@
   "dependencies": {
     "dhcp": "https://github.com/nmoinvaz/node-dhcp",
     "http-server": "^14.1.1",
-    "node-cmd": "^5.0.0",
     "pm2": "^5.2.2"
   }
 }

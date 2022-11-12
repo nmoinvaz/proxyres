@@ -43,14 +43,14 @@ jobs:
 
     - name: Run test http server
       run: |
-        npx pm2 start http_server_cmd.js
+        npx pm2 start http_server_cmd.js --output http_server.log
         sleep 15
       working-directory: test
 
     - name: Run test dhcp server
       # Used by wpad.dhcp googletest
       run: |
-        npx pm2 start dhcp_server_cmd.js
+        npx pm2 start dhcp_server_cmd.js --output dhcp_server.log
         sleep 15
       working-directory: test
 

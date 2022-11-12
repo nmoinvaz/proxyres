@@ -1,3 +1,8 @@
-var cmd = require("node-cmd");
+const { spawn } = require("child_process");
+const { platform } = require("os");
 
-cmd.run("yarn run dhcp_server > dhcp_server.log");
+if (platform() === "win32") {
+    spawn("yarn", ["run", "dhcp_server"], { stdio: "inherit" });
+} else {
+    spawn("sudo", ["yarn", "run", "dhcp_server"], { stdio: "inherit" });
+}

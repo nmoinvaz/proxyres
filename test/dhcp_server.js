@@ -5,7 +5,8 @@ var s = dhcp.createServer({
     "192.168.3.1",
     "192.168.3.99"
   ],
-  forceOptions: ["wpad"],
+  forceOptions: ["hostname", "wpad"],
+  hostname: "kacknup",
   wpad: () => "http://wpad.com/wpad.dat",
   server: "192.168.3.1",
 });

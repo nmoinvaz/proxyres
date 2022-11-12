@@ -1,3 +1,3 @@
-var cmd = require("node-cmd");
+const { spawn } = require("child_process");
 
-cmd.run("yarn run http_server > http_server.log");
+spawn("yarn", ["run", "http_server"], { stdio: "inherit" });

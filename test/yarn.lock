@@ -1592,13 +1592,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-cmd@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "node-cmd@npm:5.0.0"
-  checksum: 4db15117c08a82bdc98725b6827b9e4ee2ca238534dcacb50caa3a77562583d1291f0c44db5629b4f9ea53bc10e3dcc9b5e02c9034f4645c6a8be3d36935aa46
-  languageName: node
-  linkType: hard
-
 "node-gyp@npm:latest":
   version: 9.3.0
   resolution: "node-gyp@npm:9.3.0"
@@ -2077,7 +2070,6 @@ __metadata:
   dependencies:
     dhcp: "https://github.com/nmoinvaz/node-dhcp"
     http-server: ^14.1.1
-    node-cmd: ^5.0.0
     pm2: ^5.2.2
   languageName: unknown
   linkType: soft
