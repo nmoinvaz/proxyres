@@ -48,12 +48,11 @@ The code in this library started many years ago as part of a custom HTTP/HTTPS s
 
 ## Todo
 
-* Test integration
-* Resolver from scratch with WPAD and DHCP
-* Enumerate each adapter and check for DHCP for better security
+* Enumerate each adapter and check each DHCP for better security
 * Cache results from WPAD process for certain period of time
 * Mutex lock around WPAD process
 * Clean up proxy_resolver API
 * Remove proxy_resolver_gnome3 since it don't work
 * Add proxy_execute support for Windows Host Script (WHS)
+* Test integration
 * Document API
