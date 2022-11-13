@@ -158,22 +158,22 @@ static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
     int response_len = recvfrom(sfd, (char *)reply, sizeof(dhcp_msg), 0, NULL, NULL);
 
     if (response_len <= sizeof(dhcp_msg) - DHCP_OPT_MIN_LENGTH) {
-        LOG_ERROR("Unable to read DHCP response (%d:%d)\n", response_len, socketerr);
+        LOG_ERROR("Unable to read DHCP reply (%d:%d)\n", response_len, socketerr);
         return false;
     }
 
     if (reply->op != DHCP_BOOT_REPLY) {
-        LOG_ERROR("Invalid DHCP response (op=%d)\n", reply->op);
+        LOG_DEBUG("Invalid DHCP reply operation (%" PRId32 ")\n", (int32_t)reply->op);
         return false;
     }
 
     if (reply->xid != request_xid) {
-        LOG_ERROR("Invalid DHCP response (xid %" PRIx32 ")\n", reply->xid);
+        LOG_ERROR("Invalid DHCP reply transaction id (%" PRIx32 ")\n", reply->xid);
         return false;
     }
 
     if (!dhcp_check_magic(reply->options)) {
-        LOG_ERROR("Invalid DHCP response (magic %" PRIx32 ")\n", *(uint32_t *)reply->options);
+        LOG_ERROR("Invalid DHCP reply magic (%" PRIx32 ")\n", *(uint32_t *)reply->options);
         return false;
     }
     return true;
@@ -247,6 +247,6 @@ char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_
         LOG_ERROR("Invalid DHCP reply (optlen=%d)\n", opt_length);
         return NULL;
     }
-
+    printf("WPAD: %s\n", opt);
     return (char *)opt;
 }
