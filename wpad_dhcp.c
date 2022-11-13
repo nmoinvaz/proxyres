@@ -125,15 +125,11 @@ static bool dhcp_send_inform(SOCKET sfd, uint32_t xid, net_adapter_s *adapter) {
     struct dhcp_msg request = {0};
 
     request.op = DHCP_BOOT_REQUEST;
-
-    if (adapter->is_ethernet) {
-        request.htype = ETHERNET_TYPE;
-        request.hlen = adapter->mac_length;
-        if (request.hlen > sizeof(request.chaddr))
-            request.hlen = sizeof(request.chaddr);
-        memcpy(request.chaddr, adapter->mac, request.hlen);
-    }
-
+    request.htype = ETHERNET_TYPE;
+    request.hlen = adapter->mac_length;
+    if (request.hlen > sizeof(request.chaddr))
+        request.hlen = sizeof(request.chaddr);
+    memcpy(request.chaddr, adapter->mac, request.hlen);
     request.xid = xid;
     request.ciaddr = *(uint32_t *)adapter->ip;
     request.yiaddr = *(uint32_t *)adapter->ip;
@@ -279,12 +275,16 @@ typedef struct wpad_dhcp_adapter_enum_s {
 static bool wpad_dhcp_enum_adapter(void *user_data, net_adapter_s *adapter) {
     wpad_dhcp_adapter_enum_s *adapter_enum = (wpad_dhcp_adapter_enum_s *)user_data;
 
-    // Check adapter is connected and DHCPv4 capable
-    if (!adapter->is_connected || !adapter->is_dhcp_v4)
+    // Check adapter is connected
+    if (!adapter->is_connected)
         return true;
-
-    // Check adapter has valid mac, ip, and dns
-    if (!*adapter->mac || !*adapter->ip || !*adapter->primary_dns)
+#ifdef _WIN32
+    // Only Windows supports DHCPv4 detection
+    if (!adapter->is_dhcp_v4)
+        return true;
+#endif
+    // Check adapter has valid ip
+    if (!*adapter->ip)
         return true;
 
     // Get WPAD from adapter's DHCP server

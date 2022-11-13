@@ -90,6 +90,7 @@ elseif(UNIX)
         config_gnome3.c
         config_kde.c
         execute_jscore.c
+        net_adapter_posix.c
         resolver_gnome3.c
         threadpool_pthread.c
         util_linux.c)

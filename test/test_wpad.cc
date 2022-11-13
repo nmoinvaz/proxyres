@@ -29,7 +29,6 @@ TEST(wpad, dhcp) {
     // Create network adapter
     net_adapter_s adapter = {0};
     strncat(adapter.name, "Ethernet", sizeof(adapter.name) - 1);
-    adapter.is_ethernet = true;
     adapter.is_dhcp_v4 = true;
     memset(adapter.mac, 'a', sizeof(adapter.mac));
     adapter.mac_length = 6;

@@ -27,8 +27,4 @@ void net_adapter_print(net_adapter_s *adapter) {
         print_ip("dhcp", adapter->dhcp);
     if (adapter->is_connected)
         printf("  connected\n");
-    if (adapter->is_loopback)
-        printf("  loopback\n");
-    if (adapter->is_ethernet)
-        printf("  ethernet\n");
 }

@@ -16,15 +16,13 @@ typedef struct net_adapter_s {
     uint8_t mac[8];
     uint8_t mac_length;
     bool is_connected;
-    bool is_ethernet;
-    bool is_loopback;
     bool is_dhcp_v4;
 } net_adapter_s;
 
 // Callback to enumerate network adapters
 typedef bool (*net_adapter_cb)(void *user_data, net_adapter_s *adapter);
 
-// Enumerate IPv4-enabled network adapters
+// Enumerate IPv4-enabled ethernet adapters
 bool net_adapter_enum(void *user_data, net_adapter_cb callback);
 // Print network adapter information
 void net_adapter_print(net_adapter_s *adapter);

@@ -25,7 +25,6 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     net_adapter_s adapter = {0};
     uint8_t *buffer = NULL;
     int32_t cur_index = 0;
-    int32_t found_adapter_index = 0;
     uint32_t min_index = UINT32_MAX;
     bool found = false;
 
@@ -50,8 +49,14 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     }
 
     // Enumerate each adapter returned by the operating system
-    adapter_addresses = (IP_ADAPTER_ADDRESSES *)buffer;
-    do {
+    for (adapter_addresses = (IP_ADAPTER_ADDRESSES *)buffer; adapter_addresses;
+         adapter_addresses = adapter_addresses->Next) {
+        // Ignore non-physical adapters
+        if (adapter_addresses->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
+            continue;
+        if (adapter_addresses->IfType != IF_TYPE_ETHERNET_CSMACD &&  adapter_addresses->IfType != IF_TYPE_IEEE80211)
+            continue;
+
         memset(&adapter, 0, sizeof(adapter));
 
         // Populate adapter address
@@ -60,17 +65,12 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
             adapter.mac_length = (uint8_t)adapter_addresses->PhysicalAddressLength;
         memcpy(adapter.mac, adapter_addresses->PhysicalAddress, adapter.mac_length);
 
-        // Populate adapter type and connection state flags
+        // Populate connection state
         if (adapter_addresses->OperStatus == IfOperStatusUp)
             adapter.is_connected = true;
-        if ((adapter_addresses->IfType == IF_TYPE_ETHERNET_CSMACD) ||
-            (adapter_addresses->IfType == IF_TYPE_IEEE80211))
-            adapter.is_ethernet = true;
         if (adapter_addresses->Flags & IP_ADAPTER_DHCP_ENABLED && adapter_addresses->Dhcpv4Enabled &&
             adapter_addresses->Dhcpv4Server.iSockaddrLength >= sizeof(adapter.dhcp))
             adapter.is_dhcp_v4 = true;
-        if (adapter_addresses->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
-            adapter.is_loopback = true;
 
         // Populate adapter name and description
         char *friendly_name = wchar_dup_to_utf8(adapter_addresses->FriendlyName);
@@ -82,8 +82,6 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         if (description)
             strncat(adapter.description, description, sizeof(adapter.description) - 1);
         free(description);
-
-        found_adapter_index = adapter_addresses->IfIndex;
 
         // Populate DHCPv4 server
         if (adapter.is_dhcp_v4)
@@ -107,11 +105,10 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         dns_address = adapter_addresses->FirstDnsServerAddress;
         while (dns_address) {
             if (*adapter.primary_dns == 0) {
-                memcpy(adapter.primary_dns, &dns_address->Address.lpSockaddr->sa_data[2],
-                        sizeof(adapter.primary_dns));
+                memcpy(adapter.primary_dns, &dns_address->Address.lpSockaddr->sa_data[2], sizeof(adapter.primary_dns));
             } else if (*adapter.secondary_dns == 0) {
                 memcpy(adapter.secondary_dns, &dns_address->Address.lpSockaddr->sa_data[2],
-                        sizeof(adapter.secondary_dns));
+                       sizeof(adapter.secondary_dns));
             }
             dns_address = dns_address->Next;
         }
@@ -126,9 +123,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
 
         if (callback(user_data, &adapter))
             break;
-
-        adapter_addresses = adapter_addresses->Next;
-    } while (adapter_addresses);
+    }
 
 net_adapter_cleanup:
     free(buffer);
