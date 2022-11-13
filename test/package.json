@@ -5,7 +5,7 @@
   },
   "packageManager": "yarn@3.2.4",
   "dependencies": {
-    "dhcp": "https://github.com/nmoinvaz/node-dhcp",
+    "dhcp": "https://github.com/nmoinvaz/node-dhcp.git#commit=301c3f050fafeb5a77d27f58003c6cf1bcf496d2",
     "http-server": "^14.1.1",
     "pm2": "^5.2.2"
   }
