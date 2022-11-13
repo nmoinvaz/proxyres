@@ -44,6 +44,7 @@ TEST(wpad, dhcp) {
     free(wpad);
 }
 
+#if 0
 TEST(wpad, dns) {
     char *wpad = wpad_dns(NULL);
     EXPECT_NE(wpad, nullptr);
@@ -51,3 +52,4 @@ TEST(wpad, dns) {
         EXPECT_STREQ(wpad, "http://wpad.com/wpad.dat");
     free(wpad);
 }
+#endif
