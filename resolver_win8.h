@@ -11,8 +11,6 @@ bool proxy_resolver_win8_get_error(void *ctx, int32_t *error);
 bool proxy_resolver_win8_is_pending(void *ctx);
 bool proxy_resolver_win8_cancel(void *ctx);
 
-bool proxy_resolver_win8_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback);
-
 void *proxy_resolver_win8_create(void);
 bool proxy_resolver_win8_delete(void **ctx);
 

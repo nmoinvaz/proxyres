@@ -8,8 +8,6 @@ typedef struct proxy_resolver_i_s {
     bool (*is_pending)(void *ctx);
     bool (*cancel)(void *ctx);
 
-    bool (*set_resolved_callback)(void *ctx, void *user_data, proxy_resolver_resolved_cb callback);
-
     void *(*create)(void);
     bool (*delete)(void **ctx);
 

@@ -46,9 +46,6 @@ typedef struct proxy_resolver_gnome3_s {
     bool pending;
     // Cancellable object
     GCancellable *cancellable;
-    // Resolve callback
-    void *user_data;
-    proxy_resolver_resolved_cb callback;
     // Proxy list
     char *list;
 } proxy_resolver_gnome3_s;
@@ -163,12 +160,6 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     proxy_resolver->pending = false;
-
-    // Trigger resolve callback
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
     proxy_resolver_gnome3_delete_resolver(proxy_resolver);
 
     return proxy_resolver->error == 0;
@@ -204,15 +195,6 @@ bool proxy_resolver_gnome3_cancel(void *ctx) {
     // Cancel request to the proxy resolver
     if (proxy_resolver->cancellable)
         g_proxy_resolver_gnome3.g_cancellable_cancel(proxy_resolver->cancellable);
-    return true;
-}
-
-bool proxy_resolver_gnome3_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
-    proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
-    if (!proxy_resolver)
-        return false;
-    proxy_resolver->user_data = user_data;
-    proxy_resolver->callback = callback;
     return true;
 }
 
@@ -313,7 +295,6 @@ proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
                                                          proxy_resolver_gnome3_get_error,
                                                          proxy_resolver_gnome3_is_pending,
                                                          proxy_resolver_gnome3_cancel,
-                                                         proxy_resolver_gnome3_set_resolved_callback,
                                                          proxy_resolver_gnome3_create,
                                                          proxy_resolver_gnome3_delete,
                                                          proxy_resolver_gnome3_is_async,

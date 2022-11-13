@@ -106,13 +106,6 @@ bool proxy_resolver_cancel(void *ctx) {
     return g_proxy_resolver.proxy_resolver_i->cancel(proxy_resolver->base);
 }
 
-bool proxy_resolver_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
-    proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
-    if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
-        return false;
-    return g_proxy_resolver.proxy_resolver_i->set_resolved_callback(proxy_resolver->base, user_data, callback);
-}
-
 void *proxy_resolver_create(void) {
     if (!g_proxy_resolver.proxy_resolver_i)
         return NULL;

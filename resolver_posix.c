@@ -150,15 +150,6 @@ bool proxy_resolver_posix_cancel(void *ctx) {
     return false;
 }
 
-bool proxy_resolver_posix_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
-    proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
-    if (!proxy_resolver)
-        return false;
-    //proxy_resolver->user_data = user_data;
-    //proxy_resolver->callback = callback;
-    return true;
-}
-
 void *proxy_resolver_posix_create(void) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)calloc(1, sizeof(proxy_resolver_posix_s));
     return proxy_resolver;
@@ -205,7 +196,6 @@ proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
                                                         proxy_resolver_posix_get_error,
                                                         proxy_resolver_posix_is_pending,
                                                         proxy_resolver_posix_cancel,
-                                                        proxy_resolver_posix_set_resolved_callback,
                                                         proxy_resolver_posix_create,
                                                         proxy_resolver_posix_delete,
                                                         proxy_resolver_posix_is_async,

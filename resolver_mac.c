@@ -25,9 +25,6 @@ struct g_proxy_resolver_mac_s g_proxy_resolver_mac;
 typedef struct proxy_resolver_mac_s {
     // Last system error
     int32_t error;
-    // Resolved user callback
-    void *user_data;
-    proxy_resolver_resolved_cb callback;
     // Resolution pending
     bool pending;
     // Proxy list
@@ -169,11 +166,6 @@ mac_done:
 
     proxy_resolver->pending = false;
 
-    // Trigger user callback once done
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
     free(auto_config_url);
 
     if (url_ref)
@@ -214,15 +206,6 @@ bool proxy_resolver_mac_cancel(void *ctx) {
     return false;
 }
 
-bool proxy_resolver_mac_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
-    proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    if (!proxy_resolver)
-        return false;
-    proxy_resolver->user_data = user_data;
-    proxy_resolver->callback = callback;
-    return true;
-}
-
 void *proxy_resolver_mac_create(void) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)calloc(1, sizeof(proxy_resolver_mac_s));
     return proxy_resolver;
@@ -255,7 +238,6 @@ proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
                                                       proxy_resolver_mac_get_error,
                                                       proxy_resolver_mac_is_pending,
                                                       proxy_resolver_mac_cancel,
-                                                      proxy_resolver_mac_set_resolved_callback,
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,
                                                       proxy_resolver_mac_is_async,

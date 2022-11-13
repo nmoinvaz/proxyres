@@ -28,9 +28,6 @@ typedef struct proxy_resolver_winxp_s {
     HINTERNET resolver;
     // Last system error
     int32_t error;
-    // Resolved user callback
-    void *user_data;
-    proxy_resolver_resolved_cb callback;
     // Resolution pending
     HANDLE pending_event;
     // Proxy list
@@ -141,11 +138,6 @@ winxp_done:
 
     SetEvent(proxy_resolver->pending_event);
 
-    // Trigger user callback once done
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
     free(url_wide);
 
     // Free proxy info
@@ -189,15 +181,6 @@ bool proxy_resolver_winxp_cancel(void *ctx) {
         WinHttpCloseHandle(proxy_resolver->resolver);
         proxy_resolver->resolver = NULL;
     }
-    return true;
-}
-
-bool proxy_resolver_winxp_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
-    proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
-    if (!proxy_resolver)
-        return false;
-    proxy_resolver->user_data = user_data;
-    proxy_resolver->callback = callback;
     return true;
 }
 
@@ -254,7 +237,6 @@ proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
                                                         proxy_resolver_winxp_get_error,
                                                         proxy_resolver_winxp_is_pending,
                                                         proxy_resolver_winxp_cancel,
-                                                        proxy_resolver_winxp_set_resolved_callback,
                                                         proxy_resolver_winxp_create,
                                                         proxy_resolver_winxp_delete,
                                                         proxy_resolver_winxp_is_async,

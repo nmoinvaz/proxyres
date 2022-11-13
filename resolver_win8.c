@@ -40,9 +40,6 @@ typedef struct proxy_resolver_win8_s {
     HINTERNET resolver;
     // Last system error
     int32_t error;
-    // Resolved user callback
-    void *user_data;
-    proxy_resolver_resolved_cb callback;
     // Resolution pending
     HANDLE pending_event;
     // Proxy list
@@ -159,11 +156,6 @@ win8_async_done:
         g_proxy_resolver_win8.winhttp_free_proxy_result(&proxy_result);
 
     SetEvent(proxy_resolver->pending_event);
-
-    // Trigger user callback once done
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
 }
 
 bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
@@ -250,11 +242,6 @@ win8_done:
 
     SetEvent(proxy_resolver->pending_event);
 
-    // Trigger user callback once done
-    if (proxy_resolver->callback)
-        proxy_resolver->callback(proxy_resolver, proxy_resolver->user_data, proxy_resolver->error,
-                                 proxy_resolver->list);
-
 win8_cleanup:
 
     free(url_wide);
@@ -300,15 +287,6 @@ bool proxy_resolver_win8_cancel(void *ctx) {
         WinHttpCloseHandle(proxy_resolver->resolver);
         proxy_resolver->resolver = NULL;
     }
-    return true;
-}
-
-bool proxy_resolver_win8_set_resolved_callback(void *ctx, void *user_data, proxy_resolver_resolved_cb callback) {
-    proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (!proxy_resolver)
-        return false;
-    proxy_resolver->user_data = user_data;
-    proxy_resolver->callback = callback;
     return true;
 }
 
@@ -397,7 +375,6 @@ proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
                                                        proxy_resolver_win8_get_error,
                                                        proxy_resolver_win8_is_pending,
                                                        proxy_resolver_win8_cancel,
-                                                       proxy_resolver_win8_set_resolved_callback,
                                                        proxy_resolver_win8_create,
                                                        proxy_resolver_win8_delete,
                                                        proxy_resolver_win8_is_async,
