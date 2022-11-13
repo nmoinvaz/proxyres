@@ -52,9 +52,9 @@ char *wpad_dns(const char *fqdn) {
         snprintf(wpad_url, sizeof(wpad_url), "http://wpad.%s/wpad.dat", name);
         LOG_DEBUG("Checking next WPAD DNS url: %s\n", wpad_url);
 
-        char *wpad = fetch_get(wpad_url, &error);
-        if (wpad)
-            return wpad;
+        char *script = fetch_get(wpad_url, &error);
+        if (script)
+            return script;
 
         LOG_DEBUG("No wpad.dat found at %s (%d)\n", wpad_url, error);
         name = next_part;
