@@ -5,6 +5,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <SystemConfiguration/SystemConfiguration.h>
+#include <SystemConfiguration/SCDynamicStoreCopyDHCPInfo.h>
 
 #include "net_adapter.h"
 
@@ -19,7 +20,7 @@ char *wpad_dhcp_adapter_mac(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t 
 
     dhcp_wpad_url = DHCPInfoGetOptionData(dhcp_info, 252);
     if (dhcp_wpad_url)
-        wpad = strdup(CFDataGetBytePtr(dhcp_wpad_url));
+        wpad = strdup((const char *)CFDataGetBytePtr(dhcp_wpad_url));
     CFRelease(dhcp_info);
     return wpad;
 }
