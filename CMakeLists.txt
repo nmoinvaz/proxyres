@@ -78,6 +78,7 @@ elseif(APPLE)
     list(APPEND PROXYRES_SRCS
         config_mac.c
         execute_jscore.c
+        net_adapter_posix.c
         resolver_mac.c
         threadpool_pthread.c
         wpad_dhcp_mac.c)
