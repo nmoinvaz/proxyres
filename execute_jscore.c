@@ -8,6 +8,7 @@
 
 #include <JavaScriptCore/JavaScript.h>
 
+#include "dns.h"
 #include "execute.h"
 #include "execute_i.h"
 #include "execute_jscore.h"
@@ -456,8 +457,12 @@ bool proxy_execute_jscore_uninit(void) {
 }
 
 proxy_execute_i_s *proxy_execute_jscore_get_interface(void) {
-    static proxy_execute_i_s proxy_execute_jscore_i = {proxy_execute_get_proxies_for_url, proxy_execute_get_list,
-                                                       proxy_execute_get_error,           proxy_execute_jscore_execute,
-                                                       proxy_execute_jscore_init,         proxy_execute_jscore_uninit};
+    static proxy_execute_i_s proxy_execute_jscore_i = {proxy_execute_jscore_get_proxies_for_url,
+                                                       proxy_execute_jscore_get_list,
+                                                       proxy_execute_jscore_get_error,
+                                                       proxy_execute_jscore_create,
+                                                       proxy_execute_jscore_delete,
+                                                       proxy_execute_jscore_init,
+                                                       proxy_execute_jscore_uninit};
     return &proxy_execute_jscore_i;
 }

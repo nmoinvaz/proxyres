@@ -185,13 +185,13 @@ bool proxy_execute_jsproxy_uninit(void) {
     return true;
 }
 
-proxy_execute_i_s *proxy_execute_jscore_get_interface(void) {
-    static proxy_execute_i_s proxy_execute_jscore_i = {proxy_execute_jsproxy_get_proxies_for_url,
-                                                       proxy_execute_jsproxy_get_list,
-                                                       proxy_execute_jsproxy_get_error,
-                                                       proxy_execute_jsproxy_create,
-                                                       proxy_execute_jsproxy_delete,
-                                                       proxy_execute_jsproxy_init,
-                                                       proxy_execute_jsproxy_uninit};
-    return &proxy_execute_jscore_i;
+proxy_execute_i_s *proxy_execute_jsproxy_get_interface(void) {
+    static proxy_execute_i_s proxy_execute_jsproxy_i = {proxy_execute_jsproxy_get_proxies_for_url,
+                                                        proxy_execute_jsproxy_get_list,
+                                                        proxy_execute_jsproxy_get_error,
+                                                        proxy_execute_jsproxy_create,
+                                                        proxy_execute_jsproxy_delete,
+                                                        proxy_execute_jsproxy_init,
+                                                        proxy_execute_jsproxy_uninit};
+    return &proxy_execute_jsproxy_i;
 }

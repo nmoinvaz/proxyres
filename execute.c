@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "execute.h"
 #include "execute_i.h"
@@ -41,7 +43,8 @@ void *proxy_execute_create(void) {
         return NULL;
     return g_proxy_execute.proxy_execute_i->create();
 }
-bool proxy_execute_delete(void *ctx) {
+
+bool proxy_execute_delete(void **ctx) {
     if (!g_proxy_execute.proxy_execute_i)
         return NULL;
     return g_proxy_execute.proxy_execute_i->delete(ctx);
@@ -65,7 +68,7 @@ bool proxy_execute_init(void) {
 }
 
 bool proxy_execute_uninit(void) {
-    if (g_proxy_execute.proxy_execute_i) {
+    if (g_proxy_execute.proxy_execute_i)
         g_proxy_execute.proxy_execute_i->uninit();
 
     memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
