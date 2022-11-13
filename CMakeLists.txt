@@ -50,7 +50,8 @@ if(WIN32)
         net_adapter_winxp.c
         resolver_win8.c
         resolver_winxp.c
-        util_win.c)
+        util_win.c
+        wpad_dhcp_win.c)
     if(PROXYRES_JSPROXY)
         list(APPEND PROXYRES_HDRS
             execute_jsproxy.h)
@@ -93,7 +94,8 @@ elseif(UNIX)
         net_adapter_posix.c
         resolver_gnome3.c
         threadpool_pthread.c
-        util_linux.c)
+        util_linux.c
+        wpad_dhcp_posix.c)
 endif()
 
 if(WIN32)
