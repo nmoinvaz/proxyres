@@ -667,7 +667,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dhcp@https://github.com/nmoinvaz/node-dhcp.git#commit=301c3f050fafeb5a77d27f58003c6cf1bcf496d2":
+"dhcp@https://github.com/nmoinvaz/node-dhcp.git":
   version: 0.2.20
   resolution: "dhcp@https://github.com/nmoinvaz/node-dhcp.git#commit=301c3f050fafeb5a77d27f58003c6cf1bcf496d2"
   dependencies:
@@ -2068,7 +2068,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
-    dhcp: "https://github.com/nmoinvaz/node-dhcp.git#commit=301c3f050fafeb5a77d27f58003c6cf1bcf496d2"
+    dhcp: "https://github.com/nmoinvaz/node-dhcp.git"
     http-server: ^14.1.1
     pm2: ^5.2.2
   languageName: unknown
