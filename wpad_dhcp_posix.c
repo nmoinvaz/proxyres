@@ -179,24 +179,6 @@ static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
     return true;
 }
 
-static bool dhcp_wait_for_reply(SOCKET sfd, int32_t timeout_sec) {
-    fd_set read_fds;
-    struct timeval tv;
-
-    // Add socket to read set
-    FD_ZERO(&read_fds);
-    FD_SET(sfd, &read_fds);
-
-    tv.tv_sec = timeout_sec;
-    tv.tv_usec = 0;
-
-    // Wait for reply on socket
-    if (select((int)sfd, &read_fds, NULL, NULL, &tv) <= 0 || !FD_ISSET(sfd, &read_fds))
-        return false;
-
-    return true;
-}
-
 char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
     SOCKET sfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sfd == -1) {
@@ -208,6 +190,8 @@ char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_
     setsockopt(sfd, SOL_SOCKET, SO_BROADCAST, (const char *)&broadcast, sizeof(broadcast));
     int reuseaddr = 1;
     setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuseaddr, sizeof(reuseaddr));
+    struct timeval tv = {timeout_sec, 0};
+    setsockopt(sfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
     struct sockaddr_in address = {0};
 
@@ -228,12 +212,6 @@ char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_
     // Send DHCPINFORM request to DHCP server
     if (!dhcp_send_inform(sfd, request_xid, adapter)) {
         LOG_ERROR("Unable to send DHCP inform\n");
-        closesocket(sfd);
-        return NULL;
-    }
-
-    if (!dhcp_wait_for_reply(sfd, timeout_sec)) {
-        LOG_DEBUG("Unable to receive DHCP reply\n");
         closesocket(sfd);
         return NULL;
     }
