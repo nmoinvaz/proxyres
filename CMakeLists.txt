@@ -10,6 +10,7 @@ project(proxyres)
 set(PROXYRES_HDRS
     config.h
     config_i.h
+    dns.h
     execute.h
     execute_i.h
     fetch.h
@@ -27,6 +28,7 @@ set(PROXYRES_HDRS
     wpad_dns.h)
 set(PROXYRES_SRCS
     config.c
+    dns.c
     execute.c
     proxyres.c
     net_adapter.c

@@ -6,9 +6,9 @@
 #include <wininet.h>
 #include <winineti.h>
 
+#include "dns.h"
 #include "execute.h"
 #include "execute_i.h"
-#include "execute_dns.h"
 #include "execute_jsproxy.h"
 #include "log.h"
 #include "util.h"

@@ -15,7 +15,6 @@ const char *str_find_len_char(const char *str, size_t str_len, char c);
 const char *str_find_len_str(const char *str, size_t str_len, const char *find);
 const char *str_find_len_case_str(const char *str, size_t str_len, const char *find);
 
-char *dns_resolve(const char *host, int32_t *error);
 char *get_url_host(const char *url);
 const char *get_url_path(const char *url);
 char *get_url_scheme(const char *url, const char *fallback);

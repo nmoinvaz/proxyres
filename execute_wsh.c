@@ -6,12 +6,12 @@
 #include <activscp.h>
 #include <activdbg.h>
 
-#include "mozilla_js.h"
+#include "dns.h"
 #include "execute.h"
 #include "execute_i.h"
-#include "execute_dns.h"
 #include "execute_wsh.h"
 #include "log.h"
+#include "mozilla_js.h"
 #include "util.h"
 
 #include "execute_wsh_site.h"
