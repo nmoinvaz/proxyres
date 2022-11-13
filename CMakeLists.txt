@@ -75,7 +75,8 @@ elseif(APPLE)
         config_mac.c
         execute_jscore.c
         resolver_mac.c
-        threadpool_pthread.c)
+        threadpool_pthread.c
+        wpad_dhcp_mac.c)
 elseif(UNIX)
     list(APPEND PROXYRES_HDRS
         config_env.h

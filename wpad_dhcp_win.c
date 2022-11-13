@@ -6,7 +6,6 @@
 
 #include "net_adapter.h"
 
-// Request WPAD configuration using DHCP using a particular network adapter
 char *wpad_dhcp_adapter(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
     DHCPCAPI_PARAMS wpad_params = {0, 252, false, NULL, 0};
     DHCPCAPI_PARAMS_ARRAY request_params = {1, &wpad_params};
