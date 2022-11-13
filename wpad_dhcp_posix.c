@@ -197,7 +197,7 @@ static bool dhcp_wait_for_reply(SOCKET sfd, int32_t timeout_sec) {
     return true;
 }
 
-char *wpad_dhcp_adapter(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
+char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
     SOCKET sfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sfd == -1) {
         LOG_ERROR("Unable to create udp socket\n");

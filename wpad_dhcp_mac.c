@@ -8,7 +8,7 @@
 
 #include "net_adapter.h"
 
-char *wpad_dhcp_adapter(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
+char *wpad_dhcp_adapter_mac(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
     CFDictionaryRef dhcp_info = NULL;
     CFDataRef dhcp_wpad_url = NULL;
     char *wpad = NULL;

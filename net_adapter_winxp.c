@@ -72,11 +72,14 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
             adapter_addresses->Dhcpv4Server.iSockaddrLength >= sizeof(adapter.dhcp))
             adapter.is_dhcp_v4 = true;
 
-        // Populate adapter name and description
+        // Populate adapter name, guid, and description
         char *friendly_name = wchar_dup_to_utf8(adapter_addresses->FriendlyName);
         if (friendly_name)
             strncat(adapter.name, friendly_name, sizeof(adapter.name) - 1);
         free(friendly_name);
+
+        if (adapter_addresses->AdapterName)
+            strncat(adapter.guid, adapter_addresses->AdapterName, sizeof(adapter.guid) - 1);
 
         char *description = wchar_dup_to_utf8(adapter_addresses->Description);
         if (description)

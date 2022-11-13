@@ -8,6 +8,7 @@
 extern "C" {
 #include "net_adapter.h"
 #include "wpad_dhcp.h"
+#include "wpad_dhcp_posix.h"
 #include "wpad_dns.h"
 #include "util.h"
 #include "util_socket.h"
@@ -36,7 +37,7 @@ TEST(wpad, dhcp) {
         memcpy(adapter.ip, *localent->h_addr_list, sizeof(adapter.ip));
 
     // Lookup WPAD using network adapter
-    char *wpad = wpad_dhcp_adapter(bind_ip, &adapter, timeout_sec);
+    char *wpad = wpad_dhcp_adapter_posix(bind_ip, &adapter, timeout_sec);
     EXPECT_NE(wpad, nullptr);
     if (wpad)
         EXPECT_STREQ(wpad, "http://wpad.com/wpad.dat");

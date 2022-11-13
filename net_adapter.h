@@ -6,6 +6,7 @@ extern "C" {
 
 typedef struct net_adapter_s {
     char name[256];
+    char guid[256];
     char description[256];
     uint8_t ip[4];
     uint8_t netmask[4];

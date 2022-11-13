@@ -46,7 +46,7 @@ void *proxy_execute_create(void) {
 
 bool proxy_execute_delete(void **ctx) {
     if (!g_proxy_execute.proxy_execute_i)
-        return NULL;
+        return false;
     return g_proxy_execute.proxy_execute_i->delete(ctx);
 }
 

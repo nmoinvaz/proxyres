@@ -25,6 +25,7 @@ set(PROXYRES_HDRS
     util.h
     util_socket.h
     wpad_dhcp.h
+    wpad_dhcp_posix.h
     wpad_dns.h)
 set(PROXYRES_SRCS
     config.c
@@ -36,6 +37,7 @@ set(PROXYRES_SRCS
     resolver_posix.c
     util.c
     wpad_dhcp.c
+    wpad_dhcp_posix.c
     wpad_dns.c)
 if(WIN32)
     list(APPEND PROXYRES_HDRS
@@ -43,7 +45,8 @@ if(WIN32)
         execute_wsh.h
         resolver_win8.h
         resolver_winxp.h
-        util_win.h)
+        util_win.h
+        wpad_dhcp_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
         execute_wsh.c
@@ -70,7 +73,8 @@ elseif(APPLE)
     list(APPEND PROXYRES_HDRS
         config_mac.h
         execute_jscore.h
-        resolver_mac.h)
+        resolver_mac.h
+        wpad_dhcp_mac.h)
     list(APPEND PROXYRES_SRCS
         config_mac.c
         execute_jscore.c
@@ -95,8 +99,7 @@ elseif(UNIX)
         net_adapter_posix.c
         resolver_gnome3.c
         threadpool_pthread.c
-        util_linux.c
-        wpad_dhcp_posix.c)
+        util_linux.c)
 endif()
 
 if(WIN32)
@@ -184,7 +187,7 @@ else()
 endif()
 
 if(WIN32)
-    target_link_libraries(proxyres iphlpapi.lib winhttp ws2_32)
+    target_link_libraries(proxyres dhcpcsvc.lib iphlpapi.lib winhttp ws2_32)
 elseif(APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries(proxyres PRIVATE ${CFNETWORK_LIBRARY})

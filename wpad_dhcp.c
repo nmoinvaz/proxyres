@@ -7,6 +7,25 @@
 #include "net_adapter.h"
 #include "util.h"
 #include "util_socket.h"
+#include "wpad_dhcp.h"
+#include "wpad_dhcp_posix.h"
+#if defined(_WIN32)
+#include "wpad_dhcp_win.h"
+#elif defined(__APPLE__)
+#include "wpad_dhcp_mac.h"
+#endif
+
+char *wpad_dhcp_adapter(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
+    char *wpad = NULL;
+#if defined(_WIN32)
+    wpad = wpad_dhcp_adapter_win(bind_ip, adapter, timeout_sec);
+#elif defined(__APPLE__)
+    wpad = wpad_dhcp_adapter_mac(bind_ip, adapter, timeout_sec);
+#endif
+    if (!wpad)
+        return wpad_dhcp_adapter_posix(bind_ip, adapter, timeout_sec);
+    return NULL;
+}
 
 typedef struct wpad_dhcp_adapter_enum_s {
     char *url;
