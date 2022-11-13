@@ -95,11 +95,9 @@ static bool script_engine_create(proxy_execute_wsh_s *proxy_execute_wsh) {
     return true;
 }
 
-static bool script_engine_parse(proxy_execute_wsh_s *proxy_execute_wsh, const char *script) {
+static bool script_engine_parse_text(proxy_execute_wsh_s *proxy_execute_wsh, const char *script) {
     EXCEPINFO exception = {0};
 
-    if (!script)
-        return false;
     wchar_t *script_wchar = utf8_dup_to_wchar(script);
     if (!script_wchar)
         return false;
@@ -120,7 +118,7 @@ static bool script_engine_parse(proxy_execute_wsh_s *proxy_execute_wsh, const ch
     return true;
 }
 
-static bool script_engine_execute(proxy_execute_wsh_s *proxy_execute_wsh, const char *url) {
+static bool script_engine_find_proxy_for_url(proxy_execute_wsh_s *proxy_execute_wsh, const char *url) {
     IDispatch *dispatch = NULL;
     DISPID disp_id;
     VARIANTARG params_args[2] = {0};
@@ -243,17 +241,17 @@ bool proxy_execute_wsh_get_proxies_for_url(void *ctx, const char *script, const 
     if (!script_engine_create(proxy_execute_wsh))
         return false;
 
-    if (!script_engine_parse(proxy_execute_wsh, MOZILLA_PAC_JAVASCRIPT)) {
+    if (!script_engine_parse_text(proxy_execute_wsh, MOZILLA_PAC_JAVASCRIPT)) {
         LOG_ERROR("Failed to parse Mozilla PAC JavaScript\n");
         goto execute_wsh_cleanup;
     }
 
-    if (!script_engine_parse(proxy_execute_wsh, script)) {
+    if (!script_engine_parse_text(proxy_execute_wsh, script)) {
         LOG_ERROR("Failed to parse PAC script\n");
         goto execute_wsh_cleanup;
     }
 
-    if (!script_engine_execute(proxy_execute_wsh, url)) {
+    if (!script_engine_find_proxy_for_url(proxy_execute_wsh, url)) {
         LOG_ERROR("Failed to execute script\n");
         goto execute_wsh_cleanup;
     }
