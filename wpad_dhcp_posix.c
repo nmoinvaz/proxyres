@@ -199,10 +199,18 @@ char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_
     address.sin_addr.s_addr = *(uint32_t *)bind_ip;
     address.sin_port = htons(DHCP_CLIENT_PORT);
 
-    if (bind(sfd, (struct sockaddr *)&address, sizeof(address)) == -1) {
-        LOG_DEBUG("Unable to bind udp socket (%d)\n", socketerr);
-        closesocket(sfd);
-        return NULL;
+    int err = bind(sfd, (struct sockaddr *)&address, sizeof(address));
+    if (err == -1) {
+        // Likely can't bind to protected port, try again with random port
+        if (socketerr == EACCES) {
+            address.sin_port = 0;
+            err = bind(sfd, (struct sockaddr *)&address, sizeof(address));
+        }
+        if (err == -1) {
+            LOG_DEBUG("Unable to bind udp socket (%d)\n", socketerr);
+            closesocket(sfd);
+            return NULL;
+        }
     }
 
     // Generate random transaction id
