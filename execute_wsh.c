@@ -147,10 +147,11 @@ static bool script_engine_execute(proxy_execute_wsh_s *proxy_execute_wsh, const 
     if (!url_wchar)
         goto script_engine_execute_cleanup;
 
-    VariantInit(&params_args[0]);
+    // Arguments for COM calls are passed in reverse order
+    VariantInit(&params_args[1]);
 
-    params_args[0].vt = VT_BSTR;
-    params_args[0].bstrVal = SysAllocString(url_wchar);
+    params_args[1].vt = VT_BSTR;
+    params_args[1].bstrVal = SysAllocString(url_wchar);
     free(url_wchar);
 
     // Create VARIANTARG for the host parameter
@@ -167,10 +168,10 @@ static bool script_engine_execute(proxy_execute_wsh_s *proxy_execute_wsh, const 
         goto script_engine_execute_cleanup;
     }
 
-    VariantInit(&params_args[1]);
+    VariantInit(&params_args[0]);
 
-    params_args[1].vt = VT_BSTR;
-    params_args[1].bstrVal = SysAllocString(host_wchar);
+    params_args[0].vt = VT_BSTR;
+    params_args[0].bstrVal = SysAllocString(host_wchar);
 
     free(host_wchar);
 
