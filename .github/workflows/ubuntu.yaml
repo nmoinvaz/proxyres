@@ -55,7 +55,7 @@ jobs:
       working-directory: test
 
     - name: Run tests
-      run: ctest --verbose -C Release
+      run: sudo ctest --verbose -C Release
       working-directory: build
 
     - name: Download pac from http server
