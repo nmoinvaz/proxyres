@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-// Request WPAD script using DNS
+// Request WPAD url using DNS
 char *wpad_dns(const char *fqdn);
 
 #ifdef __cplusplus

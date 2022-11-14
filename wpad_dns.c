@@ -2,8 +2,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "dns.h"
 #include "fetch.h"
 #include "log.h"
 #include "util.h"
@@ -11,7 +13,7 @@
 
 char *wpad_dns(const char *fqdn) {
     char hostname[HOST_MAX] = {0};
-    char wpad_url[HOST_MAX + 32] = {0};
+    char wpad_host[HOST_MAX] = {0};
     int32_t error = 0;
 
     if (!fqdn) {
@@ -49,14 +51,17 @@ char *wpad_dns(const char *fqdn) {
         next_part++;
 
         // Construct WPAD url with next part of FQDN
-        snprintf(wpad_url, sizeof(wpad_url), "http://wpad.%s/wpad.dat", name);
-        LOG_DEBUG("Checking next WPAD DNS url: %s\n", wpad_url);
+        snprintf(wpad_host, sizeof(wpad_host), "wpad.%s", name);
+        LOG_DEBUG("Checking next WPAD hostname: %s\n", wpad_host);
 
-        char *script = fetch_get(wpad_url, &error);
-        if (script)
-            return script;
+        if (dns_resolve(wpad_host, &error)) {
+            char *wpad_url = (char *)calloc(HOST_MAX + 32, sizeof(char));
+            if (wpad_url)
+                snprintf(wpad_url, sizeof(wpad_url), "http://%s/wpad.dat", wpad_host);
+            return wpad_url;
+        }
 
-        LOG_DEBUG("No wpad.dat found at %s (%d)\n", wpad_url, error);
+        LOG_DEBUG("No server found at %s (%d)\n", wpad_host, error);
         name = next_part;
     } while (true);
 

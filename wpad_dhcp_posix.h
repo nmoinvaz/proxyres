@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-// Request WPAD configuration using DHCP using a particular network adapter
+// Request WPAD url using DHCP using a particular network adapter
 char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec);
 
 #ifdef __cplusplus
