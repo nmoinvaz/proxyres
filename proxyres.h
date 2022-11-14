@@ -11,7 +11,10 @@
 extern "C" {
 #endif
 
+// Initialize proxy resolution library
 bool proxyres_init(void);
+
+// Uninitialize proxy resolution library
 bool proxyres_uninit(void);
 
 #ifdef __cplusplus

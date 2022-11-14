@@ -13,7 +13,10 @@ enum DESKTOP_ENV {
 extern "C" {
 #endif
 
+// Get the desktop environment defined by the process' environment variables
 int32_t get_desktop_env(void);
+
+// Retrieve the value for a setting stored in an INI configuration file
 char *get_config_value(const char *config, const char *section, const char *key);
 
 #ifdef __cplusplus
