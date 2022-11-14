@@ -1,8 +1,8 @@
 const { spawn } = require("child_process");
-const { platform } = require("os");
+const os = require("os");
 
-if (platform() === "win32") {
-    spawn("yarn", ["run", "dhcp_server"], { stdio: "inherit" });
+if (os.platform() === "win32") {
+    spawn("yarn", ["run", "dhcp_server"], { stdio: "inherit", shell: true });
 } else {
     spawn("sudo", ["yarn", "run", "dhcp_server"], { stdio: "inherit" });
 }
