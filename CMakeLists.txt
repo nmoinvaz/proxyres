@@ -16,11 +16,13 @@ set(PROXYRES_HDRS
     fetch.h
     log.h
     mozilla_js.h
+    mutex.h
     net_adapter.h
     proxyres.h
     resolver.h
     resolver_i.h
     resolver_posix.h
+    signal.h
     threadpool.h
     util.h
     util_socket.h
@@ -51,6 +53,7 @@ if(WIN32)
         config_win.c
         execute_wsh.c
         net_adapter_winxp.c
+        mutex_win.c
         resolver_win8.c
         resolver_winxp.c
         util_win.c
@@ -79,6 +82,7 @@ elseif(APPLE)
         config_mac.c
         execute_jscore.c
         net_adapter_posix.c
+        mutex_pthread.c
         resolver_mac.c
         threadpool_pthread.c
         wpad_dhcp_mac.c)
@@ -97,6 +101,7 @@ elseif(UNIX)
         config_gnome3.c
         config_kde.c
         execute_jscore.c
+        mutex_pthread.c
         net_adapter_posix.c
         resolver_gnome3.c
         threadpool_pthread.c
