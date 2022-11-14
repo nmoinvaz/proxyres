@@ -44,6 +44,13 @@ jobs:
         sleep 15
       working-directory: test
 
+    - name: Run test dhcp server
+      # Used by wpad.dhcp googletest
+      run: |
+        npx pm2 start dhcp_server_cmd.js --output dhcp_server.log
+        sleep 15
+      working-directory: test
+
     - name: Run tests
       run: ctest --verbose -C Release
       working-directory: build
