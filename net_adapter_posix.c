@@ -4,18 +4,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <sys/ioctl.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <net/if_arp.h>
+
 #include "log.h"
 #include "net_adapter.h"
 #include "util.h"
 #include "util_socket.h"
 #include "util_win.h"
-
-#include <sys/ioctl.h>
-#include <ifaddrs.h>
-#include <linux/if_link.h>
-#include <linux/if_packet.h>
-#include <net/if.h>
-#include <net/if_arp.h>
 
 bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     net_adapter_s adapter;
