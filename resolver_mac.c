@@ -32,16 +32,6 @@ typedef struct proxy_resolver_mac_s {
     char *list;
 } proxy_resolver_mac_s;
 
-static void proxy_resolver_mac_reset(proxy_resolver_mac_s *proxy_resolver) {
-    proxy_resolver->error = 0;
-
-    signal_delete(&proxy_resolver->complete);
-    proxy_resolver->complete = signal_create();
-
-    free(proxy_resolver->list);
-    proxy_resolver->list = NULL;
-}
-
 static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArrayRef proxy_array, CFErrorRef error) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)client;
     if (error) {
@@ -129,8 +119,6 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     if (!proxy_resolver || !url)
         return false;
 
-    proxy_resolver_mac_reset(proxy_resolver);
-
     // Prioritize proxy auto config url over manually configured proxy
     auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
@@ -167,7 +155,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
 mac_done:
 
-    signal_set(&proxy_resolver->complete);
+    signal_set(proxy_resolver->complete);
 
     free(auto_config_url);
 
@@ -198,7 +186,7 @@ bool proxy_resolver_mac_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return signal_wait(&proxy_resolver->complete, timeout_ms);
+    return signal_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_mac_is_async(void) {
@@ -211,6 +199,13 @@ bool proxy_resolver_mac_cancel(void *ctx) {
 
 void *proxy_resolver_mac_create(void) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)calloc(1, sizeof(proxy_resolver_mac_s));
+    if (!proxy_resolver)
+        return NULL;
+    proxy_resolver->complete = signal_create();
+    if (!proxy_resolver->complete) {
+        free(proxy_resolver);
+        return NULL;
+    }
     return proxy_resolver;
 }
 
@@ -223,6 +218,7 @@ bool proxy_resolver_mac_delete(void **ctx) {
         return false;
     proxy_resolver_mac_cancel(ctx);
     signal_delete(&proxy_resolver->complete);
+    free(proxy_resolver->list);
     free(proxy_resolver);
     return true;
 }

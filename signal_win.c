@@ -18,15 +18,6 @@ bool signal_wait(void *ctx, int32_t timeout_ms) {
     return true;
 }
 
-bool signal_reset(void *ctx) {
-    signal_s *signal = (signal_s *)ctx;
-    if (!signal)
-        return false;
-    if (!ResetEvent(signal->handle))
-        return false;
-    return true;
-}
-
 bool signal_set(void *ctx) {
     signal_s *signal = (signal_s *)ctx;
     if (!signal || !SetEvent(signal->handle))

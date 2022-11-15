@@ -47,20 +47,6 @@ typedef struct proxy_resolver_posix_s {
     char *list;
 } proxy_resolver_posix_s;
 
-static void proxy_resolver_posix_cleanup(proxy_resolver_posix_s *proxy_resolver) {
-    free(proxy_resolver->list);
-    proxy_resolver->list = NULL;
-}
-
-static void proxy_resolver_posix_reset(proxy_resolver_posix_s *proxy_resolver) {
-    proxy_resolver->error = 0;
-
-    signal_delete(&proxy_resolver->complete);
-    proxy_resolver->complete = signal_create();
-
-    proxy_resolver_posix_cleanup(proxy_resolver);
-}
-
 static char *proxy_resolver_posix_wpad_discover(void) {
     char *auto_config_url = NULL;
     char *script = NULL;
@@ -135,8 +121,6 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     bool locked = false;
     bool is_ok = false;
 
-    proxy_resolver_posix_reset(proxy_resolver);
-
     if (proxy_config_get_auto_discover()) {
         locked = mutex_lock(g_proxy_resolver_posix.mutex);
         // Discover the proxy auto config url
@@ -153,20 +137,20 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         locked = !locked || !mutex_unlock(g_proxy_resolver_posix.mutex);
 
         if (!script)
-            goto posix_cleanup;
+            goto posix_done;
 
         // Execute blocking proxy auto config script for url
         void *proxy_execute = proxy_execute_create();
         if (!proxy_execute) {
             proxy_resolver->error = ENOMEM;
             LOG_ERROR("Unable to create proxy execute object (%" PRId32 ")\n", proxy_resolver->error);
-            goto posix_cleanup;
+            goto posix_done;
         }
 
         if (!proxy_execute_get_proxies_for_url(proxy_execute, g_proxy_resolver_posix.script, url)) {
             proxy_execute_get_error(proxy_execute, &proxy_resolver->error);
             LOG_ERROR("Unable to get proxies for url (%" PRId32 ")\n", proxy_resolver->error);
-            goto posix_cleanup;
+            goto posix_done;
         }
 
         // Get return value from FindProxyForURL
@@ -192,10 +176,12 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     if (locked)
         mutex_unlock(g_proxy_resolver_posix.mutex);
 
-    signal_set(proxy_resolver->complete);
     is_ok = true;
 
-posix_cleanup:
+posix_done:
+
+    signal_set(proxy_resolver->complete);
+
     free(auto_config_url);
 
     return is_ok;
@@ -229,6 +215,13 @@ bool proxy_resolver_posix_cancel(void *ctx) {
 
 void *proxy_resolver_posix_create(void) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)calloc(1, sizeof(proxy_resolver_posix_s));
+    if (!proxy_resolver)
+        return NULL;
+    proxy_resolver->complete = signal_create();
+    if (!proxy_resolver->complete) {
+        free(proxy_resolver);
+        return NULL;
+    }
     return proxy_resolver;
 }
 
@@ -240,8 +233,8 @@ bool proxy_resolver_posix_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_cancel(ctx);
-    proxy_resolver_posix_cleanup(proxy_resolver);
     signal_delete(&proxy_resolver->complete);
+    free(proxy_resolver->list);
     free(proxy_resolver);
     return true;
 }

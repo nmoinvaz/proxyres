@@ -20,17 +20,6 @@ bool signal_set(void *ctx) {
     return err == 0;
 }
 
-bool signal_reset(void *ctx) {
-    signal_s *signal = (signal_s *)ctx;
-    if (!signal)
-        return false;
-    pthread_mutex_lock(&signal->mutex);
-    pthread_cond_destroy(&signal->cond);
-    pthread_cond_init(&signal->cond, NULL);
-    pthread_mutex_unlock(&signal->mutex);
-    return true;
-}
-
 bool signal_wait(void *ctx, int32_t timeout_ms) {
     signal_s *signal = (signal_s *)ctx;
     int32_t err = 0;

@@ -50,20 +50,6 @@ typedef struct proxy_resolver_gnome3_s {
     char *list;
 } proxy_resolver_gnome3_s;
 
-static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolver) {
-    free(proxy_resolver->list);
-    proxy_resolver->list = NULL;
-}
-
-static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver) {
-    proxy_resolver->error = 0;
-
-    signal_delete(&proxy_resolver->complete);
-    proxy_resolver->complete = signal_create();
-
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
-}
-
 static void proxy_resolver_gnome3_delete_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
     if (proxy_resolver->cancellable) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
@@ -145,8 +131,6 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     GError *error = NULL;
     char **proxies = NULL;
 
-    proxy_resolver_gnome3_reset(proxy_resolver);
-
     if (proxy_resolver_gnome3_create_resolver(proxy_resolver)) {
         // Get list of proxies from resolver
         proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, url,
@@ -161,8 +145,9 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
             g_proxy_resolver_gnome3.g_strfreev(proxies);
     }
 
-    signal_set(proxy_resolver->complete);
     proxy_resolver_gnome3_delete_resolver(proxy_resolver);
+
+    signal_set(proxy_resolver->complete);
 
     return proxy_resolver->error == 0;
 }
@@ -202,6 +187,13 @@ bool proxy_resolver_gnome3_cancel(void *ctx) {
 
 void *proxy_resolver_gnome3_create(void) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)calloc(1, sizeof(proxy_resolver_gnome3_s));
+    if (!proxy_resolver)
+        return NULL;
+    proxy_resolver->complete = signal_create();
+    if (!proxy_resolver->complete) {
+        free(proxy_resolver);
+        return NULL;
+    }
     return proxy_resolver;
 }
 
@@ -213,8 +205,8 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_cancel(ctx);
-    proxy_resolver_gnome3_cleanup(proxy_resolver);
     signal_delete(&proxy_resolver->complete);
+    free(proxy_resolver->list);
     free(proxy_resolver);
     return true;
 }

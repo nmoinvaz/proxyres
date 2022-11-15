@@ -35,20 +35,6 @@ typedef struct proxy_resolver_winxp_s {
     char *list;
 } proxy_resolver_winxp_s;
 
-static void proxy_resolver_winxp_cleanup(proxy_resolver_winxp_s *proxy_resolver) {
-    free(proxy_resolver->list);
-    proxy_resolver->list = NULL;
-}
-
-static void proxy_resolver_winxp_reset(proxy_resolver_winxp_s *proxy_resolver) {
-    signal_delete(&proxy_resolver->complete);
-    proxy_resolver->complete = signal_create();
-
-    proxy_resolver->error = 0;
-
-    proxy_resolver_winxp_cleanup(proxy_resolver);
-}
-
 bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
@@ -56,8 +42,6 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     wchar_t *url_wide = NULL;
     char *proxy = NULL;
     bool is_ok = false;
-
-    proxy_resolver_winxp_reset(proxy_resolver);
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
     const char *auto_config_url = proxy_config_get_auto_config_url();
@@ -205,8 +189,8 @@ bool proxy_resolver_winxp_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_winxp_cancel(ctx);
-    proxy_resolver_winxp_cleanup(proxy_resolver);
     signal_delete(&proxy_resolver->complete);
+    free(proxy_resolver->list);
     free(proxy_resolver);
     return true;
 }

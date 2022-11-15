@@ -47,20 +47,6 @@ typedef struct proxy_resolver_win8_s {
     char *list;
 } proxy_resolver_win8_s;
 
-static void proxy_resolver_win8_cleanup(proxy_resolver_win8_s *proxy_resolver) {
-    free(proxy_resolver->list);
-    proxy_resolver->list = NULL;
-}
-
-static void proxy_resolver_win8_reset(proxy_resolver_win8_s *proxy_resolver) {
-    proxy_resolver->error = 0;
-
-    signal_delete(&proxy_resolver->complete);
-    proxy_resolver->complete = signal_create();
-
-    proxy_resolver_win8_cleanup(proxy_resolver);
-}
-
 void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DWORD_PTR Context, DWORD InternetStatus,
                                                           LPVOID StatusInformation, DWORD StatusInformationLength) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)Context;
@@ -173,8 +159,6 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     if (!proxy_resolver || !url)
         return false;
 
-    proxy_resolver_win8_reset(proxy_resolver);
-
     // Set proxy options for calls to WinHttpGetProxyForUrl
     const char *auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
@@ -239,13 +223,11 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     // WinHttpGetProxyForUrlEx always executes asynchronously
-    goto win8_cleanup;
+    goto win8_done;
 
 win8_done:
 
     signal_set(proxy_resolver->complete);
-
-win8_cleanup:
 
     free(url_wide);
 
@@ -311,8 +293,8 @@ bool proxy_resolver_win8_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_win8_cancel(ctx);
-    proxy_resolver_win8_cleanup(proxy_resolver);
     signal_delete(&proxy_resolver->complete);
+    free(proxy_resolver->list);
     free(proxy_resolver);
     return true;
 }
