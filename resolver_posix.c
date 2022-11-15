@@ -237,7 +237,6 @@ static void proxy_resolver_posix_wpad_startup(void *arg) {
 
     // Discover the proxy auto config url
     char *auto_config_url = proxy_resolver_posix_wpad_discover();
-
     if (auto_config_url) {
         int32_t error = 0;
 
@@ -262,7 +261,7 @@ bool proxy_resolver_posix_init_ex(void *threadpool) {
         return proxy_resolver_posix_uninit();
 
     // Start WPAD discovery process immediately
-    if (threadpool)
+    if (threadpool && proxy_config_get_auto_discover())
         threadpool_enqueue(threadpool, NULL, proxy_resolver_posix_wpad_startup);
 
     return true;
