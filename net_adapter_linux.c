@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <sys/ioctl.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <net/if_arp.h>
+#include <sys/ioctl.h>
 
 #include "log.h"
 #include "net_adapter.h"

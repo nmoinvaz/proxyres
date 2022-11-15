@@ -81,7 +81,7 @@ elseif(APPLE)
     list(APPEND PROXYRES_SRCS
         config_mac.c
         execute_jscore.c
-        net_adapter_posix.c
+        net_adapter_mac.c
         mutex_pthread.c
         resolver_mac.c
         threadpool_pthread.c
@@ -102,7 +102,7 @@ elseif(UNIX)
         config_kde.c
         execute_jscore.c
         mutex_pthread.c
-        net_adapter_posix.c
+        net_adapter_linux.c
         resolver_gnome3.c
         threadpool_pthread.c
         util_linux.c)

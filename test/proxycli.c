@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,9 @@
 #include <sys/stat.h>
 
 #include "log.h"
-#include "proxyres.h"
+#include "config.h"
+#include "execute.h"
+#include "resolver.h"
 
 #ifdef _WIN32
 #include <io.h>
