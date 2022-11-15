@@ -92,7 +92,7 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
     char *proxy = NULL;
 
     if (proxy_config_gnome3_use_same_proxy())
-        strncpy(settings_path, "org.gnome.system.proxy.http", sizeof(scheme));
+        strncpy(settings_path, "org.gnome.system.proxy.http", sizeof(settings_path));
     else
         snprintf(settings_path, sizeof(settings_path), "org.gnome.system.proxy.%s", scheme);
 
