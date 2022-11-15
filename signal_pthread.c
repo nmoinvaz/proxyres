@@ -8,6 +8,7 @@
 typedef struct signal_s {
     pthread_cond_t cond;
     pthread_mutex_t mutex;
+    bool signalled;
 } signal_s;
 
 bool signal_set(void *ctx) {
@@ -16,6 +17,8 @@ bool signal_set(void *ctx) {
         return false;
     pthread_mutex_lock(&signal->mutex);
     int32_t err = pthread_cond_signal(&signal->cond);
+    if (err == 0)
+        signal->signalled = true;
     pthread_mutex_unlock(&signal->mutex);
     return err == 0;
 }
@@ -28,15 +31,19 @@ bool signal_wait(void *ctx, int32_t timeout_ms) {
         return false;
 
     pthread_mutex_lock(&signal->mutex);
-    if (timeout_ms < 0) {
-        err = pthread_cond_wait(&signal->cond, &signal->mutex);
-    } else {
-        struct timespec ts;
+    if (!signal->signalled) {
+        if (timeout_ms < 0) {
+            err = pthread_cond_wait(&signal->cond, &signal->mutex);
+        } else {
+            struct timespec ts;
 
-        ts.tv_sec = timeout_ms / 1000;
-        ts.tv_nsec = (timeout_ms % 1000) * 1000000;
+            ts.tv_sec = timeout_ms / 1000;
+            ts.tv_nsec = (timeout_ms % 1000) * 1000000;
 
-        err = pthread_cond_timedwait(&signal->cond, &signal->mutex, &ts);
+            err = pthread_cond_timedwait(&signal->cond, &signal->mutex, &ts);
+        }
+        if (err == 0)
+            signal->signalled = true;
     }
     pthread_mutex_unlock(&signal->mutex);
     return err == 0;
