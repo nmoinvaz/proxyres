@@ -225,11 +225,13 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     is_ok = true;
 
     // WinHttpGetProxyForUrlEx always executes asynchronously
-    goto win8_done;
+    goto win8_cleanup;
 
 win8_done:
 
     signal_set(proxy_resolver->complete);
+
+win8_cleanup:
 
     free(url_wide);
 
