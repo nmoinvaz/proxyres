@@ -215,8 +215,6 @@ int main(int argc, char *argv[]) {
     if (argc <= 1)
         return print_help();
 
-    proxyres_init();
-
     if (strcmp(argv[argi], "--verbose") == 0) {
         verbose = true;
         argi++;
@@ -226,20 +224,25 @@ int main(int argc, char *argv[]) {
     if (strcmp(cmd, "help") == 0) {
         print_help();
     } else if (strcmp(cmd, "config") == 0) {
+        proxy_config_init();
         print_proxy_config(argc - argi, argv + argi);
+        proxy_config_uninit();
     } else if (strcmp(cmd, "execute") == 0) {
         if (argc <= 3)
             return print_help();
+        proxy_execute_init();
         const char *script_path = argv[argi];
         while (argi < argc) {
             if (!execute_pac_script(script_path, argv[argi++], verbose))
                 exit_code = 1;
         }
+        proxy_execute_uninit();
     } else if (strcmp(cmd, "resolve") == 0) {
+        proxy_resolver_init();
         if (!resolve_proxy_for_url_async(argc - argi, argv + argi, verbose))
             exit_code = 1;
+        proxy_resolver_uninit();
     }
 
-    proxyres_uninit();
     return exit_code;
 }
