@@ -8,11 +8,11 @@
 #include <CFNetwork/CFNetwork.h>
 
 #include "config.h"
+#include "event.h"
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_mac.h"
-#include "signal.h"
 
 #define PROXY_RESOLVER_RUN_LOOP    CFSTR("proxy_resolver_mac.run_loop")
 #define PROXY_RESOLVER_TIMEOUT_SEC 10
@@ -26,7 +26,7 @@ struct g_proxy_resolver_mac_s g_proxy_resolver_mac;
 typedef struct proxy_resolver_mac_s {
     // Last system error
     int32_t error;
-    // Complete signal
+    // Complete event
     void *complete;
     // Proxy list
     char *list;
@@ -155,7 +155,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
 mac_done:
 
-    signal_set(proxy_resolver->complete);
+    event_set(proxy_resolver->complete);
 
     free(auto_config_url);
 
@@ -186,7 +186,7 @@ bool proxy_resolver_mac_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return signal_wait(proxy_resolver->complete, timeout_ms);
+    return event_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_mac_is_async(void) {
@@ -201,7 +201,7 @@ void *proxy_resolver_mac_create(void) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)calloc(1, sizeof(proxy_resolver_mac_s));
     if (!proxy_resolver)
         return NULL;
-    proxy_resolver->complete = signal_create();
+    proxy_resolver->complete = event_create();
     if (!proxy_resolver->complete) {
         free(proxy_resolver);
         return NULL;
@@ -217,7 +217,7 @@ bool proxy_resolver_mac_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_mac_cancel(ctx);
-    signal_delete(&proxy_resolver->complete);
+    event_delete(&proxy_resolver->complete);
     free(proxy_resolver->list);
     free(proxy_resolver);
     return true;

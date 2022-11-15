@@ -8,11 +8,11 @@
 #include <winhttp.h>
 
 #include "config.h"
+#include "event.h"
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_winxp.h"
-#include "signal.h"
 #include "util_win.h"
 
 typedef struct g_proxy_resolver_winxp_s {
@@ -29,7 +29,7 @@ typedef struct proxy_resolver_winxp_s {
     HINTERNET resolver;
     // Last system error
     int32_t error;
-    // Complete signal
+    // Complete event
     void *complete;
     // Proxy list
     char *list;
@@ -123,7 +123,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
 winxp_done:
 
-    signal_set(proxy_resolver->complete);
+    event_set(proxy_resolver->complete);
 
     free(url_wide);
 
@@ -155,7 +155,7 @@ bool proxy_resolver_winxp_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return signal_wait(proxy_resolver->complete, timeout_ms);
+    return event_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_winxp_cancel(void *ctx) {
@@ -173,7 +173,7 @@ void *proxy_resolver_winxp_create(void) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)calloc(1, sizeof(proxy_resolver_winxp_s));
     if (!proxy_resolver)
         return NULL;
-    proxy_resolver->complete = signal_create();
+    proxy_resolver->complete = event_create();
     if (!proxy_resolver->complete) {
         free(proxy_resolver);
         return NULL;
@@ -189,7 +189,7 @@ bool proxy_resolver_winxp_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_winxp_cancel(ctx);
-    signal_delete(&proxy_resolver->complete);
+    event_delete(&proxy_resolver->complete);
     free(proxy_resolver->list);
     free(proxy_resolver);
     return true;

@@ -9,11 +9,12 @@
 #include <dlfcn.h>
 #include <gio/gio.h>
 
+#include "event.h"
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_gnome3.h"
-#include "signal.h"
+
 typedef struct g_proxy_resolver_gnome3_s {
     // GIO module handle
     void *gio_module;
@@ -42,7 +43,7 @@ typedef struct proxy_resolver_gnome3_s {
     GProxyResolver *resolver;
     // Last system error
     int32_t error;
-    // Complete signal
+    // Complete event
     void *complete;
     // Cancellable object
     GCancellable *cancellable;
@@ -152,7 +153,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     proxy_resolver_gnome3_delete_resolver(proxy_resolver);
 
-    signal_set(proxy_resolver->complete);
+    event_set(proxy_resolver->complete);
 
     return is_ok;
 }
@@ -176,7 +177,7 @@ bool proxy_resolver_gnome3_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return signal_wait(proxy_resolver->complete, timeout_ms);
+    return event_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_gnome3_cancel(void *ctx) {
@@ -194,7 +195,7 @@ void *proxy_resolver_gnome3_create(void) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)calloc(1, sizeof(proxy_resolver_gnome3_s));
     if (!proxy_resolver)
         return NULL;
-    proxy_resolver->complete = signal_create();
+    proxy_resolver->complete = event_create();
     if (!proxy_resolver->complete) {
         free(proxy_resolver);
         return NULL;
@@ -210,7 +211,7 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_cancel(ctx);
-    signal_delete(&proxy_resolver->complete);
+    event_delete(&proxy_resolver->complete);
     free(proxy_resolver->list);
     free(proxy_resolver);
     return true;

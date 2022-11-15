@@ -13,6 +13,7 @@ set(PROXYRES_HDRS
     dns.h
     execute.h
     execute_i.h
+    event.h
     fetch.h
     log.h
     mozilla_js.h
@@ -22,7 +23,6 @@ set(PROXYRES_HDRS
     resolver.h
     resolver_i.h
     resolver_posix.h
-    signal.h
     threadpool.h
     util.h
     util_socket.h
@@ -51,12 +51,12 @@ if(WIN32)
         wpad_dhcp_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
+        event_win.c
         execute_wsh.c
         net_adapter_winxp.c
         mutex_win.c
         resolver_win8.c
         resolver_winxp.c
-        signal_win.c
         util_win.c
         wpad_dhcp_win.c)
     if(PROXYRES_JSPROXY)
@@ -81,11 +81,11 @@ elseif(APPLE)
         wpad_dhcp_mac.h)
     list(APPEND PROXYRES_SRCS
         config_mac.c
+        event_pthread.c
         execute_jscore.c
         net_adapter_mac.c
         mutex_pthread.c
         resolver_mac.c
-        signal_pthread.c
         threadpool_pthread.c
         wpad_dhcp_mac.c)
 elseif(UNIX)
@@ -102,11 +102,11 @@ elseif(UNIX)
         config_gnome2.c
         config_gnome3.c
         config_kde.c
+        event_pthread.c
         execute_jscore.c
         mutex_pthread.c
         net_adapter_linux.c
         resolver_gnome3.c
-        signal_pthread.c
         threadpool_pthread.c
         util_linux.c)
 endif()
