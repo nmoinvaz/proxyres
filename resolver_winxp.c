@@ -85,15 +85,13 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         if (!is_ok) {
             int32_t error = GetLastError();
 
-            // Failed to detect proxy auto configuration url so use DIRECT connection
+            // Failure to detect proxy auto configuration does not necessarily indicate an error
             if (error == ERROR_WINHTTP_AUTODETECTION_FAILED) {
-                LOG_DEBUG("Proxy resolution returned code (%d)\n", error);
                 proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NO_PROXY;
+            } else {
+                proxy_resolver->error = error;
                 goto winxp_done;
             }
-
-            proxy_resolver->error = error;
-            goto winxp_done;
         }
     }
 
@@ -121,6 +119,8 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         break;
     }
 
+    is_ok = true;
+
 winxp_done:
 
     signal_set(proxy_resolver->complete);
@@ -133,7 +133,7 @@ winxp_done:
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
 
-    return proxy_resolver->error == 0;
+    return is_ok;
 }
 
 const char *proxy_resolver_winxp_get_list(void *ctx) {
