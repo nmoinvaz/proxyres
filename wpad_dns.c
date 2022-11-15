@@ -52,7 +52,7 @@ char *wpad_dns(const char *fqdn) {
 
         // Construct WPAD url with next part of FQDN
         snprintf(wpad_host, sizeof(wpad_host), "wpad.%s", name);
-        LOG_DEBUG("Checking next WPAD hostname: %s\n", wpad_host);
+        LOG_INFO("Checking next WPAD hostname: %s\n", wpad_host);
 
         if (dns_resolve(wpad_host, &error)) {
             char *wpad_url = (char *)calloc(HOST_MAX + 32, sizeof(char));
@@ -61,7 +61,7 @@ char *wpad_dns(const char *fqdn) {
             return wpad_url;
         }
 
-        LOG_DEBUG("No server found at %s (%d)\n", wpad_host, error);
+        LOG_INFO("No server found at %s (%d)\n", wpad_host, error);
         name = next_part;
     } while (true);
 

@@ -71,12 +71,12 @@ static char *proxy_resolver_posix_wpad_discover(void) {
         g_proxy_resolver_posix.auto_config_url = NULL;
 
         // Detect proxy auto configuration using DHCP
-        LOG_DEBUG("Discovering proxy auto config using WPAD (%s)\n", "DHCP");
+        LOG_INFO("Discovering proxy auto config using WPAD (%s)\n", "DHCP");
         auto_config_url = wpad_dhcp(WPAD_DHCP_TIMEOUT);
 
         // Detect proxy auto configuration using DNS
         if (!auto_config_url) {
-            LOG_DEBUG("Discovering proxy auto config using WPAD (%s)\n", "DNS");
+            LOG_INFO("Discovering proxy auto config using WPAD (%s)\n", "DNS");
             auto_config_url = wpad_dns(NULL);
         }
 
@@ -96,7 +96,7 @@ static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t
         // Use cached version of the PAC script
         script = g_proxy_resolver_posix.script;
     } else {
-        LOG_DEBUG("Fetching proxy auto config script from %s\n", auto_config_url);
+        LOG_INFO("Fetching proxy auto config script from %s\n", auto_config_url);
 
         script = fetch_get(auto_config_url, error);
         if (!script)
