@@ -15,6 +15,9 @@
 #endif
 
 typedef struct g_proxy_execute_s {
+    // Library reference count
+    int32_t ref_count;
+    // Proxy execute interface
     proxy_execute_i_s *proxy_execute_i;
 } g_proxy_execute_s;
 
@@ -51,6 +54,10 @@ bool proxy_execute_delete(void **ctx) {
 }
 
 bool proxy_execute_init(void) {
+    if (g_proxy_execute.ref_count > 0) {
+        g_proxy_execute.ref_count++;
+        return true;
+    }
 #ifdef _WIN32
     if (proxy_execute_wsh_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
@@ -64,10 +71,13 @@ bool proxy_execute_init(void) {
 #endif
     if (!g_proxy_execute.proxy_execute_i)
         return false;
+    g_proxy_execute.ref_count++;
     return true;
 }
 
 bool proxy_execute_uninit(void) {
+    if (--g_proxy_execute.ref_count > 0)
+        return true;
     if (g_proxy_execute.proxy_execute_i)
         g_proxy_execute.proxy_execute_i->uninit();
 

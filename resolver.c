@@ -26,6 +26,8 @@
 #include "threadpool.h"
 
 typedef struct g_proxy_resolver_s {
+    // Library reference count
+    int32_t ref_count;
     // Proxy resolver interface
     proxy_resolver_i_s *proxy_resolver_i;
     // Thread pool
@@ -135,6 +137,10 @@ bool proxy_resolver_delete(void **ctx) {
 }
 
 bool proxy_resolver_init(void) {
+    if (g_proxy_resolver.ref_count > 0) {
+        g_proxy_resolver.ref_count++;
+        return true;
+    }
 #ifdef _WIN32
     WSADATA WsaData = {0};
     if (WSAStartup(MAKEWORD(2, 2), &WsaData) != 0) {
@@ -167,8 +173,10 @@ bool proxy_resolver_init(void) {
     }
 
     // No need to create thread pool since underlying implementation is already asynchronous
-    if (g_proxy_resolver.proxy_resolver_i->is_async())
+    if (g_proxy_resolver.proxy_resolver_i->is_async()) {
+        g_proxy_resolver.ref_count++;
         return true;
+    }
 
     // Create thread pool to handle proxy resolution requests asynchronously
     g_proxy_resolver.threadpool = threadpool_create(THREADPOOL_DEFAULT_MIN_THREADS, THREADPOOL_DEFAULT_MAX_THREADS);
@@ -186,10 +194,14 @@ bool proxy_resolver_init(void) {
             return false;
         }
     }
+    g_proxy_resolver.ref_count++;
     return true;
 }
 
 bool proxy_resolver_uninit(void) {
+    if (--g_proxy_resolver.ref_count > 0)
+        return true;
+
     if (g_proxy_resolver.threadpool)
         threadpool_delete(&g_proxy_resolver.threadpool);
 

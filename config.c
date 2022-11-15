@@ -86,8 +86,10 @@ void proxy_config_set_bypass_list_override(const char *bypass_list) {
 }
 
 bool proxy_config_init(void) {
-    if (g_proxy_config.ref_count++ > 0)
+    if (g_proxy_config.ref_count > 0) {
+        g_proxy_config.ref_count++;
         return true;
+    }
 #if defined(__APPLE__)
     if (proxy_config_mac_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
@@ -121,6 +123,7 @@ bool proxy_config_init(void) {
         LOG_ERROR("No config interface found\n");
         return false;
     }
+    g_proxy_config.ref_count++;
     return true;
 }
 
