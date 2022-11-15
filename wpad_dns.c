@@ -55,9 +55,9 @@ char *wpad_dns(const char *fqdn) {
         LOG_INFO("Checking next WPAD hostname: %s\n", wpad_host);
 
         if (dns_resolve(wpad_host, &error)) {
-            char *wpad_url = (char *)calloc(HOST_MAX + 32, sizeof(char));
+            char *wpad_url = (char *)calloc(HOST_MAX + 18, sizeof(char));
             if (wpad_url)
-                snprintf(wpad_url, sizeof(wpad_url), "http://%s/wpad.dat", wpad_host);
+                snprintf(wpad_url, HOST_MAX + 18, "http://%s/wpad.dat", wpad_host);
             return wpad_url;
         }
 
