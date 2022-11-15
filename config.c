@@ -21,6 +21,8 @@
 #include "util_linux.h"
 
 typedef struct g_proxy_config_s {
+    // Library reference count
+    int32_t ref_count;
     // Proxy config interface
     proxy_config_i_s *proxy_config_i;
     // Overrides
@@ -84,6 +86,8 @@ void proxy_config_set_bypass_list_override(const char *bypass_list) {
 }
 
 bool proxy_config_init(void) {
+    if (g_proxy_config.ref_count++ > 0)
+        return true;
 #if defined(__APPLE__)
     if (proxy_config_mac_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
@@ -121,6 +125,8 @@ bool proxy_config_init(void) {
 }
 
 bool proxy_config_uninit(void) {
+    if (--g_proxy_config.ref_count > 0)
+        return true;
     free(g_proxy_config.auto_config_url);
     free(g_proxy_config.proxy);
     free(g_proxy_config.bypass_list);
