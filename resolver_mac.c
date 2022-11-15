@@ -12,6 +12,7 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_mac.h"
+#include "signal.h"
 
 #define PROXY_RESOLVER_RUN_LOOP    CFSTR("proxy_resolver_mac.run_loop")
 #define PROXY_RESOLVER_TIMEOUT_SEC 10
@@ -25,15 +26,17 @@ struct g_proxy_resolver_mac_s g_proxy_resolver_mac;
 typedef struct proxy_resolver_mac_s {
     // Last system error
     int32_t error;
-    // Resolution pending
-    bool pending;
+    // Complete signal
+    void *complete;
     // Proxy list
     char *list;
 } proxy_resolver_mac_s;
 
 static void proxy_resolver_mac_reset(proxy_resolver_mac_s *proxy_resolver) {
-    proxy_resolver->pending = false;
     proxy_resolver->error = 0;
+
+    signal_delete(&proxy_resolver->complete);
+    proxy_resolver->complete = signal_create();
 
     free(proxy_resolver->list);
     proxy_resolver->list = NULL;
@@ -164,7 +167,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
 mac_done:
 
-    proxy_resolver->pending = false;
+    signal_set(&proxy_resolver->complete);
 
     free(auto_config_url);
 
@@ -191,11 +194,11 @@ bool proxy_resolver_mac_get_error(void *ctx, int32_t *error) {
     return true;
 }
 
-bool proxy_resolver_mac_is_pending(void *ctx) {
+bool proxy_resolver_mac_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return proxy_resolver->pending;
+    return signal_wait(&proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_mac_is_async(void) {
@@ -219,6 +222,7 @@ bool proxy_resolver_mac_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_mac_cancel(ctx);
+    signal_delete(&proxy_resolver->complete);
     free(proxy_resolver);
     return true;
 }
@@ -236,7 +240,7 @@ proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_mac_i = {proxy_resolver_mac_get_proxies_for_url,
                                                       proxy_resolver_mac_get_list,
                                                       proxy_resolver_mac_get_error,
-                                                      proxy_resolver_mac_is_pending,
+                                                      proxy_resolver_mac_wait,
                                                       proxy_resolver_mac_cancel,
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,

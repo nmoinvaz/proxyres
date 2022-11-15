@@ -41,7 +41,6 @@ typedef struct proxy_resolver_s {
     void *base;
     // Async job
     char *url;
-    bool pending;
 } proxy_resolver_s;
 
 static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
@@ -53,8 +52,6 @@ static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
 
     LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved with threadpool = %s\n", (intptr_t)proxy_resolver->base,
              proxy_resolver_get_list(proxy_resolver) ? proxy_resolver_get_list(proxy_resolver) : "DIRECT");
-
-    proxy_resolver->pending = false;
 }
 
 bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
@@ -74,7 +71,6 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
 
     free(proxy_resolver->url);
     proxy_resolver->url = strdup(url);
-    proxy_resolver->pending = true;
 
     return threadpool_enqueue(g_proxy_resolver.threadpool, proxy_resolver,
                               proxy_resolver_get_proxies_for_url_threadpool);
@@ -96,13 +92,11 @@ bool proxy_resolver_get_error(void *ctx, int32_t *error) {
     return g_proxy_resolver.proxy_resolver_i->get_error(proxy_resolver->base, error);
 }
 
-bool proxy_resolver_is_pending(void *ctx) {
+bool proxy_resolver_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
-    if (!g_proxy_resolver.proxy_resolver_i->is_async())
-        return proxy_resolver->pending;
-    return g_proxy_resolver.proxy_resolver_i->is_pending(proxy_resolver->base);
+    return g_proxy_resolver.proxy_resolver_i->wait(proxy_resolver->base, timeout_ms);
 }
 
 bool proxy_resolver_cancel(void *ctx) {
@@ -130,7 +124,7 @@ bool proxy_resolver_delete(void **ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)*ctx;
     if (proxy_resolver->url)
         free(proxy_resolver->url);
-    g_proxy_resolver.proxy_resolver_i->delete (&proxy_resolver->base);
+    g_proxy_resolver.proxy_resolver_i->delete(&proxy_resolver->base);
     free(proxy_resolver);
     *ctx = NULL;
     return true;

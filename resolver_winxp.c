@@ -12,6 +12,7 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_winxp.h"
+#include "signal.h"
 #include "util_win.h"
 
 typedef struct g_proxy_resolver_winxp_s {
@@ -28,8 +29,8 @@ typedef struct proxy_resolver_winxp_s {
     HINTERNET resolver;
     // Last system error
     int32_t error;
-    // Resolution pending
-    HANDLE pending_event;
+    // Complete signal
+    void *complete;
     // Proxy list
     char *list;
 } proxy_resolver_winxp_s;
@@ -40,7 +41,9 @@ static void proxy_resolver_winxp_cleanup(proxy_resolver_winxp_s *proxy_resolver)
 }
 
 static void proxy_resolver_winxp_reset(proxy_resolver_winxp_s *proxy_resolver) {
-    ResetEvent(proxy_resolver->pending_event);
+    signal_delete(&proxy_resolver->complete);
+    proxy_resolver->complete = signal_create();
+
     proxy_resolver->error = 0;
 
     proxy_resolver_winxp_cleanup(proxy_resolver);
@@ -136,7 +139,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
 winxp_done:
 
-    SetEvent(proxy_resolver->pending_event);
+    signal_set(proxy_resolver->complete);
 
     free(url_wide);
 
@@ -164,13 +167,11 @@ bool proxy_resolver_winxp_get_error(void *ctx, int32_t *error) {
     return true;
 }
 
-bool proxy_resolver_winxp_is_pending(void *ctx) {
+bool proxy_resolver_winxp_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     if (!proxy_resolver)
         return false;
-    if (WaitForSingleObject(proxy_resolver->pending_event, 0) == WAIT_TIMEOUT)
-        return true;
-    return false;
+    return signal_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_winxp_cancel(void *ctx) {
@@ -188,8 +189,8 @@ void *proxy_resolver_winxp_create(void) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)calloc(1, sizeof(proxy_resolver_winxp_s));
     if (!proxy_resolver)
         return NULL;
-    proxy_resolver->pending_event = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (!proxy_resolver->pending_event) {
+    proxy_resolver->complete = signal_create();
+    if (!proxy_resolver->complete) {
         free(proxy_resolver);
         return NULL;
     }
@@ -205,7 +206,7 @@ bool proxy_resolver_winxp_delete(void **ctx) {
         return false;
     proxy_resolver_winxp_cancel(ctx);
     proxy_resolver_winxp_cleanup(proxy_resolver);
-    CloseHandle(proxy_resolver->pending_event);
+    signal_delete(&proxy_resolver->complete);
     free(proxy_resolver);
     return true;
 }
@@ -235,7 +236,7 @@ proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_winxp_i = {proxy_resolver_winxp_get_proxies_for_url,
                                                         proxy_resolver_winxp_get_list,
                                                         proxy_resolver_winxp_get_error,
-                                                        proxy_resolver_winxp_is_pending,
+                                                        proxy_resolver_winxp_wait,
                                                         proxy_resolver_winxp_cancel,
                                                         proxy_resolver_winxp_create,
                                                         proxy_resolver_winxp_delete,

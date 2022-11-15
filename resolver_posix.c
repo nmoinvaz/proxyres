@@ -16,6 +16,7 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_posix.h"
+#include "signal.h"
 #include "threadpool.h"
 #include "util.h"
 #include "wpad_dhcp.h"
@@ -40,8 +41,8 @@ g_proxy_resolver_posix_s g_proxy_resolver_posix;
 typedef struct proxy_resolver_posix_s {
     // Last system error
     int32_t error;
-    // Resolution pending
-    bool pending;
+    // Complete signal
+    void *complete;
     // Proxy list
     char *list;
 } proxy_resolver_posix_s;
@@ -52,8 +53,10 @@ static void proxy_resolver_posix_cleanup(proxy_resolver_posix_s *proxy_resolver)
 }
 
 static void proxy_resolver_posix_reset(proxy_resolver_posix_s *proxy_resolver) {
-    proxy_resolver->pending = false;
     proxy_resolver->error = 0;
+
+    signal_delete(&proxy_resolver->complete);
+    proxy_resolver->complete = signal_create();
 
     proxy_resolver_posix_cleanup(proxy_resolver);
 }
@@ -189,6 +192,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     if (locked)
         mutex_unlock(g_proxy_resolver_posix.mutex);
 
+    signal_set(proxy_resolver->complete);
     is_ok = true;
 
 posix_cleanup:
@@ -212,11 +216,11 @@ bool proxy_resolver_posix_get_error(void *ctx, int32_t *error) {
     return true;
 }
 
-bool proxy_resolver_posix_is_pending(void *ctx) {
+bool proxy_resolver_posix_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return proxy_resolver->pending;
+    return signal_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_posix_cancel(void *ctx) {
@@ -237,6 +241,7 @@ bool proxy_resolver_posix_delete(void **ctx) {
         return false;
     proxy_resolver_cancel(ctx);
     proxy_resolver_posix_cleanup(proxy_resolver);
+    signal_delete(&proxy_resolver->complete);
     free(proxy_resolver);
     return true;
 }
@@ -296,7 +301,7 @@ proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_posix_i = {proxy_resolver_posix_get_proxies_for_url,
                                                         proxy_resolver_posix_get_list,
                                                         proxy_resolver_posix_get_error,
-                                                        proxy_resolver_posix_is_pending,
+                                                        proxy_resolver_posix_wait,
                                                         proxy_resolver_posix_cancel,
                                                         proxy_resolver_posix_create,
                                                         proxy_resolver_posix_delete,

@@ -13,7 +13,16 @@ bool signal_wait(void *ctx, int32_t timeout_ms) {
     signal_s *signal = (signal_s *)ctx;
     if (!signal)
         return false;
-    if (WaitForSingleObject(signal->handle, timeout_ms) != WAIT_OBJECT_0)
+    if (WaitForSingleObject(signal->handle, timeout_ms ? timeout_ms : INFINITE) != WAIT_OBJECT_0)
+        return false;
+    return true;
+}
+
+bool signal_reset(void *ctx) {
+    signal_s *signal = (signal_s *)ctx;
+    if (!signal)
+        return false;
+    if (!ResetEvent(signal->handle))
         return false;
     return true;
 }

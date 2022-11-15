@@ -62,7 +62,6 @@ The code in this library started many years ago as part of a custom HTTP/HTTPS s
 
 ## Todo
 
-* Clean up proxy_resolver API (use signal instead of pending)
 * Test integration
 * Document API
 

@@ -13,7 +13,7 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_gnome3.h"
-
+#include "signal.h"
 typedef struct g_proxy_resolver_gnome3_s {
     // GIO module handle
     void *gio_module;
@@ -42,8 +42,8 @@ typedef struct proxy_resolver_gnome3_s {
     GProxyResolver *resolver;
     // Last system error
     int32_t error;
-    // Resolution pending
-    bool pending;
+    // Complete signal
+    void *complete;
     // Cancellable object
     GCancellable *cancellable;
     // Proxy list
@@ -56,8 +56,10 @@ static void proxy_resolver_gnome3_cleanup(proxy_resolver_gnome3_s *proxy_resolve
 }
 
 static void proxy_resolver_gnome3_reset(proxy_resolver_gnome3_s *proxy_resolver) {
-    proxy_resolver->pending = false;
     proxy_resolver->error = 0;
+
+    signal_delete(&proxy_resolver->complete);
+    proxy_resolver->complete = signal_create();
 
     proxy_resolver_gnome3_cleanup(proxy_resolver);
 }
@@ -159,7 +161,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
             g_proxy_resolver_gnome3.g_strfreev(proxies);
     }
 
-    proxy_resolver->pending = false;
+    signal_set(proxy_resolver->complete);
     proxy_resolver_gnome3_delete_resolver(proxy_resolver);
 
     return proxy_resolver->error == 0;
@@ -180,11 +182,11 @@ bool proxy_resolver_gnome3_get_error(void *ctx, int32_t *error) {
     return true;
 }
 
-bool proxy_resolver_gnome3_is_pending(void *ctx) {
+bool proxy_resolver_gnome3_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
     if (!proxy_resolver)
         return false;
-    return proxy_resolver->pending;
+    return signal_wait(proxy_resolver->complete, timeout_ms);
 }
 
 bool proxy_resolver_gnome3_cancel(void *ctx) {
@@ -212,6 +214,7 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
         return false;
     proxy_resolver_cancel(ctx);
     proxy_resolver_gnome3_cleanup(proxy_resolver);
+    signal_delete(&proxy_resolver->complete);
     free(proxy_resolver);
     return true;
 }
@@ -293,7 +296,7 @@ proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_gnome3_i = {proxy_resolver_gnome3_get_proxies_for_url,
                                                          proxy_resolver_gnome3_get_list,
                                                          proxy_resolver_gnome3_get_error,
-                                                         proxy_resolver_gnome3_is_pending,
+                                                         proxy_resolver_gnome3_wait,
                                                          proxy_resolver_gnome3_cancel,
                                                          proxy_resolver_gnome3_create,
                                                          proxy_resolver_gnome3_delete,

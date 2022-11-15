@@ -56,6 +56,7 @@ if(WIN32)
         mutex_win.c
         resolver_win8.c
         resolver_winxp.c
+        signal_win.c
         util_win.c
         wpad_dhcp_win.c)
     if(PROXYRES_JSPROXY)
@@ -84,6 +85,7 @@ elseif(APPLE)
         net_adapter_mac.c
         mutex_pthread.c
         resolver_mac.c
+        signal_pthread.c
         threadpool_pthread.c
         wpad_dhcp_mac.c)
 elseif(UNIX)
@@ -104,6 +106,7 @@ elseif(UNIX)
         mutex_pthread.c
         net_adapter_linux.c
         resolver_gnome3.c
+        signal_pthread.c
         threadpool_pthread.c
         util_linux.c)
 endif()

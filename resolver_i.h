@@ -5,7 +5,7 @@ typedef struct proxy_resolver_i_s {
 
     const char *(*get_list)(void *ctx);
     bool (*get_error)(void *ctx, int32_t *error);
-    bool (*is_pending)(void *ctx);
+    bool (*wait)(void *ctx, int32_t timeout_ms);
     bool (*cancel)(void *ctx);
 
     void *(*create)(void);

@@ -17,7 +17,6 @@
 #include <io.h>
 #include <windows.h>
 #define O_BINARY _O_BINARY
-#define usleep Sleep
 #else
 #include <unistd.h>
 #define O_BINARY 0
@@ -82,9 +81,7 @@ static void resolve_proxy_for_url(const char *url) {
 
     if (proxy_resolver_get_proxies_for_url(proxy_resolver, url)) {
         // Wait for proxy to resolve asynchronously
-        while (proxy_resolver_is_pending(proxy_resolver)) {
-            usleep(10);
-        }
+        proxy_resolver_wait(proxy_resolver, -1);
 
         // Get the proxy list for the url
         const char *list = proxy_resolver_get_list(proxy_resolver);
@@ -118,9 +115,7 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
             printf("Resolving proxy for %s\n", argv[i]);
 
         // Wait for proxy to resolve asynchronously
-        while (proxy_resolver_is_pending(proxy_resolver[i])) {
-            usleep(10);
-        }
+        proxy_resolver_wait(proxy_resolver[i], -1);
 
         // Get the proxy list for the url
         const char *list = proxy_resolver_get_list(proxy_resolver[i]);
