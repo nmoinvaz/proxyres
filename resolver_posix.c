@@ -60,8 +60,9 @@ static void proxy_resolver_posix_reset(proxy_resolver_posix_s *proxy_resolver) {
 
 static char *proxy_resolver_posix_wpad_discover(void) {
     char *auto_config_url = NULL;
+    char *script = NULL;
 
-    // Check to see if we need to re-discover the WPAD auto config url
+    // Check if we need to re-discover the WPAD auto config url
     if (g_proxy_resolver_posix.last_wpad_time > 0 &&
         g_proxy_resolver_posix.last_wpad_time + WPAD_EXPIRE_SECONDS >= time(NULL)) {
         // Use cached version of WPAD auto config url
@@ -77,25 +78,32 @@ static char *proxy_resolver_posix_wpad_discover(void) {
         // Detect proxy auto configuration using DNS
         if (!auto_config_url) {
             LOG_INFO("Discovering proxy auto config using WPAD (%s)\n", "DNS");
-            auto_config_url = wpad_dns(NULL);
+            script = wpad_dns(NULL);
+            if (script) {
+                g_proxy_resolver_posix.script = script;
+                g_proxy_resolver_posix.last_fetch_time = time(NULL);
+            }
         }
 
         g_proxy_resolver_posix.auto_config_url = auto_config_url;
         g_proxy_resolver_posix.last_wpad_time = time(NULL);
     }
 
+    // Duplicate so it can be freed the same if proxy_config_get_auto_config_url() returns a string
     return auto_config_url ? strdup(auto_config_url) : NULL;
 }
 
 static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t *error) {
     char *script = NULL;
 
-    // Check to see if the auto config url has changed
+    // Check if the auto config url has changed
     bool url_changed = false;
     if (g_proxy_resolver_posix.auto_config_url)
         url_changed = strcmp(g_proxy_resolver_posix.auto_config_url, auto_config_url) != 0;
+    else
+        url_changed = true;
 
-    // Check to see if we need to re-fetch the PAC script
+    // Check if we need to re-fetch the PAC script
     if (g_proxy_resolver_posix.last_fetch_time > 0 &&
         g_proxy_resolver_posix.last_fetch_time + WPAD_EXPIRE_SECONDS >= time(NULL) && !url_changed) {
         // Use cached version of the PAC script

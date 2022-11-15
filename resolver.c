@@ -6,6 +6,9 @@
 #include <inttypes.h>
 
 #include <errno.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "config.h"
 #include "log.h"
@@ -132,6 +135,14 @@ bool proxy_resolver_delete(void **ctx) {
 }
 
 bool proxy_resolver_init(void) {
+#ifdef _WIN32
+    WSADATA WsaData = {0};
+    if (WSAStartup(MAKEWORD(2, 2), &WsaData) != 0) {
+        LOG_ERROR("Failed to initialize winsock %d\n", WSAGetLastError());
+        return false;
+    }
+#endif
+
     if (!proxy_config_init())
         return false;
 #if defined(__APPLE__)
@@ -186,5 +197,12 @@ bool proxy_resolver_uninit(void) {
         g_proxy_resolver.proxy_resolver_i->uninit();
 
     memset(&g_proxy_resolver, 0, sizeof(g_proxy_resolver));
-    return proxy_config_uninit();
+
+    if (!proxy_config_uninit())
+        return false;
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
+    return true;
 }

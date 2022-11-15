@@ -11,6 +11,7 @@
 #include "util.h"
 #include "util_socket.h"
 
+// Request WPAD script using DNS
 char *wpad_dns(const char *fqdn) {
     char hostname[HOST_MAX] = {0};
     char wpad_host[HOST_MAX] = {0};
@@ -54,12 +55,17 @@ char *wpad_dns(const char *fqdn) {
         snprintf(wpad_host, sizeof(wpad_host), "wpad.%s", name);
         LOG_INFO("Checking next WPAD hostname: %s\n", wpad_host);
 
-        if (dns_resolve(wpad_host, &error)) {
+        char wpad_url[HOST_MAX + 18];
+        snprintf(wpad_url, HOST_MAX + 18, "http://%s/wpad.dat", wpad_host);
+        char *script = fetch_get(wpad_url, &error);
+        if (script)
+            return script;
+        /*if (dns_resolve(wpad_host, &error)) {
             char *wpad_url = (char *)calloc(HOST_MAX + 18, sizeof(char));
             if (wpad_url)
                 snprintf(wpad_url, HOST_MAX + 18, "http://%s/wpad.dat", wpad_host);
             return wpad_url;
-        }
+        }*/
 
         LOG_INFO("No server found at %s (%d)\n", wpad_host, error);
         name = next_part;
