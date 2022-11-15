@@ -85,7 +85,7 @@ static void resolve_proxy_for_url(const char *url) {
 
         // Get the proxy list for the url
         const char *list = proxy_resolver_get_list(proxy_resolver);
-        printf("  Proxy: %s\n", list ? list : "DIRECT");
+        printf("  Proxy: %s\n", list ? list : "direct://");
     }
     proxy_resolver_delete(&proxy_resolver);
 }
@@ -124,7 +124,7 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
         else if (argc > 1)
             printf("%s=", argv[i]);
 
-        printf("%s\n", list ? list : "DIRECT");
+        printf("%s\n", list ? list : "direct://");
 
         proxy_resolver_get_error(proxy_resolver[i], &error);
         if (error != 0) {
@@ -182,7 +182,7 @@ static bool execute_pac_script(const char *script_path, const char *url, bool ve
             const char *list = proxy_execute_get_list(proxy_execute);
             if (verbose)
                 printf("  Proxy: ");
-            printf("%s\n", list ? list : "DIRECT");
+            printf("%s\n", list ? list : "direct://");
         }
         proxy_execute_delete(&proxy_execute);
     }
