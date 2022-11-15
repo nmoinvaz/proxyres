@@ -100,7 +100,7 @@ static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t
 
         script = fetch_get(auto_config_url, error);
         if (!script)
-            LOG_ERROR("Unable to download auto config script (%" PRId32 ")\n", *error);
+            LOG_ERROR("Unable to fetch proxy auto config script %s (%" PRId32 ")\n", auto_config_url, *error);
 
         free(g_proxy_resolver_posix.script);
         g_proxy_resolver_posix.script = script;
