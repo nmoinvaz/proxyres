@@ -62,9 +62,14 @@ The code in this library started many years ago as part of a custom HTTP/HTTPS s
 
 ## Todo
 
-* Enumerate each adapter and check each DHCP for better security
-* Cache results from WPAD process for certain period of time
-* Mutex lock around WPAD process
-* Clean up proxy_resolver API
+* Clean up proxy_resolver API (use signal instead of pending)
 * Test integration
 * Document API
+
+## Resources
+
+* [Wikipedia - Proxy Auto-config](https://en.wikipedia.org/wiki/Proxy_auto-config)
+* [Mozilla - Proxy Auto-Configuration (PAC)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file)
+* RFC Drafts
+  * [Web Proxy Auto-Discovery Protocol](https://datatracker.ietf.org/doc/html/draft-ietf-wrec-wpad-01)
+  * [Generalize Client UDP Port Number of DHCP Relay](https://datatracker.ietf.org/doc/html/draft-shen-dhc-client-port-00)
