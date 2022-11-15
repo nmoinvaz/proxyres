@@ -25,7 +25,7 @@ typedef struct g_proxy_resolver_s {
     // Proxy resolver interface
     proxy_resolver_i_s *proxy_resolver_i;
     // Thread pool
-    void *thread_pool;
+    void *threadpool;
 } g_proxy_resolver_s;
 
 g_proxy_resolver_s g_proxy_resolver;
@@ -45,7 +45,7 @@ static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
 
     g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(proxy_resolver->base, proxy_resolver->url);
 
-    LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved with thread_pool = %s\n", (intptr_t)proxy_resolver->base,
+    LOG_INFO("proxy_resolver 0x%" PRIxPTR " - resolved with threadpool = %s\n", (intptr_t)proxy_resolver->base,
              proxy_resolver_get_list(proxy_resolver) ? proxy_resolver_get_list(proxy_resolver) : "DIRECT");
 
     proxy_resolver->pending = false;
@@ -70,7 +70,7 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver->url = strdup(url);
     proxy_resolver->pending = true;
 
-    return threadpool_enqueue(g_proxy_resolver.thread_pool, proxy_resolver,
+    return threadpool_enqueue(g_proxy_resolver.threadpool, proxy_resolver,
                               proxy_resolver_get_proxies_for_url_threadpool);
 }
 
@@ -157,18 +157,27 @@ bool proxy_resolver_init(void) {
         return true;
 
     // Create thread pool to handle proxy resolution requests asynchronously
-    g_proxy_resolver.thread_pool = threadpool_create(THREADPOOL_DEFAULT_MIN_THREADS, THREADPOOL_DEFAULT_MAX_THREADS);
-    if (!g_proxy_resolver.thread_pool) {
+    g_proxy_resolver.threadpool = threadpool_create(THREADPOOL_DEFAULT_MIN_THREADS, THREADPOOL_DEFAULT_MAX_THREADS);
+    if (!g_proxy_resolver.threadpool) {
         LOG_ERROR("Failed to create thread pool\n");
         proxy_resolver_uninit();
         return false;
+    }
+
+    // Pass threadpool to posix resolver to immediately start wpad discovery
+    if (g_proxy_resolver.proxy_resolver_i == proxy_resolver_posix_get_interface()) {
+        if (!proxy_resolver_posix_init_ex(g_proxy_resolver.threadpool)) {
+            LOG_ERROR("Failed to initialize posix proxy resolver\n");
+            proxy_resolver_uninit();
+            return false;
+        }
     }
     return true;
 }
 
 bool proxy_resolver_uninit(void) {
-    if (g_proxy_resolver.thread_pool)
-        threadpool_delete(&g_proxy_resolver.thread_pool);
+    if (g_proxy_resolver.threadpool)
+        threadpool_delete(&g_proxy_resolver.threadpool);
 
     if (g_proxy_resolver.proxy_resolver_i)
         g_proxy_resolver.proxy_resolver_i->uninit();

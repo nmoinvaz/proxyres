@@ -58,7 +58,7 @@ static bool threadpool_job_delete(threadpool_job_s **job) {
 }
 
 static bool threadpool_enqueue_job(threadpool_s *threadpool, threadpool_job_s *job) {
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - enqueue\n", (intptr_t)job);
+    LOG_DEBUG("threadpool - job 0x%" PRIxPTR " - enqueue\n", (intptr_t)job);
 
     // Add job to the end of the queue
     if (!threadpool->queue_last) {
@@ -83,7 +83,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
         threadpool->queue_last = NULL;
     threadpool->queue_count--;
 
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - dequeue\n", (intptr_t)job);
+    LOG_DEBUG("threadpool - job 0x%" PRIxPTR " - dequeue\n", (intptr_t)job);
     return job;
 }
 
@@ -91,14 +91,14 @@ static void *threadpool_do_work(void *arg) {
     threadpool_thread_s *thread = (threadpool_thread_s *)arg;
     threadpool_s *threadpool = thread->pool;
 
-    LOG_DEBUG("thread_pool - worker 0x%" PRIx64 " - started\n", (uint64_t)pthread_self());
+    LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - started\n", (uint64_t)pthread_self());
 
     if (!thread)
         return NULL;
 
     while (true) {
         pthread_mutex_lock(&threadpool->queue_mutex);
-        LOG_DEBUG("thread_pool - worker 0x%" PRIx64 " - waiting for job\n", (uint64_t)pthread_self());
+        LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - waiting for job\n", (uint64_t)pthread_self());
 
         // Sleep until there is work to do
         while (!threadpool->stop && !threadpool->queue_first) {
@@ -118,9 +118,9 @@ static void *threadpool_do_work(void *arg) {
 
         // Do the job
         if (job) {
-            LOG_DEBUG("thread_pool - worker 0x%" PRIx64 " - processing job 0x%" PRIxPTR "\n", (uint64_t)pthread_self(), (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - processing job 0x%" PRIxPTR "\n", (uint64_t)pthread_self(), (intptr_t)job);
             job->callback(job->user_data);
-            LOG_DEBUG("thread_pool - worker 0x%" PRIx64 " - job complete 0x%" PRIxPTR "\n", (uint64_t)pthread_self(), (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - job complete 0x%" PRIxPTR "\n", (uint64_t)pthread_self(), (intptr_t)job);
             threadpool_job_delete(&job);
         }
 
@@ -136,7 +136,7 @@ static void *threadpool_do_work(void *arg) {
         pthread_mutex_unlock(&threadpool->queue_mutex);
     }
 
-    LOG_DEBUG("thread_pool - worker 0x%" PRIx64 " - stopped\n", (uint64_t)pthread_self());
+    LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - stopped\n", (uint64_t)pthread_self());
 
     // Reduce thread count
     threadpool->num_threads--;

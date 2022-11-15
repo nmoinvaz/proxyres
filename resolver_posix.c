@@ -16,11 +16,12 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_posix.h"
+#include "threadpool.h"
 #include "util.h"
 #include "wpad_dhcp.h"
 #include "wpad_dns.h"
 
-#define WPAD_DHCP_TIMEOUT   (10)
+#define WPAD_DHCP_TIMEOUT   (3)
 #define WPAD_EXPIRE_SECONDS (300)
 
 typedef struct g_proxy_resolver_posix_s {
@@ -57,11 +58,12 @@ static void proxy_resolver_posix_reset(proxy_resolver_posix_s *proxy_resolver) {
     proxy_resolver_posix_cleanup(proxy_resolver);
 }
 
-static char *proxy_resolver_posix_wpad_discover(proxy_resolver_posix_s *proxy_resolver) {
+static char *proxy_resolver_posix_wpad_discover(void) {
     char *auto_config_url = NULL;
+
     // Check to see if we need to re-discover the WPAD auto config url
     if (g_proxy_resolver_posix.last_wpad_time > 0 &&
-        g_proxy_resolver_posix.last_wpad_time + WPAD_EXPIRE_SECONDS < time(NULL)) {
+        g_proxy_resolver_posix.last_wpad_time + WPAD_EXPIRE_SECONDS >= time(NULL)) {
         // Use cached version of WPAD auto config url
         auto_config_url = g_proxy_resolver_posix.auto_config_url;
     } else {
@@ -85,20 +87,20 @@ static char *proxy_resolver_posix_wpad_discover(proxy_resolver_posix_s *proxy_re
     return auto_config_url ? strdup(auto_config_url) : NULL;
 }
 
-static char *proxy_resolver_posix_fetch_pac(proxy_resolver_posix_s *proxy_resolver, const char *auto_config_url) {
+static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t *error) {
     char *script = NULL;
 
     // Check to see if we need to re-fetch the PAC script
     if (g_proxy_resolver_posix.last_fetch_time > 0 &&
-        g_proxy_resolver_posix.last_fetch_time + WPAD_EXPIRE_SECONDS < time(NULL)) {
+        g_proxy_resolver_posix.last_fetch_time + WPAD_EXPIRE_SECONDS >= time(NULL)) {
         // Use cached version of the PAC script
         script = g_proxy_resolver_posix.script;
     } else {
         LOG_DEBUG("Fetching proxy auto config script from %s\n", auto_config_url);
 
-        script = fetch_get(auto_config_url, &proxy_resolver->error);
+        script = fetch_get(auto_config_url, error);
         if (!script)
-            LOG_ERROR("Unable to download auto config script (%" PRId32 ")\n", proxy_resolver->error);
+            LOG_ERROR("Unable to download auto config script (%" PRId32 ")\n", *error);
 
         free(g_proxy_resolver_posix.script);
         g_proxy_resolver_posix.script = script;
@@ -122,7 +124,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     if (proxy_config_get_auto_discover()) {
         locked = mutex_lock(g_proxy_resolver_posix.mutex);
         // Discover the proxy auto config url
-        auto_config_url = proxy_resolver_posix_wpad_discover(proxy_resolver);
+        auto_config_url = proxy_resolver_posix_wpad_discover();
     }
 
     // Use manually specified proxy auto configuration
@@ -131,7 +133,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
 
     if (auto_config_url) {
         // Download proxy auto config script if available
-        script = proxy_resolver_posix_fetch_pac(proxy_resolver, auto_config_url);
+        script = proxy_resolver_posix_fetch_pac(auto_config_url, &proxy_resolver->error);
         locked = !locked || !mutex_unlock(g_proxy_resolver_posix.mutex);
 
         if (!script)
@@ -230,15 +232,40 @@ bool proxy_resolver_posix_is_async(void) {
     return false;
 }
 
+static void proxy_resolver_posix_wpad_startup(void *arg) {
+    mutex_lock(g_proxy_resolver_posix.mutex);
+
+    // Discover the proxy auto config url
+    char *auto_config_url = proxy_resolver_posix_wpad_discover();
+
+    if (auto_config_url) {
+        int32_t error = 0;
+
+        // Download proxy auto config script if available
+        proxy_resolver_posix_fetch_pac(auto_config_url, &error);
+        free(auto_config_url);
+    }
+
+    mutex_unlock(g_proxy_resolver_posix.mutex);
+}
+
 bool proxy_resolver_posix_init(void) {
+    return proxy_resolver_posix_init_ex(NULL);
+}
+
+bool proxy_resolver_posix_init_ex(void *threadpool) {
     g_proxy_resolver_posix.mutex = mutex_create();
     if (!g_proxy_resolver_posix.mutex)
         return false;
 
-    if (!fetch_init())
-        return false;
+    if (!fetch_init() || !proxy_execute_init())
+        return proxy_resolver_posix_uninit();
 
-    return proxy_execute_init();
+    // Start WPAD discovery process immediately
+    if (threadpool)
+        threadpool_enqueue(threadpool, NULL, proxy_resolver_posix_wpad_startup);
+
+    return true;
 }
 
 bool proxy_resolver_posix_uninit(void) {

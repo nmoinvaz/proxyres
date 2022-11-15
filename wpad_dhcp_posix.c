@@ -157,7 +157,7 @@ static bool dhcp_send_inform(SOCKET sfd, uint32_t xid, net_adapter_s *adapter) {
 static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
     int response_len = recvfrom(sfd, (char *)reply, sizeof(dhcp_msg), 0, NULL, NULL);
 
-    if (response_len <= sizeof(dhcp_msg) - DHCP_OPT_MIN_LENGTH) {
+    if (response_len <= (int)(sizeof(dhcp_msg) - DHCP_OPT_MIN_LENGTH)) {
         LOG_ERROR("Unable to read DHCP reply (%d:%d)\n", response_len, socketerr);
         return false;
     }

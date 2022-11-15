@@ -46,7 +46,7 @@ static bool threadpool_job_delete(threadpool_job_s **job) {
 }
 
 static bool threadpool_add_job(threadpool_s *threadpool, threadpool_job_s *job) {
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - add\n", (intptr_t)job);
+    LOG_DEBUG("threadpool - job 0x%" PRIxPTR " - add\n", (intptr_t)job);
 
     // Add job to the end of the queue
     if (!threadpool->queue_last) {
@@ -76,7 +76,7 @@ static void threadpool_remove_job(threadpool_s *threadpool, threadpool_job_s *jo
         threadpool->queue_last = job->prev;
     threadpool->queue_count--;
 
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - remove\n", (intptr_t)job);
+    LOG_DEBUG("threadpool - job 0x%" PRIxPTR " - remove\n", (intptr_t)job);
 }
 
 VOID CALLBACK threadpool_job_callback(PTP_CALLBACK_INSTANCE instance, PVOID context, PTP_WORK work) {
@@ -85,9 +85,9 @@ VOID CALLBACK threadpool_job_callback(PTP_CALLBACK_INSTANCE instance, PVOID cont
         return;
 
     // Do the job
-    LOG_DEBUG("thread_pool - worker 0x%" PRIxPTR " - processing job 0x%" PRIxPTR "\n", (intptr_t)work, (intptr_t)job);
+    LOG_DEBUG("threadpool - worker 0x%" PRIxPTR " - processing job 0x%" PRIxPTR "\n", (intptr_t)work, (intptr_t)job);
     job->callback(job->user_data);
-    LOG_DEBUG("thread_pool - worker 0x%" PRIxPTR " - job complete 0x%" PRIxPTR "\n", (intptr_t)work, (intptr_t)job);
+    LOG_DEBUG("threadpool - worker 0x%" PRIxPTR " - job complete 0x%" PRIxPTR "\n", (intptr_t)work, (intptr_t)job);
 
     // Remove job from job queue
     threadpool_s *threadpool = job->pool;

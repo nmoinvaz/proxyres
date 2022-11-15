@@ -60,7 +60,7 @@ static bool threadpool_job_delete(threadpool_job_s **job) {
 }
 
 static void threadpool_enqueue_job(threadpool_s *threadpool, threadpool_job_s *job) {
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - enqueue\n", (intptr_t)job);
+    LOG_DEBUG("threadpool - job 0x%" PRIxPTR " - enqueue\n", (intptr_t)job);
 
     // Add job to the end of the queue
     if (!threadpool->queue_last) {
@@ -84,7 +84,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
         threadpool->queue_last = NULL;
     threadpool->queue_count--;
 
-    LOG_DEBUG("thread_pool - job 0x%" PRIxPTR " - dequeue\n", (intptr_t)job);
+    LOG_DEBUG("threadpool - job 0x%" PRIxPTR " - dequeue\n", (intptr_t)job);
     return job;
 }
 
@@ -92,14 +92,14 @@ static DWORD WINAPI threadpool_do_work(LPVOID arg) {
     threadpool_thread_s *thread = (threadpool_thread_s *)arg;
     threadpool_s *threadpool = thread->pool;
 
-    LOG_DEBUG("thread_pool - worker 0x%" PRIx32 " - started\n", thread->id);
+    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", thread->id);
 
     if (!thread)
         return 1;
 
     while (true) {
         EnterCriticalSection(&threadpool->queue_lock);
-        LOG_DEBUG("thread_pool - worker 0x%" PRIx32 " - waiting for job\n", thread->id);
+        LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - waiting for job\n", thread->id);
 
         // Sleep until there is work to do
         while (!threadpool->stop && !threadpool->queue_first) {
@@ -123,10 +123,10 @@ static DWORD WINAPI threadpool_do_work(LPVOID arg) {
 
         // Do the job
         if (job) {
-            LOG_DEBUG("thread_pool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", thread->id,
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", thread->id,
                       (intptr_t)job);
             job->callback(job->user_data);
-            LOG_DEBUG("thread_pool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", thread->id, (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", thread->id, (intptr_t)job);
             threadpool_job_delete(&job);
         }
 
@@ -142,7 +142,7 @@ static DWORD WINAPI threadpool_do_work(LPVOID arg) {
         LeaveCriticalSection(&threadpool->queue_lock);
     }
 
-    LOG_DEBUG("thread_pool - worker 0x%" PRIx32 " - stopped\n", thread->id);
+    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", thread->id);
 
     // Reduce thread count
     threadpool->num_threads--;
