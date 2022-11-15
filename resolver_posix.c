@@ -90,9 +90,14 @@ static char *proxy_resolver_posix_wpad_discover(void) {
 static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t *error) {
     char *script = NULL;
 
+    // Check to see if the auto config url has changed
+    bool url_changed = false;
+    if (g_proxy_resolver_posix.auto_config_url)
+        url_changed = strcmp(g_proxy_resolver_posix.auto_config_url, auto_config_url) != 0;
+
     // Check to see if we need to re-fetch the PAC script
     if (g_proxy_resolver_posix.last_fetch_time > 0 &&
-        g_proxy_resolver_posix.last_fetch_time + WPAD_EXPIRE_SECONDS >= time(NULL)) {
+        g_proxy_resolver_posix.last_fetch_time + WPAD_EXPIRE_SECONDS >= time(NULL) && !url_changed) {
         // Use cached version of the PAC script
         script = g_proxy_resolver_posix.script;
     } else {
