@@ -33,15 +33,13 @@ typedef struct g_proxy_config_gnome3_s {
 g_proxy_config_gnome3_s g_proxy_config_gnome3;
 
 static bool proxy_config_gnome3_is_mode(char *mode) {
-    GSettings *settings;
-    char *compare_mode = NULL;
     bool equal = false;
 
-    settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
+    GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
         return false;
 
-    compare_mode = g_proxy_config_gnome3.g_settings_get_string(settings, "mode");
+    char *compare_mode = g_proxy_config_gnome3.g_settings_get_string(settings, "mode");
     if (compare_mode) {
         equal = strcmp(compare_mode, mode) == 0;
         g_proxy_config_gnome3.g_free(compare_mode);
@@ -55,14 +53,12 @@ bool proxy_config_gnome3_get_auto_discover(void) {
 }
 
 char *proxy_config_gnome3_get_auto_config_url(void) {
-    GSettings *settings;
     char *auto_config_url = NULL;
-    char *url = NULL;
 
-    settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
+    GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
         return false;
-    url = g_proxy_config_gnome3.g_settings_get_string(settings, "autoconfig-url");
+    char *url = g_proxy_config_gnome3.g_settings_get_string(settings, "autoconfig-url");
     if (url) {
         if (*url != 0)
             auto_config_url = strdup(url);
@@ -73,9 +69,7 @@ char *proxy_config_gnome3_get_auto_config_url(void) {
 }
 
 static bool proxy_config_gnome3_use_same_proxy(void) {
-    GSettings *settings;
-
-    settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
+    GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
         return false;
 
@@ -85,10 +79,7 @@ static bool proxy_config_gnome3_use_same_proxy(void) {
 }
 
 char *proxy_config_gnome3_get_proxy(const char *scheme) {
-    GSettings *settings;
     char settings_path[128];
-    char *host = NULL;
-    uint32_t port = 0;
     char *proxy = NULL;
 
     if (proxy_config_gnome3_use_same_proxy())
@@ -96,17 +87,17 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
     else
         snprintf(settings_path, sizeof(settings_path), "org.gnome.system.proxy.%s", scheme);
 
-    settings = g_proxy_config_gnome3.g_settings_new(settings_path);
+    GSettings *settings = g_proxy_config_gnome3.g_settings_new(settings_path);
     if (!settings)
         return false;
 
-    host = g_proxy_config_gnome3.g_settings_get_string(settings, "host");
-    if (host) {
+    char *host = g_proxy_config_gnome3.g_settings_get_string(settings, "host");
+    if (host && *host != 0) {
         // Allocate space for host:port
         int32_t max_proxy = strlen(host) + 32;
         proxy = (char *)malloc(max_proxy);
         if (proxy) {
-            port = g_proxy_config_gnome3.g_settings_get_int(settings, "port");
+            uint32_t port = g_proxy_config_gnome3.g_settings_get_int(settings, "port");
             if (port == 0)
                 snprintf(proxy, max_proxy, "%s", host);
             else
@@ -120,16 +111,13 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
 }
 
 char *proxy_config_gnome3_get_bypass_list(void) {
-    GSettings *settings;
-    char **hosts = NULL;
     char *bypass_list = NULL;
 
-
-    settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
+    GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
         return NULL;
 
-    hosts = g_proxy_config_gnome3.g_settings_get_strv(settings, "ignore-hosts");
+    char **hosts = g_proxy_config_gnome3.g_settings_get_strv(settings, "ignore-hosts");
     if (hosts) {
         int32_t max_value = 0;
         // Enumerate the list to get the size of the bypass list
