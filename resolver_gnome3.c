@@ -130,6 +130,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_gnome3_s *proxy_resolver = (proxy_resolver_gnome3_s *)ctx;
     GError *error = NULL;
     char **proxies = NULL;
+    bool is_ok = false;
 
     if (proxy_resolver_gnome3_create_resolver(proxy_resolver)) {
         // Get list of proxies from resolver
@@ -138,9 +139,13 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
         proxy_resolver_gnome3_get_proxies(proxy_resolver, proxies, error);
 
         if (error) {
+            proxy_resolver->error = error->code;
             LOG_ERROR("%s (%" PRId32 ")\n", error->message, error->code);
             g_proxy_resolver_gnome3.g_error_free(error);
+        } else {
+            is_ok = true;
         }
+
         if (proxies)
             g_proxy_resolver_gnome3.g_strfreev(proxies);
     }
@@ -149,7 +154,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
 
     signal_set(proxy_resolver->complete);
 
-    return proxy_resolver->error == 0;
+    return is_ok;
 }
 
 const char *proxy_resolver_gnome3_get_list(void *ctx) {

@@ -222,6 +222,8 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
         goto win8_done;
     }
 
+    is_ok = true;
+
     // WinHttpGetProxyForUrlEx always executes asynchronously
     goto win8_done;
 
@@ -237,7 +239,7 @@ win8_done:
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
 
-    return proxy_resolver->error == 0;
+    return is_ok;
 }
 
 const char *proxy_resolver_win8_get_list(void *ctx) {
