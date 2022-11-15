@@ -7,6 +7,7 @@
 
 #include <errno.h>
 
+#include "config.h"
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
@@ -131,6 +132,8 @@ bool proxy_resolver_delete(void **ctx) {
 }
 
 bool proxy_resolver_init(void) {
+    if (!proxy_config_init())
+        return false;
 #if defined(__APPLE__)
     if (proxy_resolver_mac_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_mac_get_interface();
@@ -183,5 +186,5 @@ bool proxy_resolver_uninit(void) {
         g_proxy_resolver.proxy_resolver_i->uninit();
 
     memset(&g_proxy_resolver, 0, sizeof(g_proxy_resolver));
-    return false;
+    return proxy_config_uninit();
 }
