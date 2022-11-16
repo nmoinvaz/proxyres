@@ -13,6 +13,7 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_mac.h"
+#include "util.h"
 
 #define PROXY_RESOLVER_RUN_LOOP    CFSTR("proxy_resolver_mac.run_loop")
 #define PROXY_RESOLVER_TIMEOUT_SEC 10
@@ -115,6 +116,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
     char *auto_config_url = NULL;
+    bool is_ok = false;
 
     if (!proxy_resolver || !url)
         return false;
@@ -159,6 +161,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
 mac_done:
 
+    is_ok = proxy_resolver->error == 0;
     event_set(proxy_resolver->complete);
 
     free(auto_config_url);
@@ -168,7 +171,7 @@ mac_done:
     if (target_url_ref)
         CFRelease(target_url_ref);
 
-    return proxy_resolver->error == 0;
+    return is_ok;
 }
 
 const char *proxy_resolver_mac_get_list(void *ctx) {
