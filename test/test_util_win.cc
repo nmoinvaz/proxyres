@@ -21,14 +21,19 @@ struct get_winhttp_proxy_by_scheme_param {
 };
 
 constexpr get_winhttp_proxy_by_scheme_param get_winhttp_proxy_by_scheme_tests[] = {
+    // No schemes in list
     {"1proxy.com", "http", "1proxy.com"},
     {"2proxy.com", "https", "2proxy.com"},
+    // One http scheme in list
     {"http=3proxy.com", "http", "3proxy.com"},
     {"http=4proxy.com:80", "http", "4proxy.com:80"},
+    // One https scheme in list
     {"https=5proxy.com", "https", "5proxy.com"},
     {"https=6proxy.com:443", "https", "6proxy.com:443"},
+    // Two schemes in list
     {"http=7proxy.com;https=8proxy.com", "http", "7proxy.com"},
     {"https=9proxy.com;http=10proxy.com", "http", "10proxy.com"},
+    // Two schemes in proxy list reversed
     {"http=11proxy.com;https=12proxy.com:443", "https", "12proxy.com:443"},
     {"https=13proxy.com;http=14proxy.com:80;", "https", "13proxy.com"},
 };
