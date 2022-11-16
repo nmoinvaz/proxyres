@@ -58,6 +58,7 @@ bool proxy_execute_init(void) {
         g_proxy_execute.ref_count++;
         return true;
     }
+    memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
 #ifdef _WIN32
     if (proxy_execute_wsh_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();

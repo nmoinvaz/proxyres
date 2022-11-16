@@ -127,6 +127,7 @@ bool proxy_resolver_init(void) {
         g_proxy_resolver.ref_count++;
         return true;
     }
+    memset(&g_proxy_resolver, 0, sizeof(g_proxy_resolver_s));
 #ifdef _WIN32
     WSADATA WsaData = {0};
     if (WSAStartup(MAKEWORD(2, 2), &WsaData) != 0) {

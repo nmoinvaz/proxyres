@@ -90,6 +90,7 @@ bool proxy_config_init(void) {
         g_proxy_config.ref_count++;
         return true;
     }
+    memset(&g_proxy_config, 0, sizeof(g_proxy_config));
 #if defined(__APPLE__)
     if (proxy_config_mac_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
