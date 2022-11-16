@@ -17,9 +17,6 @@ int32_t str_trim_end(char *str, char c);
 const char *str_find_first_char(const char *str, const char *chars);
 
 // Find character in string up to max length
-const char *str_find_len_first_char(const char *str, size_t str_len, const char *chars);
-
-// Find character in string up to max length
 const char *str_find_len_char(const char *str, size_t str_len, char c);
 
 // Find string in string up to max length
