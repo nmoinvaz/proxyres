@@ -37,12 +37,15 @@ constexpr get_config_value_param get_config_value_tests[] = {
     {"Proxy Settings", "ProxyType", "0"},
     {"Proxy Settings", "httpProxy", "http://127.0.0.1:8000/"},
     {"Proxy Settings", "httpsProxy", "http://127.0.0.1:8001/"},
-    {"Proxy Settings", "ftpProxy", ""},
+    // No value set should return NULL
+    {"Proxy Settings", "ftpProxy", NULL},
     {"Proxy Settings", "AuthMode", "0"},
-    {"Proxy Settings", "NoProxyFor", ""},
-    {"Proxy Settings", "Proxy Config Script", ""},
+    {"Proxy Settings", "NoProxyFor", NULL},
+    {"Proxy Settings", "Proxy Config Script", NULL},
     {"Proxy Settings", "ReversedException", "false"},
-    {"Notification Messages", "WarnOnLeaveSSLMode", "false"}
+    // No key should return NULL
+    {"Proxy Settings", "Does Not Exist", NULL},
+    {"Notification Messages", "WarnOnLeaveSSLMode", "false"},
 };
 
 class util_config : public ::testing::TestWithParam<get_config_value_param> {};
@@ -52,9 +55,10 @@ INSTANTIATE_TEST_SUITE_P(util, util_config, testing::ValuesIn(get_config_value_t
 TEST_P(util_config, get_value) {
     const auto &param = GetParam();
     char *value = get_config_value(config, param.section, param.key);
-    EXPECT_NE(value, nullptr);
     if (value) {
         EXPECT_STREQ(value, param.expected);
         free(value);
+    } else {
+        EXPECT_EQ(value, param.expected);
     }
 }
