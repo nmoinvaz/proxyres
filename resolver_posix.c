@@ -114,7 +114,6 @@ static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t
 
 bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
-    char **proxies = NULL;
     char *proxy = NULL;
     char *script = NULL;
     char *auto_config_url = NULL;
@@ -165,7 +164,8 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         proxy_execute_delete(proxy_execute);
     } else if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
         // Use explicit proxy list
-        proxy_resolver->list = proxy;
+        proxy_resolver->list = get_url_from_host(scheme, proxy);
+        free(proxy);
     } else {
         // Use DIRECT connection
         free(proxy_resolver->list);

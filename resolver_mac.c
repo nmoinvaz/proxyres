@@ -149,8 +149,10 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     } else {
         // No proxy auto config url specified so use manually configured proxy
         char *proxy = proxy_config_get_proxy(url);
-        if (proxy)
-            proxy_resolver->list = proxy;
+        if (proxy) {
+            proxy_resolver->list = get_url_from_host(url, proxy);
+            free(proxy);
+        }
     }
 
 mac_done:

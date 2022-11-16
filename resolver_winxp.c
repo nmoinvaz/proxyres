@@ -13,6 +13,7 @@
 #include "resolver.h"
 #include "resolver_i.h"
 #include "resolver_winxp.h"
+#include "util.h"
 #include "util_win.h"
 
 typedef struct g_proxy_resolver_winxp_s {
@@ -57,7 +58,8 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         }
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
-        proxy_resolver->list = proxy;
+        proxy_resolver->list = get_url_from_host(url, proxy);
+        free(proxy);
         goto winxp_done;
     } else if (proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
