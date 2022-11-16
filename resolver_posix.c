@@ -145,7 +145,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         void *proxy_execute = proxy_execute_create();
         if (!proxy_execute) {
             proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to create proxy execute object (%" PRId32 ")\n", proxy_resolver->error);
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "execute object", proxy_resolver->error);
             goto posix_done;
         }
 

@@ -78,7 +78,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
     if (!proxy_resolver->list) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for proxy list (%" PRId32 ")\n", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "proxy list", proxy_resolver->error);
         goto win8_async_done;
     }
 
@@ -168,7 +168,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
         if (!options.lpszAutoConfigUrl) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
-            LOG_ERROR("Unable to allocate memory for auto config url (%" PRId32 ")", proxy_resolver->error);
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")", "auto config url", proxy_resolver->error);
             goto win8_done;
         }
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
@@ -203,8 +203,11 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
     // Convert url to wide char for WinHttpGetProxyForUrlEx
     url_wide = utf8_dup_to_wchar(url);
-    if (!url_wide)
+    if (!url_wide) {
+        proxy_resolver->error = ERROR_OUTOFMEMORY;
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")", "wide char url", proxy_resolver->error);
         goto win8_done;
+    }
 
     // For performance reasons try fAutoLogonIfChallenged = false then try fAutoLogonIfChallenged = true
     // https://docs.microsoft.com/en-us/windows/win32/api/winhttp/ns-winhttp-winhttp_autoproxy_options

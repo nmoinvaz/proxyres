@@ -127,14 +127,16 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
         if (!url_ref) {
             proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to create auto config url reference (%" PRId32 ")\n", proxy_resolver->error);
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "auto config url reference",
+                      proxy_resolver->error);
             goto mac_done;
         }
 
         target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
         if (!target_url_ref) {
             proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to create target url reference (%" PRId32 ")\n", proxy_resolver->error);
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "target url reference",
+                      proxy_resolver->error);
             goto mac_done;
         }
 

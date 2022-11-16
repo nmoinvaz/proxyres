@@ -69,7 +69,7 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
     proxy_resolver->resolver = g_proxy_resolver_gnome3.g_proxy_resolver_get_default();
     if (!proxy_resolver->resolver) {
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to create resolver object (%" PRId32 ")\n", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "resolver object", proxy_resolver->error);
         return false;
     }
 
@@ -86,7 +86,7 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
     if (!proxy_resolver->cancellable) {
         proxy_resolver_gnome3_delete_resolver(proxy_resolver);
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to create cancellable object (%" PRId32 ")\n", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "cancellable object", proxy_resolver->error);
         return false;
     }
 
@@ -108,7 +108,7 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
     proxy_resolver->list = calloc(max_list, sizeof(char));
     if (!proxy_resolver->list) {
         proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to allocate memory for list (%" PRId32 ")\n", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "list", proxy_resolver->error);
         return false;
     }
 

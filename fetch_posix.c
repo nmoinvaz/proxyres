@@ -140,7 +140,7 @@ char *fetch_get(const char *url, int32_t *error) {
     body = (char *)calloc(content_length + 1, sizeof(char));
     if (!body) {
         err = ENOMEM;
-        LOG_ERROR("Unable to allocate memory for response body (%" PRId32 ")\n", err);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "response body", err);
         goto download_cleanup;
     }
 
