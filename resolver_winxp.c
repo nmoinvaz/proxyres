@@ -127,10 +127,9 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         break;
     }
 
-    is_ok = true;
-
 winxp_done:
 
+    is_ok = proxy_resolver->list != NULL;
     event_set(proxy_resolver->complete);
 
     free(url_wide);

@@ -178,6 +178,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
         goto win8_done;
     } else if (!proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
+        proxy_resolver->list = strdup("direct://");
         goto win8_done;
     } else {
         // Use WPAD to automatically retrieve proxy auto-configuration and evaluate it
@@ -226,8 +227,6 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
         goto win8_done;
     }
 
-    is_ok = true;
-
     // WinHttpGetProxyForUrlEx always executes asynchronously
     goto win8_cleanup;
 
@@ -237,6 +236,7 @@ win8_done:
 
 win8_cleanup:
 
+    is_ok = proxy_resolver->list != NULL || proxy_resolver->error == 0;
     free(url_wide);
 
     // Free proxy info

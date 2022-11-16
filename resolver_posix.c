@@ -168,8 +168,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         free(proxy);
     } else {
         // Use DIRECT connection
-        free(proxy_resolver->list);
-        proxy_resolver->list = NULL;
+        proxy_resolver->list = strdup("direct://");
     }
 
     free(scheme);
@@ -177,9 +176,9 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     if (locked)
         mutex_unlock(g_proxy_resolver_posix.mutex);
 
-    is_ok = true;
-
 posix_done:
+
+    is_ok = proxy_resolver->list != NULL;
     event_set(proxy_resolver->complete);
 
     free(auto_config_url);
