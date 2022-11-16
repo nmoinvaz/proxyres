@@ -24,9 +24,6 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     ULONG error = 0;
     net_adapter_s adapter = {0};
     uint8_t *buffer = NULL;
-    int32_t cur_index = 0;
-    uint32_t min_index = UINT32_MAX;
-    bool found = false;
 
     if (!callback)
         return false;

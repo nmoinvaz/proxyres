@@ -215,7 +215,6 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
 
     const char *config_start = proxy_list;
     const char *config_end = NULL;
-    char *host_start = NULL;
 
     // Enumerate each proxy in the proxy list.
     do {
@@ -227,7 +226,6 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
         config_end = strchr(config_start, ';');
         if (!config_end)
             config_end = config_start + strlen(config_start);
-        size_t config_len = (size_t)(config_end - config_start);
 
         // Find type boundary
         const char *host_start = config_start;

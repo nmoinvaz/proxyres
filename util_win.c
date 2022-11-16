@@ -59,7 +59,6 @@ char *get_winhttp_proxy_by_scheme(const char *url_or_scheme, const char *proxy_l
         const char *scheme = NULL;
         size_t scheme_len = 0;
         const char *host_start = NULL;
-        size_t host_len = 0;
 
         if (scheme_end == config_end) {
             // No scheme, assume http
@@ -115,7 +114,6 @@ char *convert_winhttp_proxy_list_to_uri_list(const char *proxy_list) {
 
     const char *config_start = proxy_list;
     const char *config_end = NULL;
-    char *host_start = NULL;
 
     // Enumerate each proxy in the proxy list.
     do {

@@ -51,7 +51,6 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
                                                           LPVOID StatusInformation, DWORD StatusInformationLength) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)Context;
     WINHTTP_PROXY_RESULT proxy_result = {0};
-    bool successful = false;
 
     if (InternetStatus == WINHTTP_CALLBACK_FLAG_REQUEST_ERROR) {
         WINHTTP_ASYNC_RESULT *async_result = (WINHTTP_ASYNC_RESULT *)StatusInformation;
