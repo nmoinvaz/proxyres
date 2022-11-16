@@ -15,7 +15,7 @@ struct get_config_value_param {
     const char *expected;
 
     friend std::ostream &operator<<(std::ostream &os, const get_config_value_param &param) {
-        return os << "section: " << param.section << "\n" << "key: " << param.key;
+        return os << "section: " << param.section << std::endl << "key: " << param.key;
     }
 };
 

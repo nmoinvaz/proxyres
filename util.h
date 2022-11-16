@@ -28,6 +28,9 @@ const char *str_find_len_str(const char *str, size_t str_len, const char *find);
 // Find string case-insensitve in string up to max length
 const char *str_find_len_case_str(const char *str, size_t str_len, const char *find);
 
+// Compare a string using wildcard pattern
+bool str_wildcard_match(const char *str, const char *pattern, bool ignore_case);
+
 // Find host for a given url
 char *get_url_host(const char *url);
 
@@ -39,6 +42,9 @@ char *get_url_scheme(const char *url, const char *fallback);
 
 // Convert proxy list returned by FindProxyForURL to a list of uris separated by commas.
 char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallback_scheme);
+
+// Evaluates whether or not the proxy should be bypassed for a given url
+bool should_bypass_proxy(const char *url, const char *bypass_list);
 
 #ifdef __cplusplus
 }

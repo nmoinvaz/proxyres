@@ -15,7 +15,7 @@ struct get_winhttp_proxy_by_scheme_param {
     const char *expected;
 
     friend std::ostream &operator<<(std::ostream &os, const get_winhttp_proxy_by_scheme_param &param) {
-        return os << "proxy_list: " << param.proxy_list << "\n"
+        return os << "proxy_list: " << param.proxy_list << std::endl
                   << "scheme: " << param.scheme;
     }
 };

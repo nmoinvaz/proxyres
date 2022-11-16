@@ -1,11 +1,13 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <ctype.h>
 
 #ifdef _WIN32
+#define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #endif
 
@@ -83,6 +85,43 @@ const char *str_find_len_case_str(const char *str, size_t str_len, const char *f
         str_len--;
     }
     return NULL;
+}
+
+// Compare a string using wildcard pattern
+bool str_wildcard_match(const char *str, const char *pattern, bool ignore_case) {
+    while (*str) {
+        switch (*pattern) {
+        case '*':
+            if (pattern[1] == 0)
+                return true;
+
+            while (*str) {
+                if (str_wildcard_match(str, pattern + 1, ignore_case))
+                    return true;
+                str++;
+            }
+
+            return false;
+
+        default:
+            if (ignore_case) {
+                if (tolower(*str) != tolower(*pattern))
+                    return false;
+            } else {
+                if (*str != *pattern)
+                    return false;
+            }
+            break;
+        }
+
+        str++;
+        pattern++;
+    }
+
+    if (*pattern && *pattern != '*')
+        return false;
+
+    return true;
 }
 
 // Find host for a given url
@@ -184,7 +223,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
         while (*config_start == ' ')
             config_start++;
 
-        // Proxies can be separated by a semi-colon or a whitespace
+        // Proxies can be separated by a semi-colon
         config_end = strchr(config_start, ';');
         if (!config_end)
             config_end = config_start + strlen(config_start);
@@ -256,4 +295,72 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
     } while (config_end < proxy_list_end);
 
     return uri_list;
+}
+
+bool should_bypass_proxy(const char *url, const char *bypass_list) {
+    char bypass_rule[HOST_MAX] = {0};
+    bool is_local = false;
+    bool is_simple = false;
+    bool should_bypass = false;
+
+    if (!url || !bypass_list)
+        return true;
+
+    // Chromium documentation for proxy bypass rules:
+    // https://chromium.googlesource.com/chromium/src/+/HEAD/net/docs/proxy.md#Proxy-bypass-rules
+
+    // Parse host without port for url
+    char *host = get_url_host(url);
+    if (!host)
+        return true;
+    char *port = strchr(host, ':');
+    if (port)
+        *port = 0;
+
+    // Check for localhost address
+    if (strcmp(host, "127.0.0.1") == 0 || strcasecmp(host, "localhost") == 0)
+        is_local = true;
+
+    // Check for simple hostnames
+    if (strchr(host, '.') == NULL)
+        is_simple = true;
+
+    // By default don't allow localhost urls to go through proxy
+    if (is_local)
+        should_bypass = true;
+
+    // Enumerate through each bypass expression in the bypass list
+    const char *bypass_list_end = bypass_list + strlen(bypass_list);
+    const char *rule_start = bypass_list;
+    const char *rule_end = NULL;
+
+    do {
+        // Ignore leading whitespace
+        while (*rule_start == ' ')
+            rule_start++;
+
+        // Rules can be separated by a comma
+        rule_end = strchr(rule_start, ',');
+        if (!rule_end)
+            rule_end = rule_start + strlen(rule_start);
+        size_t rule_len = (size_t)(rule_end - rule_start);
+        if (rule_len > sizeof(bypass_rule))
+            rule_len = sizeof(bypass_rule) - 1;
+        strncat(bypass_rule, rule_start, rule_len);
+
+        // If the rule matches hostname of url then bypass proxy
+        if (str_wildcard_match(host, bypass_rule, true))
+            should_bypass = true;
+
+        // If the rule is <local> then allow all simple hostnames to bypass proxy
+        if (is_simple && strcasecmp(bypass_rule, "<local>") == 0)
+            should_bypass = true;
+        // If the rule is <-loopback> then allow localhost urls to go through proxy
+        if (is_local && strcasecmp(bypass_rule, "<-loopback>") == 0)
+            should_bypass = false;
+
+        rule_start = rule_end + 1;
+    } while (rule_end < bypass_list_end);
+
+    return should_bypass;
 }

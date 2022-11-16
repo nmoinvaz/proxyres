@@ -78,3 +78,47 @@ TEST_P(util_uri_list, convert_proxy_list) {
         free(host);
     }
 }
+
+struct should_bypass_list_param {
+    const char *url;
+    const char *bypass_list;
+    bool expected;
+
+    friend std::ostream &operator<<(std::ostream &os, const should_bypass_list_param &param) {
+        return os << "url: " << param.url << std::endl << "bypass list: " << param.bypass_list;
+    }
+};
+
+constexpr should_bypass_list_param should_bypass_list_tests[] = {
+    // Bypass due to localhost hostname
+    {"http://localhost/", "", true},
+    // Bypass due to localhost ip
+    {"http://127.0.0.1/", "", true},
+    // Bypass due to <local> on simple hostnames
+    {"http://apple/", "<local>", true},
+    // Don't bypass due to <local> only applying to simple hostnames
+    {"http://apple.com/", "<local>", false},
+    // Don't bypass due to <-loopback> on localhost ip
+    {"http://127.0.0.1/", "<-loopback>", false},
+    // Don't bypass due to <-loopback> not applying to non-localhost address
+    {"http://120.0.0.1/", "<-loopback>", false},
+    // Don't bypass due to no bypass list specified
+    {"http://google.com/", "", false},
+    // Bypass due to url matches
+    {"http://google.com/", "google.com", true},
+    {"http://google.com/", "google.com,apple.com", true},
+    // Bypass due to url matches with wildcard
+    {"http://google.com/", "*google.com", true},
+    {"http://google.com/", "google.com,apple.com", true},
+    // Don't bypass due to no url matches
+    {"http://google.com/", "apple.com", false}
+};
+
+class util_should_bypass : public ::testing::TestWithParam<should_bypass_list_param> {};
+
+INSTANTIATE_TEST_SUITE_P(util, util_should_bypass, testing::ValuesIn(should_bypass_list_tests));
+
+TEST_P(util_should_bypass, list) {
+    const auto &param = GetParam();
+    EXPECT_EQ(should_bypass_proxy(param.url, param.bypass_list), param.expected);
+}
