@@ -215,11 +215,7 @@ bool proxy_resolver_gnome3_delete(void **ctx) {
 }
 
 bool proxy_resolver_gnome3_is_async(void) {
-#ifdef USE_ASYNC_LOOKUP
-    return true;
-#else
     return false;
-#endif
 }
 
 bool proxy_resolver_gnome3_init(void) {
