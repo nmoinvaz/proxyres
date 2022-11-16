@@ -4,42 +4,15 @@ Cross-platform proxy resolution with support for Linux, macOS, & Windows.
 
 ## API
 
-### proxy_config
+|Class|Description|
+|-|:-|
+|[proxy_config](./doc/proxy_config.md)|Read the user's proxy configuration.|
+|[proxy_execute](./doc/proxy_execute.md)|Executes a Proxy Auto-Configuration (PAC) script containing the JavasScript function `FindProxyForURL` for a particular URL to determine its proxies.|
+|[proxy_resolver](./doc/proxy_resolver.md)|Resolves proxies for a given URL based on the operating system's proxy configuration.|
 
-Read the user's proxy configuration.
+## Example
 
-### proxy_resolve
-
-Resolves proxies for a given URL based on the operating system's proxy configuration.
-
-* Supports manually specified proxies for specific schemes.
-* Supports Web Proxy Auto-Discovery Protocol (WPAD) using DHCP and DNS.
-* Evaluates any discovered [Proxy Auto-Configuration (PAC)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file) scripts to determine the proxies for the URL.
-
-**Operating System Support**
-
-The following native OS proxy resolution libraries are used if available:
-
-|OS|Library|Info|
-|-|-|-|
-|Linux|Gnome3/GProxyResolver|Does not return anything other than direct:// on Ubuntu 20.|
-|macOS|CFNetwork||
-|Windows|WinHTTP|Uses IE proxy configuration.|
-
-When there is no built-in proxy resolution library on the system, we use our own resolver.
-
-### proxy_execute
-
-Executes a Proxy Auto-Configuration (PAC) script containing the JavasScript function `FindProxyForURL` for a particular URL to determine the proxies for it. Support varies depending on the operating system and the libraries available.
-
-#### Script Engine Support
-
-|OS|Engine|Info|
-|-|-|-|
-|Linux|JavaScriptCoreGTK|Dynamically loaded at run-time.|
-|macOS|JavaScriptCore|Dynamically loaded at run-time.|
-|Windows|JSProxy|Deprecated on Windows 11.<br>A copy of jsproxy.dll can be found in the `test` folder.|
-|Windows|Windows Script Host|Uses IActiveScript COM interfaces.|
+Source code examples can be found in the docs for each class or in the command line test application [proxycli](./test/proxycli.c).
 
 ## Build
 
@@ -58,12 +31,11 @@ ctest --verbose -C Debug
 
 ## History & Motivation
 
-The code in this library started many years ago as part of a custom HTTP/HTTPS stack we developed at [Solid State Networks](https://solidstatenetworks.com/). When we switched over to using cURL we still needed to implement the proxy resolution. We thought about using libproxy, however the license did not allow us to statically link the library for closed source commerical purposes. With changes that were needed for Windows 11 we decided to move our proxy resolution code to an open-source library since there weren't many alternatives available.
+Portions of the code for this library started many years ago as part of a custom HTTP/HTTPS stack we developed at [Solid State Networks](https://solidstatenetworks.com/). Recently we made the decision to switch over to `libcurl` but realized that we still needed to implement our own proxy resolution code. We investigated using `libproxy`, however it did not allow us to statically link the library for closed source commerical purposes.
 
 ## Todo
 
 * Test integration
-* Document API
 
 ## Resources
 

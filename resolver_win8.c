@@ -251,12 +251,9 @@ const char *proxy_resolver_win8_get_list(void *ctx) {
     return proxy_resolver->list;
 }
 
-bool proxy_resolver_win8_get_error(void *ctx, int32_t *error) {
+int32_t proxy_resolver_win8_get_error(void *ctx) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
-    if (!proxy_resolver || !error)
-        return false;
-    *error = proxy_resolver->error;
-    return true;
+    return proxy_resolver->error;
 }
 
 bool proxy_resolver_win8_wait(void *ctx, int32_t timeout_ms) {

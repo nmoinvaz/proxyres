@@ -73,13 +73,11 @@ const char *proxy_resolver_get_list(void *ctx) {
     return g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
 }
 
-bool proxy_resolver_get_error(void *ctx, int32_t *error) {
+int32_t proxy_resolver_get_error(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
-    if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i) {
-        *error = ENOSYS;
-        return false;
-    }
-    return g_proxy_resolver.proxy_resolver_i->get_error(proxy_resolver->base, error);
+    if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
+        return -1;
+    return g_proxy_resolver.proxy_resolver_i->get_error(proxy_resolver->base);
 }
 
 bool proxy_resolver_wait(void *ctx, int32_t timeout_ms) {

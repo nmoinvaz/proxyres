@@ -71,29 +71,8 @@ static void print_proxy_config(int32_t option_count, char *options[]) {
     }
 }
 
-#if 0
-static void resolve_proxy_for_url(const char *url) {
-    void *proxy_resolver = proxy_resolver_create();
-    if (!proxy_resolver)
-        return;
-
-    printf("Resolving proxy for %s\n", url);
-
-    if (proxy_resolver_get_proxies_for_url(proxy_resolver, url)) {
-        // Wait for proxy to resolve asynchronously
-        proxy_resolver_wait(proxy_resolver, -1);
-
-        // Get the proxy list for the url
-        const char *list = proxy_resolver_get_list(proxy_resolver);
-        printf("  Proxy: %s\n", list ? list : "direct://");
-    }
-    proxy_resolver_delete(&proxy_resolver);
-}
-#endif
-
-static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
+static bool resolve_proxies_for_url_async(int argc, char *argv[], bool verbose) {
     bool is_ok = false;
-    int32_t error = 0;
 
     void **proxy_resolver = (void **)calloc(argc, sizeof(void *));
     if (!proxy_resolver)
@@ -126,7 +105,7 @@ static bool resolve_proxy_for_url_async(int argc, char *argv[], bool verbose) {
 
         printf("%s\n", list ? list : "direct://");
 
-        proxy_resolver_get_error(proxy_resolver[i], &error);
+        int32_t error = proxy_resolver_get_error(proxy_resolver[i]);
         if (error != 0) {
             LOG_ERROR("Unable to resolve proxy (%d)\n", error);
             is_ok = false;
@@ -237,7 +216,7 @@ int main(int argc, char *argv[]) {
         proxy_execute_uninit();
     } else if (strcmp(cmd, "resolve") == 0) {
         proxy_resolver_init();
-        if (!resolve_proxy_for_url_async(argc - argi, argv + argi, verbose))
+        if (!resolve_proxies_for_url_async(argc - argi, argv + argi, verbose))
             exit_code = 1;
         proxy_resolver_uninit();
     }

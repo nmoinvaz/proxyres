@@ -6,7 +6,7 @@ extern "C" {
 
 bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url);
 const char *proxy_resolver_win8_get_list(void *ctx);
-bool proxy_resolver_win8_get_error(void *ctx, int32_t *error);
+int32_t proxy_resolver_win8_get_error(void *ctx);
 bool proxy_resolver_win8_wait(void *ctx, int32_t timeout_ms);
 bool proxy_resolver_win8_cancel(void *ctx);
 

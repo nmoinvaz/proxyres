@@ -126,10 +126,9 @@ const char *proxy_execute_jsproxy_get_list(void *ctx) {
     return proxy_execute->list;
 }
 
-bool proxy_execute_jsproxy_get_error(void *ctx, int32_t *error) {
+int32_t proxy_execute_jsproxy_get_error(void *ctx) {
     proxy_execute_jsproxy_s *proxy_execute = (proxy_execute_jsproxy_s *)ctx;
-    *error = proxy_execute->error;
-    return true;
+    return proxy_execute->error;
 }
 
 void *proxy_execute_jsproxy_create(void) {

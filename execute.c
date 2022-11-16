@@ -35,10 +35,10 @@ const char *proxy_execute_get_list(void *ctx) {
     return g_proxy_execute.proxy_execute_i->get_list(ctx);
 }
 
-bool proxy_execute_get_error(void *ctx, int32_t *error) {
+int32_t proxy_execute_get_error(void *ctx) {
     if (!g_proxy_execute.proxy_execute_i)
-        return false;
-    return g_proxy_execute.proxy_execute_i->get_error(ctx, error);
+        return -1;
+    return g_proxy_execute.proxy_execute_i->get_error(ctx);
 }
 
 void *proxy_execute_create(void) {
