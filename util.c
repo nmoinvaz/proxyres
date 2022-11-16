@@ -7,7 +7,7 @@
 #include <ctype.h>
 
 #ifdef _WIN32
-#define strcasecmp _stricmp
+#define strcasecmp  _stricmp
 #define strncasecmp _strnicmp
 #endif
 
@@ -196,11 +196,74 @@ char *get_url_scheme(const char *url, const char *fallback) {
     return NULL;
 }
 
+// Create url from host with port
+char *get_url_from_host(const char *scheme, const char *host) {
+    // Get scheme in case we are passed a url
+    char *url_scheme = get_url_scheme(scheme, "http");
+
+    // Create buffer to store and return url
+    size_t max_url = strlen(host) + strlen(url_scheme) + 16;
+    char *url = (char *)calloc(max_url, sizeof(char));
+    if (!url)
+        return NULL;
+
+    // Construct url with scheme and host
+    snprintf(url, max_url, "%s://%s", url_scheme, host);
+
+    // Append port if it does not exist
+    if (strchr(host, ':') == NULL) {
+        size_t url_len = strlen(url);
+        snprintf(url + url_len, max_url - url_len, ":%d", get_scheme_default_port(url_scheme));
+    }
+
+    return url;
+}
+
+// Get port from host
+int32_t get_host_port(const char *host, size_t host_len, int32_t default_port) {
+    int32_t port = default_port;
+    const char *port_start = str_find_len_char(host, host_len, ':');
+    if (port_start) {
+        port_start++;
+        port = strtoul(port_start, NULL, 0);
+    }
+    return port;
+}
+
+// Use scheme based on port specified
+const char *get_port_scheme(int32_t port, const char *default_scheme) {
+    switch (port) {
+    case 80:
+        return "http";
+    case 443:
+        return "https";
+    case 1080:
+        return "socks";
+    case 21:
+        return "ftp";
+    }
+    return default_scheme;
+}
+
+// Get default port for a scheme
+int32_t get_scheme_default_port(const char *scheme) {
+    // Use scheme based on port specified
+    if (!strcasecmp(scheme, "http"))
+        return 80;
+    if (!strcasecmp(scheme, "https"))
+        return 443;
+    if (!strcasecmp(scheme, "socks"))
+        return 1080;
+    if (!strcasecmp(scheme, "ftp"))
+        return 21;
+    return -1;
+}
+
 // Convert proxy list returned by FindProxyForURL to a list of uris separated by commas.
 // The proxy list contains one or more proxies separated by semicolons:
 //    returnValue = type host,":",port,[{ ";",returnValue }];
 //    type        = "DIRECT" | "PROXY" | "SOCKS" | "HTTP" | "HTTPS" | "SOCKS4" | "SOCKS5"
-char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallback_scheme) {
+char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default_scheme) {
     if (!proxy_list)
         return NULL;
 
@@ -213,10 +276,10 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
     if (!uri_list)
         return NULL;
 
+    // Enumerate each proxy in the proxy list.
     const char *config_start = proxy_list;
     const char *config_end = NULL;
 
-    // Enumerate each proxy in the proxy list.
     do {
         // Ignore leading whitespace
         while (*config_start == ' ')
@@ -229,7 +292,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
 
         // Find type boundary
         const char *host_start = config_start;
-        const char *scheme = fallback_scheme;
+        const char *scheme = default_scheme;
         if (!strncasecmp(config_start, "PROXY ", 6)) {
             host_start += 6;
         } else if (!strncasecmp(config_start, "DIRECT", 6)) {
@@ -256,20 +319,10 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallbac
         // Determine scheme for type PROXY
         if (scheme == NULL) {
             // Parse port from host
-            const char *port_start = str_find_len_char(host_start, host_len, ':');
-            int32_t port = 80;
-            if (port_start) {
-                port_start++;
-                port = strtoul(port_start, NULL, 0);
-            }
+            int32_t port = get_host_port(host_start, host_len, 80);
 
-            // Use scheme based on port specified
-            switch (port) {
-                case 443: scheme = "https"; break;
-                case 80: scheme = "http"; break;
-                case 1080: scheme = "socks"; break;
-                default: scheme = "http"; break;
-            }
+            // Use scheme based on port
+            scheme = get_port_scheme(port, "http");
         }
 
         // Append proxy to uri list

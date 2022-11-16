@@ -37,8 +37,20 @@ const char *get_url_path(const char *url);
 // Get the scheme for a given url
 char *get_url_scheme(const char *url, const char *fallback);
 
+// Create url from host with port
+char *get_url_from_host(const char *scheme, const char *host);
+
+// Get port from host
+int32_t get_host_port(const char *host, size_t host_len, int32_t default_port);
+
+// Use scheme based on port specified
+const char *get_port_scheme(int32_t port, const char *default_scheme);
+
+// Get default port for a scheme
+int32_t get_scheme_default_port(const char *scheme);
+
 // Convert proxy list returned by FindProxyForURL to a list of uris separated by commas.
-char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *fallback_scheme);
+char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default_scheme);
 
 // Evaluates whether or not the proxy should be bypassed for a given url
 bool should_bypass_proxy(const char *url, const char *bypass_list);
