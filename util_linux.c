@@ -75,7 +75,7 @@ char *get_config_value(const char *config, const char *section, const char *key)
                 if (strncmp(key_start, key, key_len) == 0) {
                     // Found key, now make a copy of the value
                     int32_t value_len = line_len - key_len - 1;
-                    if (value_len >= 0) {
+                    if (value_len > 0) {
                         char *value = (char *)calloc(value_len + 1, sizeof(char));
                         if (value) {
                             strncpy(value, key_end + 1, value_len);

@@ -38,7 +38,7 @@ char *proxy_config_win_get_auto_config_url(void) {
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
         return NULL;
 
-    if (ie_config.lpszAutoConfigUrl)
+    if (ie_config.lpszAutoConfigUrl && *ie_config.lpszAutoConfigUrl)
         auto_config_url = wchar_dup_to_utf8(ie_config.lpszAutoConfigUrl);
 
     free_winhttp_ie_proxy_config(&ie_config);
@@ -52,7 +52,7 @@ char *proxy_config_win_get_proxy(const char *scheme) {
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
         return NULL;
 
-    if (ie_config.lpszProxy) {
+    if (ie_config.lpszProxy && *ie_config.lpszProxy) {
         char *proxy_list = wchar_dup_to_utf8(ie_config.lpszProxy);
         if (proxy_list) {
             proxy = get_winhttp_proxy_by_scheme(scheme, proxy_list);
@@ -71,7 +71,7 @@ char *proxy_config_win_get_bypass_list(void) {
     if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
         return NULL;
 
-    if (ie_config.lpszProxyBypass) {
+    if (ie_config.lpszProxyBypass && *ie_config.lpszProxyBypass) {
         list = wchar_dup_to_utf8(ie_config.lpszProxyBypass);
 
         // Normalize separators for all platforms to comma

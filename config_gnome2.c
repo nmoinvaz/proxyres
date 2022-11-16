@@ -54,7 +54,7 @@ char *proxy_config_gnome2_get_auto_config_url(void) {
     url = g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default,
                                                         "/system/proxy/autoconfig_url", NULL);
     if (url) {
-        if (*url != 0)
+        if (*url)
             auto_config_url = strdup(url);
         g_proxy_config_gnome2.g_free(url);
     }
@@ -81,7 +81,7 @@ char *proxy_config_gnome2_get_proxy(const char *scheme) {
     }
 
     host = g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default, host_key, NULL);
-    if (host) {
+    if (host && *host) {
         // Allocate space for host:port
         int32_t max_proxy = strlen(host) + 32;
         proxy = (char *)malloc(max_proxy);
@@ -105,11 +105,19 @@ typedef struct g_slist_for_each_bypass_s {
 
 static void gs_list_for_each_func(gpointer data, gpointer user_data) {
     g_slist_for_each_bypass_s *bypass = (g_slist_for_each_bypass_s *)user_data;
+    char *rule = (char *)data;
+
+    // Ignore empty rules
+    if (!rule || *rule == 0)
+        return;
+
     if (bypass->value == NULL) {
-        bypass->max_value += strlen((char *)data) + 2;
+        // Calculate the size of the string
+        bypass->max_value += strlen(rule) + 2;
     } else {
+        // Append the rule to the string
         int32_t bypass_len = strlen(bypass->value);
-        snprintf(bypass->value + bypass_len, bypass->max_value - bypass_len, "%s,", (char *)data);
+        snprintf(bypass->value + bypass_len, bypass->max_value - bypass_len, "%s,", rule);
     }
 }
 

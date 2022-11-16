@@ -60,7 +60,7 @@ char *proxy_config_gnome3_get_auto_config_url(void) {
         return false;
     char *url = g_proxy_config_gnome3.g_settings_get_string(settings, "autoconfig-url");
     if (url) {
-        if (*url != 0)
+        if (*url)
             auto_config_url = strdup(url);
         g_proxy_config_gnome3.g_free(url);
     }
@@ -92,7 +92,7 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
         return false;
 
     char *host = g_proxy_config_gnome3.g_settings_get_string(settings, "host");
-    if (host && *host != 0) {
+    if (host && *host) {
         // Allocate space for host:port
         int32_t max_proxy = strlen(host) + 32;
         proxy = (char *)malloc(max_proxy);
@@ -120,21 +120,24 @@ char *proxy_config_gnome3_get_bypass_list(void) {
     char **hosts = g_proxy_config_gnome3.g_settings_get_strv(settings, "ignore-hosts");
     if (hosts) {
         int32_t max_value = 0;
+
         // Enumerate the list to get the size of the bypass list
-        for (int32_t i = 0; hosts[i]; i++)
+        for (int32_t i = 0; hosts[i] && *(hosts[i]); i++)
             max_value += strlen(hosts[i]) + 2;
 
-        // Allocate space for the bypass list
-        bypass_list = calloc(max_value, sizeof(char));
-        if (bypass_list) {
-            // Enumerate hosts and copy them to the bypass list
-            for (int32_t i = 0; hosts[i]; i++) {
-                int32_t bypass_list_len = strlen(bypass_list);
-                snprintf(bypass_list + bypass_list_len, max_value - bypass_list_len, "%s,", hosts[i]);
-            }
+        if (max_value > 0) {
+            // Allocate space for the bypass list
+            bypass_list = calloc(max_value, sizeof(char));
+            if (bypass_list) {
+                // Enumerate hosts and copy them to the bypass list
+                for (int32_t i = 0; hosts[i]; i++) {
+                    int32_t bypass_list_len = strlen(bypass_list);
+                    snprintf(bypass_list + bypass_list_len, max_value - bypass_list_len, "%s,", hosts[i]);
+                }
 
-            // Remove the last separator
-            str_trim_end(bypass_list, ',');
+                // Remove the last separator
+                str_trim_end(bypass_list, ',');
+            }
         }
 
         g_proxy_config_gnome3.g_strfreev(hosts);
