@@ -198,24 +198,39 @@ char *get_url_scheme(const char *url, const char *default_scheme) {
 
 // Create url from host with port
 char *get_url_from_host(const char *scheme, const char *host) {
-    // Get scheme in case we are passed a url
-    char *url_scheme = get_url_scheme(scheme, "http");
-
     // Create buffer to store and return url
-    size_t max_url = strlen(host) + strlen(url_scheme) + 16;
+    size_t max_url = strlen(host) + strlen(scheme) + 24;
     char *url = (char *)calloc(max_url, sizeof(char));
     if (!url)
         return NULL;
 
-    // Construct url with scheme and host
-    snprintf(url, max_url, "%s://%s", url_scheme, host);
+    // In case we are passed a url instead of a scheme
+    char *real_scheme = get_url_scheme(scheme, "http");
 
-    // Append port if it does not exist
-    if (strchr(host, ':') == NULL) {
-        size_t url_len = strlen(url);
-        snprintf(url + url_len, max_url - url_len, ":%d", get_scheme_default_port(url_scheme));
+    if (strstr(host, "://") == NULL) {
+        // Construct url with scheme and host
+        snprintf(url, max_url, "%s://%s", real_scheme, host);
+    } else {
+        // Host is already a url so just copy it
+        strncat(url, host, max_url - 1);
     }
 
+    str_trim_end(url, '/');
+
+    // Find start of where we should be looking for port
+    const char *host_start = strstr(url, "://");
+    if (host_start)
+        host_start += 3;
+    else
+        host_start = url;
+
+    // Append port if it does not exist
+    if (strchr(host_start, ':') == NULL) {
+        size_t url_len = strlen(url);
+        snprintf(url + url_len, max_url - url_len, ":%d", get_scheme_default_port(real_scheme));
+    }
+
+    free(real_scheme);
     return url;
 }
 
