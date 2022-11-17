@@ -168,7 +168,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
         if (!options.lpszAutoConfigUrl) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
-            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")", "auto config url", proxy_resolver->error);
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "auto config url", proxy_resolver->error);
             goto win8_done;
         }
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
@@ -206,7 +206,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     url_wide = utf8_dup_to_wchar(url);
     if (!url_wide) {
         proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")", "wide char url", proxy_resolver->error);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "wide char url", proxy_resolver->error);
         goto win8_done;
     }
 

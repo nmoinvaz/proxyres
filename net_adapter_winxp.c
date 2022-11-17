@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "log.h"
 #include "net_adapter.h"
@@ -30,7 +31,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
 
     error = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0, NULL, &buffer_size);
     if (error != ERROR_SUCCESS && error != ERROR_BUFFER_OVERFLOW) {
-        LOG_ERROR("Unable to allocate adapter info (%d)\n", error);
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "adapter info", error);
         return false;
     }
 

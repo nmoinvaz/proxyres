@@ -2,8 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <inttypes.h>
-
-#include "curl/curl.h"
+#include <errno.h>
 
 #include "log.h"
 #include "util.h"
@@ -25,7 +24,7 @@ static size_t fetch_write_script(void *contents, size_t size, size_t nscriptb, v
 
     char *ptr = realloc(script->buffer, total_size + 1);
     if (!ptr) {
-        LOG_ERROR("Not enough memory to realloc\n");
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "script", errno);
         return 0;
     }
 
