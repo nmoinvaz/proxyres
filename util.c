@@ -176,7 +176,7 @@ const char *get_url_path(const char *url) {
 }
 
 // Get the scheme for a given url
-char *get_url_scheme(const char *url, const char *fallback) {
+char *get_url_scheme(const char *url, const char *default_scheme) {
     // Find the end of the scheme
     const char *scheme_end = strstr(url, "://");
     if (scheme_end) {
@@ -190,8 +190,8 @@ char *get_url_scheme(const char *url, const char *fallback) {
     }
 
     // Return default if no scheme found
-    if (fallback)
-        return strdup(fallback);
+    if (default_scheme)
+        return strdup(default_scheme);
 
     return NULL;
 }
