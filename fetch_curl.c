@@ -2,11 +2,14 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 #include <errno.h>
 
 #include "log.h"
 #include "util.h"
+
+#include "curl/curl.h"
 
 typedef struct script_s {
     char *buffer;
