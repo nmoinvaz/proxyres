@@ -198,24 +198,24 @@ if(WIN32)
     target_link_libraries(proxyres dhcpcsvc.lib iphlpapi.lib winhttp ws2_32)
 elseif(APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
-    target_link_libraries(proxyres PRIVATE ${CFNETWORK_LIBRARY})
+    target_link_libraries(proxyres ${CFNETWORK_LIBRARY})
 
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
-    target_link_libraries(proxyres PRIVATE ${COREFOUNDATION_LIBRARY})
+    target_link_libraries(proxyres ${COREFOUNDATION_LIBRARY})
 
     find_library(SYSTEMCONFIGURATION_LIBRARY SystemConfiguration)
-    target_link_libraries(proxyres PRIVATE ${SYSTEMCONFIGURATION_LIBRARY})
+    target_link_libraries(proxyres ${SYSTEMCONFIGURATION_LIBRARY})
 
     find_package(Threads REQUIRED)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
-    target_link_libraries(proxyres PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
     set_target_properties(proxyres PROPERTIES LINK_FLAGS -Wl,-F/Library/Frameworks)
 elseif(UNIX)
     find_package(PkgConfig REQUIRED)
 
     pkg_check_modules(deps REQUIRED IMPORTED_TARGET glib-2.0)
-    target_link_libraries(proxyres PRIVATE PkgConfig::deps)
+    target_link_libraries(proxyres PkgConfig::deps)
 
     pkg_check_modules(GConf REQUIRED gconf-2.0)
     # Don't set libraries since we are dynamically linking against them
@@ -231,9 +231,9 @@ elseif(UNIX)
 
     find_package(Threads REQUIRED)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
-    target_link_libraries(proxyres PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
-    target_link_libraries(proxyres PRIVATE dl)
+    target_link_libraries(proxyres dl)
 endif()
 
 if(PROXYRES_TEST)
