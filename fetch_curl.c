@@ -68,7 +68,6 @@ char *fetch_get(const char *url, int32_t *error) {
 
     CURLcode res = curl_easy_perform(curl_handle);
     if (res != CURLE_OK) {
-        LOG_ERROR("Unable to download URL: %s (%d)\n", url, res);
         free(script.buffer);
         script.buffer = NULL;
     }
