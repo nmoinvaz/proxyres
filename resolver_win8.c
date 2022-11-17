@@ -156,8 +156,10 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     bool is_ok = false;
     int32_t error = 0;
 
-    if (!proxy_resolver || !url)
-        return false;
+    if (!proxy_resolver || !url) {
+        proxy_resolver->error = ERROR_INVALID_PARAMETER;
+        goto win8_done;
+    }
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
     const char *auto_config_url = proxy_config_get_auto_config_url();
@@ -228,15 +230,16 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     }
 
     // WinHttpGetProxyForUrlEx always executes asynchronously
+    is_ok = true;
     goto win8_cleanup;
 
 win8_done:
 
+    is_ok = proxy_resolver->list != NULL || proxy_resolver->error == 0;
     event_set(proxy_resolver->complete);
 
 win8_cleanup:
 
-    is_ok = proxy_resolver->list != NULL || proxy_resolver->error == 0;
     free(url_wide);
 
     // Free proxy info

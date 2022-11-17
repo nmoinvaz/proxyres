@@ -46,8 +46,6 @@ if(WIN32)
     list(APPEND PROXYRES_HDRS
         config_win.h
         execute_wsh.h
-        resolver_win8.h
-        resolver_winxp.h
         util_win.h
         wpad_dhcp_win.h)
     list(APPEND PROXYRES_SRCS
@@ -56,10 +54,21 @@ if(WIN32)
         execute_wsh.c
         net_adapter_winxp.c
         mutex_win.c
-        resolver_win8.c
-        resolver_winxp.c
         util_win.c
         wpad_dhcp_win.c)
+    if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        list(APPEND PROXYRES_HDRS
+            resolver_winrt.h)
+        list(APPEND PROXYRES_SRCS
+            resolver_winrt.c)
+    else()
+        list(APPEND PROXYRES_HDRS
+            resolver_win8.h
+            resolver_winxp.h)
+        list(APPEND PROXYRES_SRCS
+            resolver_winxp.c
+            resolver_win8.c)
+    endif()
     if(PROXYRES_JSPROXY)
         list(APPEND PROXYRES_HDRS
             execute_jsproxy.h)
