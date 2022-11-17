@@ -227,7 +227,14 @@ char *get_url_from_host(const char *scheme, const char *host) {
     // Append port if it does not exist
     if (strchr(host_start, ':') == NULL) {
         size_t url_len = strlen(url);
-        snprintf(url + url_len, max_url - url_len, ":%d", get_scheme_default_port(real_scheme));
+        // Use default port based on scheme in host if available, otherwise
+        // fallback to using the scheme passed in
+        char *host_scheme = get_url_scheme(host, "http");
+
+        snprintf(url + url_len, max_url - url_len, ":%d",
+                 get_scheme_default_port(host_scheme ? host_scheme : real_scheme));
+
+        free(host_scheme);
     }
 
     free(real_scheme);
