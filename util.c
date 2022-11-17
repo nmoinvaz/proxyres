@@ -435,5 +435,7 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
         rule_start = rule_end + 1;
     } while (rule_end < bypass_list_end);
 
+    free(host);
+
     return should_bypass;
 }
