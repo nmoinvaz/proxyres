@@ -17,6 +17,12 @@ jobs:
             cxx-compiler: clang++
             cmake-args: -G Ninja
 
+          - name: Build - Ubuntu Clang CURL
+            runs-on: ubuntu-latest
+            compiler: clang
+            cxx-compiler: clang++
+            cmake-args: -G Ninja -D PROXYRES_CURL=ON
+
     steps:
     - name: Install dependencies
       run: |
