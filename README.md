@@ -6,9 +6,10 @@ Cross-platform proxy resolution with support for Linux, macOS, & Windows.
 
 * Read user's proxy configuration from `IE`, `CFNetwork`, `GSettings`, `KDE user config`, or `Environment Variables`.
 * Execute a PAC file using `Windows Script Host`, `JSProxy`, or `JavaScriptCore`.
-* Get the proxies for a URL asynchronously using `WinHTTP`, `CFNetwork`, `Gnome3`, or a custom fallback resolver.
-* POSIX compatible fallback proxy resolver with support for `WPAD` using `DHCP` and `DNS`.
-  * Starts `WPAD` discovery upon intiailization, caches every 5 minutes, and refreshes.
+* Get the proxies for a URL asynchronously using `WinHTTP`, `ProxyConfiguration`, `CFNetwork`, and `Gnome3`*.
+  * Or with a fallback proxy resolver featuring:
+    * Support for `WPAD` using `DHCP` and `DNS`.
+    * Support for PAC file execution using system scripting libraries.
 * Documentation and example command line utility.
 
 ## API
