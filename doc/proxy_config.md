@@ -46,7 +46,7 @@ free(auto_config_url);
 
 ### proxy_config_get_proxy
 
-Read the proxy configured on the user's system for a given URL scheme.
+Read the proxy configured on the user's system for a given URL scheme. Returned values are in the format of host:port and do not include the scheme.
 
 **Arguments**
 |Type|Name|Description|
