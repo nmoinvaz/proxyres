@@ -43,7 +43,7 @@ typedef struct proxy_resolver_win8_s {
     // Last system error
     int32_t error;
     // Complete event
-    HANDLE complete;
+    void *complete;
     // Proxy list
     char *list;
 } proxy_resolver_win8_s;
