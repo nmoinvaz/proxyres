@@ -161,7 +161,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         // Convert return value from FindProxyForURL to uri list
         proxy_resolver->list = convert_proxy_list_to_uri_list(list, scheme);
 
-        proxy_execute_delete(proxy_execute);
+        proxy_execute_delete(&proxy_execute);
     } else if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
         // Use explicit proxy list
         proxy_resolver->list = get_url_from_host(scheme, proxy);
