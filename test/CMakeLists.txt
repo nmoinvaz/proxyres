@@ -12,6 +12,10 @@ endif()
 add_executable(proxycli ${PROXYCLI_SRCS})
 target_link_libraries(proxycli PRIVATE proxyres)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    return()
+endif()
+
 add_test(NAME proxycli-help
     COMMAND proxycli help)
 add_test(NAME proxycli-config
@@ -80,8 +84,7 @@ endif()
 add_executable(gtest_proxyres ${TEST_SRCS})
 target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
 
-add_test(NAME gtest_proxyres
-    COMMAND gtest_proxyres)
+add_test(NAME gtest_proxyres COMMAND gtest_proxyres)
 
 if(WIN32 AND PROXYRES_JSPROXY)
     # Windows 11 or greater no longer supports PAC script execution in wininet
