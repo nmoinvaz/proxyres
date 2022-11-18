@@ -158,7 +158,8 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         // Get return value from FindProxyForURL
         const char *list = proxy_execute_get_list(proxy_execute);
 
-        // Convert return value from FindProxyForURL to uri list
+        // Convert return value from FindProxyForURL to uri list. We use the default
+        // scheme corresponding to the protocol of the original request.
         proxy_resolver->list = convert_proxy_list_to_uri_list(list, scheme);
 
         proxy_execute_delete(&proxy_execute);
