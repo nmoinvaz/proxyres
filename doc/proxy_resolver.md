@@ -49,7 +49,7 @@ Asynchronously resolves the proxies for a given URL based on the user's proxy co
 
 ### proxy_resolver_get_list
 
-Gets the list of proxies that have been resolved.
+Gets the list of proxies that have been resolved. Each proxy in the list is separated by a comma and in the format: `scheme://host:port`.
 
 **Arguments**
 |Type|Name|Description|
@@ -59,7 +59,7 @@ Gets the list of proxies that have been resolved.
 **Return**
 |Type|Description|
 |-|:-|
-|char *|Comma-deliminited uri list of proxies. For a direct connection, `direct://` is used.|
+|char *|Comma-separated list of proxies uris. For a direct connection, `direct://` is used.|
 
 ### proxy_resolver_get_error
 
