@@ -25,7 +25,7 @@ g_proxy_config_kde_s g_proxy_config_kde;
 
 enum proxy_type_enum { PROXY_TYPE_NONE, PROXY_TYPE_FIXED, PROXY_TYPE_PAC, PROXY_TYPE_WPAD, PROXY_TYPE_ENV };
 
-static bool check_proxy_type(int type) {
+static bool check_proxy_type(uint32_t type) {
     char *proxy_type = get_config_value(g_proxy_config_kde.config, "Proxy Settings", "ProxyType");
     if (!proxy_type)
         return false;
