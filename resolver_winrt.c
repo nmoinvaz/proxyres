@@ -172,6 +172,10 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
 
     uint32_t size = 0;
     result = WinRT_IVectorView_Uri_GetSize(uri_list, &size);
+    if (size == 0) {
+        proxy_resolver->list = strdup("direct://");
+        goto winrt_async_done;
+    }
 
     // Allocate string to construct the proxy list into
     int32_t max_list = size * MAX_PROXY_URL;

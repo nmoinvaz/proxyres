@@ -73,6 +73,11 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         goto win8_async_done;
     }
 
+    if (proxy_result.cEntries == 0) {
+        proxy_resolver->list = strdup("direct://");
+        goto win8_async_done;
+    }
+
     // Allocate string to construct the proxy list into
     int32_t max_list = proxy_result.cEntries * MAX_PROXY_URL;
     proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
@@ -141,7 +146,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
 win8_async_done:
 
     // Free proxy result
-    if (proxy_result.cEntries > 0)
+    if (proxy_result.cEntries)
         g_proxy_resolver_win8.winhttp_free_proxy_result(&proxy_result);
 
     event_set(proxy_resolver->complete);
