@@ -1,0 +1,41 @@
+name: Build - Windows Store
+on: [workflow_dispatch, push, pull_request]
+env:
+  TERM: xterm-256color
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Build - Windows Store
+            runs-on: windows-latest
+            cmake-args: -D CMAKE_SYSTEM_NAME=WindowsStore -D CMAKE_SYSTEM_VERSION=10.0
+
+    steps:
+    - name: Install dependencies
+      run: choco install curl
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Generate project
+      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=OFF
+
+    - name: Build project
+      run: cmake --build build --config Release
+
+    - name: Upload build errors
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: Build Errors - ${{ matrix.name }}
+        path: |
+          **/CMakeFiles/CMakeOutput.log
+          **/CMakeFiles/CMakeError.log
+          **/Testing/Temporary/LastTest.log
+          **/*.log
+        retention-days: 3
