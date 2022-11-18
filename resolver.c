@@ -19,11 +19,13 @@
 #include "resolver_mac.h"
 #elif defined(__linux__)
 #include "resolver_gnome3.h"
-#elif defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
+#elif defined(_WIN32)
+#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
 #include "resolver_winxp.h"
 #include "resolver_win8.h"
-#elif defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_PC_APP)
+#elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
 #include "resolver_winrt.h"
+#endif
 #endif
 #include "threadpool.h"
 
@@ -130,7 +132,7 @@ bool proxy_resolver_init(void) {
         return true;
     }
     memset(&g_proxy_resolver, 0, sizeof(g_proxy_resolver_s));
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#if defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
     WSADATA WsaData = {0};
     if (WSAStartup(MAKEWORD(2, 2), &WsaData) != 0) {
         LOG_ERROR("Failed to initialize winsock %d\n", WSAGetLastError());
@@ -147,14 +149,16 @@ bool proxy_resolver_init(void) {
     /* Does not work for manually specified proxy auto-config urls
     if (proxy_resolver_gnome3_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
-#elif defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
+#elif defined(_WIN32)
+#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     if (proxy_resolver_win8_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_win8_get_interface();
     else if (proxy_resolver_winxp_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winxp_get_interface();
-#elif defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_PC_APP)
+#elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
     if (proxy_resolver_winrt_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winrt_get_interface();
+#endif
 #endif
     if (!g_proxy_resolver.proxy_resolver_i)
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_posix_get_interface();
@@ -205,7 +209,7 @@ bool proxy_resolver_uninit(void) {
     if (!proxy_config_uninit())
         return false;
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#if defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
     WSACleanup();
 #endif
     return true;

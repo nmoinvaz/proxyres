@@ -65,10 +65,10 @@ bool proxy_execute_init(void) {
 #if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     if (proxy_execute_wsh_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
-#endif
 #ifdef HAVE_JSPROXY
     else if (proxy_execute_jsproxy_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_jsproxy_get_interface();
+#endif
 #endif
 #else
     if (proxy_execute_jscore_init())
