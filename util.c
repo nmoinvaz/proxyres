@@ -339,7 +339,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default
         size_t host_len = (size_t)(config_end - host_start);
 
         // Determine scheme for type PROXY
-        if (scheme == NULL) {
+        if (!scheme) {
             // Parse port from host
             int32_t port = get_host_port(host_start, host_len, 80);
 

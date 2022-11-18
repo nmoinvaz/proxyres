@@ -50,7 +50,7 @@ static threadpool_job_s *threadpool_job_create(void *user_data, threadpool_job_c
 }
 
 static bool threadpool_job_delete(threadpool_job_s **job) {
-    if (job == NULL)
+    if (!job)
         return false;
     free(*job);
     *job = NULL;

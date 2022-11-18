@@ -91,7 +91,7 @@ bool proxy_config_kde_init(void) {
         strncpy(user_home_path, home_env_var, sizeof(user_home_path));
     } else {
         struct passwd *pw = getpwuid(getuid());
-        if (pw == NULL)
+        if (!pw)
             return false;
 
         strncpy(user_home_path, pw->pw_dir, sizeof(user_home_path));

@@ -10,7 +10,7 @@
 wchar_t *utf8_dup_to_wchar(const char *src) {
     int32_t len = MultiByteToWideChar(CP_UTF8, 0, src, -1, NULL, 0);
     wchar_t *dup = (wchar_t *)calloc(len, sizeof(wchar_t));
-    if (dup == NULL)
+    if (!dup)
         return NULL;
     MultiByteToWideChar(CP_UTF8, 0, src, -1, dup, len);
     return dup;
@@ -20,7 +20,7 @@ wchar_t *utf8_dup_to_wchar(const char *src) {
 char *wchar_dup_to_utf8(const wchar_t *src) {
     int32_t len = WideCharToMultiByte(CP_UTF8, 0, src, -1, NULL, 0, NULL, NULL);
     char *dup = (char *)calloc(len, sizeof(char));
-    if (dup == NULL)
+    if (!dup)
         return NULL;
     WideCharToMultiByte(CP_UTF8, 0, src, -1, dup, len, NULL, NULL);
     return dup;

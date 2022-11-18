@@ -187,7 +187,7 @@ void *proxy_resolver_winxp_create(void) {
 
 bool proxy_resolver_winxp_delete(void **ctx) {
     proxy_resolver_winxp_s *proxy_resolver;
-    if (ctx == NULL)
+    if (!ctx)
         return false;
     proxy_resolver = (proxy_resolver_winxp_s *)*ctx;
     if (!proxy_resolver)

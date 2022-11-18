@@ -18,7 +18,7 @@ char *dns_resolve(const char *host, int32_t *error) {
     int32_t err = 0;
 
     // If no host supplied, then use local machine name
-    if (host == NULL) {
+    if (!host) {
         err = gethostname(name, sizeof(name));
         if (err != 0)
             goto dns_resolve_error;
@@ -52,7 +52,7 @@ char *dns_resolve(const char *host, int32_t *error) {
     while (next_address->ai_family != AF_INET) {
         next_address = next_address->ai_next;
         // Name not resolved
-        if (next_address == NULL)
+        if (!next_address)
             goto dns_resolve_error;
     }
 

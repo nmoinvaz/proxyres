@@ -202,7 +202,7 @@ void *proxy_resolver_gnome3_create(void) {
 
 bool proxy_resolver_gnome3_delete(void **ctx) {
     proxy_resolver_gnome3_s *proxy_resolver;
-    if (ctx == NULL)
+    if (!ctx)
         return false;
     proxy_resolver = (proxy_resolver_gnome3_s *)*ctx;
     if (!proxy_resolver)

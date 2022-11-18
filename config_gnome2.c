@@ -111,7 +111,7 @@ static void gs_list_for_each_func(gpointer data, gpointer user_data) {
     if (!rule || *rule == 0)
         return;
 
-    if (bypass->value == NULL) {
+    if (!bypass->value) {
         // Calculate the size of the string
         bypass->max_value += strlen(rule) + 2;
     } else {

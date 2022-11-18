@@ -30,7 +30,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
 
     for (ifa = ifp; ifa; ifa = ifa->ifa_next) {
         // Ignore non-IPv4 adapters
-        if (ifa->ifa_addr == NULL || ifa->ifa_addr->sa_family != AF_INET)
+        if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET)
             continue;
 
         memset(&adapter, 0, sizeof(adapter));

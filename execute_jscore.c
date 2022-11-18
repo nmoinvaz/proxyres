@@ -144,12 +144,12 @@ static JSValueRef proxy_execute_jscore_dns_resolve(JSContextRef ctx, JSObjectRef
         return NULL;
 
     JSStringRef host_string = g_proxy_execute_jscore.JSValueToStringCopy(ctx, argv[0], NULL);
-    if (host_string == NULL)
+    if (!host_string)
         return NULL;
 
     char *host = js_string_dup_to_utf8(host_string);
     g_proxy_execute_jscore.JSStringRelease(host_string);
-    if (host == NULL)
+    if (!host)
         return NULL;
 
     char *address = dns_resolve(host, NULL);
@@ -343,9 +343,9 @@ bool proxy_execute_jscore_init(void) {
         "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
 #else
     g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
-    if (g_proxy_execute_jscore.module == NULL)
+    if (!g_proxy_execute_jscore.module)
         g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-3.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (g_proxy_execute_jscore.module == NULL)
+    if (!g_proxy_execute_jscore.module)
         g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-1.0.so.0", RTLD_LAZY | RTLD_LOCAL);
 #endif
 
