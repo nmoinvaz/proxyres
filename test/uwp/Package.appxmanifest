@@ -4,11 +4,11 @@
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
   IgnorableNamespaces="uap mp">
-  <Identity Name="proxycli" Publisher="CN=proxyres" Version="1.0.0.0" />
+  <Identity Name="proxycli" Publisher="CN=CMake" Version="1.0.0.0" />
   <mp:PhoneIdentity PhoneProductId="44aa77dd-e529-4e34-afee-b47dc9485484" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>proxycli</DisplayName>
-    <PublisherDisplayName>proxyres</PublisherDisplayName>
+    <PublisherDisplayName>CMake</PublisherDisplayName>
     <Logo>StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
