@@ -1,5 +1,15 @@
-add_executable(proxycli proxycli.c)
+set(PROXYCLI_SRCS proxycli.c)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    list(APPEND PROXYCLI_SRCS
+        uwp/Square44x44Logo.png
+        uwp/Square150x150Logo.png
+        uwp/StoreLogo.png
+        uwp/Package.appxmanifest
+        uwp/Windows_TemporaryKey.pfx)
+endif()
+
+add_executable(proxycli ${PROXYCLI_SRCS})
 target_link_libraries(proxycli PRIVATE proxyres)
 
 add_test(NAME proxycli-help
