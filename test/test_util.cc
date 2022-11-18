@@ -31,13 +31,59 @@ class util_url_host : public ::testing::TestWithParam<get_url_host_param> {};
 
 INSTANTIATE_TEST_SUITE_P(util, util_url_host, testing::ValuesIn(get_url_host_tests));
 
-TEST_P(util_url_host, parse) {
+TEST_P(util_url_host, get) {
     const auto &param = GetParam();
     char *host = get_url_host(param.string);
     EXPECT_NE(host, nullptr);
     if (host) {
         EXPECT_STREQ(host, param.expected);
         free(host);
+    }
+}
+
+struct get_url_from_host_param {
+    const char *scheme;
+    const char *host;
+    const char *expected;
+
+    friend std::ostream &operator<<(std::ostream &os, const get_url_from_host_param &param) {
+        return os << "scheme: " << param.scheme << std::endl
+                  << "host: " << param.host;
+    }
+};
+
+constexpr get_url_from_host_param get_url_from_host_tests[] = {
+    // Http no scheme no port
+    {"http", "1.1.1.1", "http://1.1.1.1:80"},
+    {"http", "yahoo.com", "http://yahoo.com:80"},
+    // Http no scheme with port
+    {"http", "1.1.1.1:80", "http://1.1.1.1:80"},
+    // Https no scheme no port
+    {"https", "127.0.0.1", "http://127.0.0.1:80"},
+    {"https://google.com", "google.com", "https://google.com:80"},
+    // Http scheme no port
+    {"http", "http://bing.com", "http://bing.com:80"},
+    // Https scheme no port
+    {"https", "https://bing.com", "https://bing.com:443"},
+    // Https scheme with port
+    {"https", "https://bing.com:443", "https://bing.com:443"},
+    // Http mixed-scheme
+    {"http", "https://bing.com", "https://bing.com:443"},
+    // Https mixed-scheme
+    {"https", "http://bing.com", "http://bing.com:80"},
+};
+
+class util_url_from_host : public ::testing::TestWithParam<get_url_from_host_param> {};
+
+INSTANTIATE_TEST_SUITE_P(util, util_url_from_host, testing::ValuesIn(get_url_from_host_tests));
+
+TEST_P(util_url_from_host, get) {
+    const auto &param = GetParam();
+    char *host_url = get_url_from_host(param.scheme, param.host);
+    EXPECT_NE(host_url, nullptr);
+    if (host_url) {
+        EXPECT_STREQ(host_url, param.expected);
+        free(host_url);
     }
 }
 
