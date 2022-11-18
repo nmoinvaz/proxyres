@@ -141,11 +141,11 @@ static bool dhcp_send_inform(SOCKET sfd, uint32_t xid, net_adapter_s *adapter) {
     opts = dhcp_copy_magic(opts);
 
     // Construct request options
-    dhcp_option opt_msg_type = {DHCP_OPT_MSGTYPE, 1, DHCP_INFORM};
+    dhcp_option opt_msg_type = {DHCP_OPT_MSGTYPE, 1, {DHCP_INFORM}};
     opts = dhcp_copy_option(opts, &opt_msg_type);
-    dhcp_option opt_param_req = {DHCP_OPT_PARAMREQ, 1, DHCP_OPT_WPAD};
+    dhcp_option opt_param_req = {DHCP_OPT_PARAMREQ, 1, {DHCP_OPT_WPAD}};
     opts = dhcp_copy_option(opts, &opt_param_req);
-    dhcp_option opt_end = {DHCP_OPT_END, 0, 0};
+    dhcp_option opt_end = {DHCP_OPT_END, 0, {0}};
     opts = dhcp_copy_option(opts, &opt_end);
 
     // Broadcast DHCP request
