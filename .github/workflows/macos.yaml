@@ -46,7 +46,7 @@ jobs:
       # Used by wpad.dhcp googletest
       run: |
         npx pm2 start dhcp_server_cmd.js --output dhcp_server.log
-        sleep 25
+        sleep 5
       working-directory: test
 
     - name: Run tests
