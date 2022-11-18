@@ -9,7 +9,9 @@
 #ifdef HAVE_JSPROXY
 #include "execute_jsproxy.h"
 #endif
+#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
 #include "execute_wsh.h"
+#endif
 #else
 #include "execute_jscore.h"
 #endif
@@ -60,8 +62,10 @@ bool proxy_execute_init(void) {
     }
     memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
 #ifdef _WIN32
+#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     if (proxy_execute_wsh_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
+#endif
 #ifdef HAVE_JSPROXY
     else if (proxy_execute_jsproxy_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_jsproxy_get_interface();

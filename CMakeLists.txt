@@ -45,13 +45,11 @@ set(PROXYRES_SRCS
 if(WIN32)
     list(APPEND PROXYRES_HDRS
         config_win.h
-        execute_wsh.h
         util_win.h
         wpad_dhcp_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
         event_win.c
-        execute_wsh.c
         net_adapter_winxp.c
         mutex_win.c
         util_win.c
@@ -63,9 +61,11 @@ if(WIN32)
             resolver_winrt.c)
     else()
         list(APPEND PROXYRES_HDRS
+            execute_wsh.h
             resolver_win8.h
             resolver_winxp.h)
         list(APPEND PROXYRES_SRCS
+            execute_wsh.c
             resolver_winxp.c
             resolver_win8.c)
     endif()
