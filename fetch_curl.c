@@ -75,6 +75,7 @@ char *fetch_get(const char *url, int32_t *error) {
     if (error)
         *error = res;
 
+    curl_slist_free_all(headers);
     curl_easy_cleanup(curl_handle);
     return script.buffer;
 }
