@@ -372,10 +372,9 @@ void *proxy_resolver_winrt_create(void) {
 }
 
 bool proxy_resolver_winrt_delete(void **ctx) {
-    proxy_resolver_winrt_s *proxy_resolver;
     if (!ctx)
         return false;
-    proxy_resolver = (proxy_resolver_winrt_s *)*ctx;
+    proxy_resolver_winrt_s *proxy_resolver = (proxy_resolver_winrt_s *)*ctx;
     if (!proxy_resolver)
         return false;
     proxy_resolver_winrt_cancel(ctx);

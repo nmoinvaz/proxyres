@@ -268,10 +268,9 @@ void *threadpool_create(int32_t min_threads, int32_t max_threads) {
 }
 
 bool threadpool_delete(void **ctx) {
-    threadpool_s *threadpool;
     if (!ctx)
         return false;
-    threadpool = (threadpool_s *)*ctx;
+    threadpool_s *threadpool = (threadpool_s *)*ctx;
     if (!threadpool)
         return false;
 

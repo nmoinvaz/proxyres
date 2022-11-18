@@ -137,10 +137,9 @@ void *proxy_execute_jsproxy_create(void) {
 }
 
 bool proxy_execute_jsproxy_delete(void **ctx) {
-    proxy_execute_jsproxy_s *proxy_execute;
     if (!ctx)
         return false;
-    proxy_execute = (proxy_execute_jsproxy_s *)*ctx;
+    proxy_execute_jsproxy_s *proxy_execute = (proxy_execute_jsproxy_s *)*ctx;
     if (!proxy_execute)
         return false;
     free(proxy_execute->list);

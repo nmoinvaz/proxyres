@@ -222,10 +222,9 @@ void *proxy_resolver_posix_create(void) {
 }
 
 bool proxy_resolver_posix_delete(void **ctx) {
-    proxy_resolver_posix_s *proxy_resolver;
     if (!ctx)
         return false;
-    proxy_resolver = (proxy_resolver_posix_s *)*ctx;
+    proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)*ctx;
     if (!proxy_resolver)
         return false;
     proxy_resolver_cancel(ctx);

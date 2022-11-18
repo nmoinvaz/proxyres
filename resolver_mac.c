@@ -214,10 +214,9 @@ void *proxy_resolver_mac_create(void) {
 }
 
 bool proxy_resolver_mac_delete(void **ctx) {
-    proxy_resolver_mac_s *proxy_resolver;
     if (!ctx)
         return false;
-    proxy_resolver = (proxy_resolver_mac_s *)*ctx;
+    proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)*ctx;
     if (!proxy_resolver)
         return false;
     proxy_resolver_mac_cancel(ctx);

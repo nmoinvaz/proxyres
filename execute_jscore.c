@@ -321,10 +321,9 @@ void *proxy_execute_jscore_create(void) {
 }
 
 bool proxy_execute_jscore_delete(void **ctx) {
-    proxy_execute_jscore_s *proxy_execute;
     if (!ctx)
         return false;
-    proxy_execute = (proxy_execute_jscore_s *)*ctx;
+    proxy_execute_jscore_s *proxy_execute = (proxy_execute_jscore_s *)*ctx;
     if (!proxy_execute)
         return false;
     free(proxy_execute->list);

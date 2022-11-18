@@ -294,10 +294,9 @@ void *proxy_resolver_win8_create(void) {
 }
 
 bool proxy_resolver_win8_delete(void **ctx) {
-    proxy_resolver_win8_s *proxy_resolver;
     if (!ctx)
         return false;
-    proxy_resolver = (proxy_resolver_win8_s *)*ctx;
+    proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)*ctx;
     if (!proxy_resolver)
         return false;
     proxy_resolver_win8_cancel(ctx);
