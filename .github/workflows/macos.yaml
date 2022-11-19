@@ -15,7 +15,8 @@ jobs:
             runs-on: macos-latest
             compiler: clang
             cxx-compiler: clang++
-            cmake-args: -G Xcode
+            cmake-args: -G Xcode -D PROXYRES_CODE_COVERAGE=ON
+            codecov: macos
 
     steps:
     - name: Checkout repository
@@ -175,6 +176,24 @@ jobs:
           exit 1
         fi
       working-directory: build/test/Release
+
+    - name: Generate coverage report
+      if: always()
+      run: |
+        python3 -u -m pip install --user gcovr --ignore-installed
+        python3 -m gcovr --exclude-unreachable-branches --gcov-ignore-parse-errors --gcov-executable "${{ matrix.gcov-exec || 'gcov' }}" --root . --xml --output coverage.xml --verbose
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v2
+      if: always()
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: ${{ matrix.codecov }}
+        name: ${{ matrix.name }}
+        verbose: false
+        fail_ci_if_error: true
+      env:
+        CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
 
     - name: Upload build errors
       uses: actions/upload-artifact@v2
