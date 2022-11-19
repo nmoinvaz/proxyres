@@ -129,17 +129,32 @@ endif()
 add_compile_definitions($<IF:$<CONFIG:Debug>,_DEBUG,_NDEBUG>)
 
 if(PROXYRES_CODE_COVERAGE AND NOT MSVC)
-    message(STATUS "Code coverage enabled")
+    # Check for -coverage flag support for Clang/GCC
+    if(CMAKE_VERSION VERSION_LESS 3.14)
+        set(CMAKE_REQUIRED_LIBRARIES -lgcov)
+    else()
+        set(CMAKE_REQUIRED_LINK_OPTIONS -coverage)
+    endif()
+    check_c_compiler_flag(-coverage HAVE_COVERAGE)
+    set(CMAKE_REQUIRED_LIBRARIES)
+    set(CMAKE_REQUIRED_LINK_OPTIONS)
 
-    add_compile_options(-O0 -g -fprofile-arcs -ftest-coverage)
-    set_property(DIRECTORY PROPERTY
-        GCC_INSTRUMENT_PROGRAM_FLOW_ARCS YES
-        GCC_GENERATE_TEST_COVERAGE_FILES YES)
+    if(HAVE_COVERAGE)
+        add_compile_options(-coverage)
+        add_link_options(-coverage)
 
-    if(CMAKE_C_COMPILER_ID MATCHES "(Apple)?[Cc]lang")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-    elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-        link_libraries(gcov)
+        if(CMAKE_C_COMPILER_ID MATCHES "GNU")
+            link_libraries(gcov)
+        endif()
+
+        # Disable optimization for code coverage. Prepend the optimization flags to
+        # override any default flags set by CMake for the configuration type on Windows.
+        set(CMAKE_C_FLAGS "-O0 ${CMAKE_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "-O0 ${CMAKE_CXX_FLAGS}")
+
+        message(STATUS "Code coverage enabled using: -coverage")
+    else()
+        message(WARNING "Code coverage not supported")
     endif()
 endif()
 
