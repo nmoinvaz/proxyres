@@ -128,24 +128,24 @@ endif()
 
 add_compile_definitions($<IF:$<CONFIG:Debug>,_DEBUG,_NDEBUG>)
 
+if(PROXYRES_CODE_COVERAGE AND NOT MSVC)
+    message(STATUS "Code coverage enabled")
+
+    add_compile_options(-O0 -g -fprofile-arcs -ftest-coverage)
+    set_property(DIRECTORY PROPERTY
+        GCC_INSTRUMENT_PROGRAM_FLOW_ARCS YES
+        GCC_GENERATE_TEST_COVERAGE_FILES YES)
+
+    if(CMAKE_C_COMPILER_ID MATCHES "(Apple)?[Cc]lang")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
+        link_libraries(gcov)
+    endif()
+endif()
+
 add_library(proxyres ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
 target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-if(PROXYRES_CODE_COVERAGE)
-    if(NOT MSVC)
-        message(STATUS "Code coverage enabled")
-        add_compile_options(-O0 -g -fprofile-arcs -ftest-coverage)
-        if(CMAKE_C_COMPILER_ID MATCHES "(Apple)?[Cc]lang")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-        elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-            link_libraries(gcov)
-        endif()
-        set_property(DIRECTORY PROPERTY
-            GCC_INSTRUMENT_PROGRAM_FLOW_ARCS YES
-            GCC_GENERATE_TEST_COVERAGE_FILES YES)
-    endif()
-endif()
 
 if(PROXYRES_CURL)
     if(NOT TARGET CURL::libcurl)
