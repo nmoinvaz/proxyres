@@ -133,7 +133,9 @@ jobs:
       working-directory: build/test/Release
 
     - name: Set proxy auto config url setting (networksetup)
-      run: networksetup -setautoproxyurl Ethernet http://127.0.0.1:8080/pac.js
+      run: |
+        networksetup -setautoproxyurl Ethernet http://127.0.0.1:8080/pac.js
+        networksetup -setautoproxystate Ethernet on
 
     - name: Check proxy resolution (networksetup)
       shell: bash
