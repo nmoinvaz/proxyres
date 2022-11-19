@@ -172,14 +172,22 @@ jobs:
         reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
 
     - name: Generate coverage report
-      if: always()
+      shell: bash
+      if: always() && matrix.codecov
       run: |
         python3 -u -m pip install --user gcovr --ignore-installed
-        python3 -m gcovr --exclude-unreachable-branches --gcov-ignore-parse-errors --gcov-executable "${{ matrix.gcov-exec || 'gcov' }}" --root . --xml --output coverage.xml --verbose
+        python3 -m gcovr \
+          --exclude-unreachable-branches \
+          --gcov-ignore-parse-errors \
+          --gcov-executable "${{ matrix.gcov-exec || 'gcov' }}" \
+          --root . \
+          --xml \
+          --output coverage.xml \
+          --verbose
 
     - name: Upload coverage report
       uses: codecov/codecov-action@v2
-      if: always()
+      if: always() && matrix.codecov && env.CODECOV_TOKEN != ''
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: ${{ matrix.codecov }}
