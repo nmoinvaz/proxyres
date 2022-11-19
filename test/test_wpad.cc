@@ -44,12 +44,11 @@ TEST(wpad, dhcp) {
     free(wpad);
 }
 
-#if 0
 TEST(wpad, dns) {
     char *wpad = wpad_dns(NULL);
-    EXPECT_NE(wpad, nullptr);
+    (void *)wpad;
+    /*EXPECT_NE(wpad, nullptr);
     if (wpad)
         EXPECT_STREQ(wpad, "http://wpad.com/wpad.dat");
-    free(wpad);
+    free(wpad);*/
 }
-#endif
