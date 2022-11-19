@@ -187,6 +187,9 @@ jobs:
       env:
         XDG_CURRENT_DESKTOP: GNOME
 
+    - name: Reset proxy settings (gsettings)
+      run: gsettings set org.gnome.system.proxy mode 'none'
+
     # Run env tests after gsettings since environment variables are set for all
     # subsequent steps.
     - name: Set proxy settings (env)
@@ -223,6 +226,12 @@ jobs:
           exit 1
         fi
       working-directory: build/test
+
+    - name: Reset proxy settings (env)
+      run: |
+        echo "http_proxy=" >> $GITHUB_ENV
+        echo "https_proxy=" >> $GITHUB_ENV
+        echo "no_proxy=" >> $GITHUB_ENV
 
     - name: Generate coverage report
       if: always()

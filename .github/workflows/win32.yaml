@@ -166,6 +166,11 @@ jobs:
         fi
       working-directory: build/test/Release
 
+    - name: Reset proxy settings (IE)
+      run: |
+        reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL /f
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f
+
     - name: Generate coverage report
       if: always()
       run: |

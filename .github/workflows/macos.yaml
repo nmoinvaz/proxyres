@@ -177,6 +177,12 @@ jobs:
         fi
       working-directory: build/test/Release
 
+    - name: Reset proxy settings (networksetup)
+      run: |
+        networksetup -setautoproxystate Ethernet off
+        networksetup -setwebproxystate Ethernet off
+        networksetup -setsecurewebproxystate Ethernet off
+
     - name: Generate coverage report
       if: always()
       run: |
