@@ -23,11 +23,9 @@ typedef struct g_proxy_resolver_gnome3_s {
     GCancellable *(*g_cancellable_new)(void);
     void (*g_cancellable_cancel)(GCancellable *cancellable);
     // GProxy resolution functions
-    gboolean (*g_proxy_resolver_is_supported)(GProxyResolver *resolver);
     GProxyResolver *(*g_proxy_resolver_get_default)(void);
     gchar **(*g_proxy_resolver_lookup)(GProxyResolver *resolver, const gchar *uri, GCancellable *cancellable,
                                        GError **error);
-    gchar **(*g_proxy_resolver_lookup_finish)(GProxyResolver *resolver, GAsyncResult *result, GError **error);
     // Glib module handle
     void *glib_module;
     // Glib functions
@@ -70,14 +68,6 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
     if (!proxy_resolver->resolver) {
         proxy_resolver->error = ENOMEM;
         LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "resolver object", proxy_resolver->error);
-        return false;
-    }
-
-    // Check to see if proxy resolution is supported;
-    if (!g_proxy_resolver_gnome3.g_proxy_resolver_is_supported(proxy_resolver->resolver)) {
-        proxy_resolver_gnome3_delete_resolver(proxy_resolver);
-        proxy_resolver->error = ENOTSUP;
-        LOG_ERROR("Proxy resolver is not supported (%" PRId32 ")\n", proxy_resolver->error);
         return false;
     }
 
@@ -248,10 +238,6 @@ bool proxy_resolver_gnome3_init(void) {
         goto gnome3_init_error;
 
     // GProxyResolver functions
-    g_proxy_resolver_gnome3.g_proxy_resolver_is_supported =
-        dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_is_supported");
-    if (!g_proxy_resolver_gnome3.g_proxy_resolver_is_supported)
-        goto gnome3_init_error;
     g_proxy_resolver_gnome3.g_proxy_resolver_get_default =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_get_default");
     if (!g_proxy_resolver_gnome3.g_proxy_resolver_get_default)
@@ -259,10 +245,6 @@ bool proxy_resolver_gnome3_init(void) {
     g_proxy_resolver_gnome3.g_proxy_resolver_lookup =
         dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup");
     if (!g_proxy_resolver_gnome3.g_proxy_resolver_lookup)
-        goto gnome3_init_error;
-    g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish =
-        dlsym(g_proxy_resolver_gnome3.gio_module, "g_proxy_resolver_lookup_finish");
-    if (!g_proxy_resolver_gnome3.g_proxy_resolver_lookup_finish)
         goto gnome3_init_error;
 
     return true;
