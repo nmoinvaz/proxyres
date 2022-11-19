@@ -8,71 +8,66 @@ option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
 
 project(proxyres)
 
-set(PROXYRES_HDRS
+set(PROXYRES_SRCS
     config.h
     config_i.h
+    config.c
     dns.h
+    dns.c
+    event.h
     execute.h
     execute_i.h
-    event.h
+    execute.c
     fetch.h
     log.h
     mozilla_js.h
     mutex.h
     net_adapter.h
+    net_adapter.c
     proxyres.h
+    proxyres.c
     resolver.h
     resolver_i.h
+    resolver.c
     resolver_posix.h
+    resolver_posix.c
     threadpool.h
     util.h
     util_socket.h
-    wpad_dhcp.h
-    wpad_dhcp_posix.h
-    wpad_dns.h)
-set(PROXYRES_SRCS
-    config.c
-    dns.c
-    execute.c
-    proxyres.c
-    net_adapter.c
-    resolver.c
-    resolver_posix.c
     util.c
+    wpad_dhcp.h
     wpad_dhcp.c
+    wpad_dhcp_posix.h
     wpad_dhcp_posix.c
+    wpad_dns.h
     wpad_dns.c)
 if(WIN32)
-    list(APPEND PROXYRES_HDRS
-        config_win.h
-        util_win.h
-        wpad_dhcp_win.h)
     list(APPEND PROXYRES_SRCS
+        config_win.h
         config_win.c
         event_win.c
         net_adapter_winxp.c
         mutex_win.c
+        util_win.h
         util_win.c
+        wpad_dhcp_win.h
         wpad_dhcp_win.c)
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-        list(APPEND PROXYRES_HDRS
-            resolver_winrt.h)
         list(APPEND PROXYRES_SRCS
+            resolver_winrt.h
             resolver_winrt.c)
     else()
-        list(APPEND PROXYRES_HDRS
-            execute_wsh.h
-            resolver_win8.h
-            resolver_winxp.h)
         list(APPEND PROXYRES_SRCS
+            execute_wsh.h
             execute_wsh.c
-            resolver_winxp.c
-            resolver_win8.c)
+            resolver_win8.h
+            resolver_win8.c
+            resolver_winxp.h
+            resolver_winxp.c)
     endif()
     if(PROXYRES_JSPROXY)
-        list(APPEND PROXYRES_HDRS
-            execute_jsproxy.h)
         list(APPEND PROXYRES_SRCS
+            execute_jsproxy.h
             execute_jsproxy.c)
         add_compile_definitions(HAVE_JSPROXY)
     endif()
@@ -84,40 +79,38 @@ if(WIN32)
             threadpool_winxp.c)
     endif()
 elseif(APPLE)
-    list(APPEND PROXYRES_HDRS
-        config_mac.h
-        execute_jscore.h
-        resolver_mac.h
-        wpad_dhcp_mac.h)
     list(APPEND PROXYRES_SRCS
+        config_mac.h
         config_mac.c
         event_pthread.c
+        execute_jscore.h
         execute_jscore.c
         net_adapter_mac.c
         mutex_pthread.c
+        resolver_mac.h
         resolver_mac.c
         threadpool_pthread.c
+        wpad_dhcp_mac.h
         wpad_dhcp_mac.c)
 elseif(UNIX)
-    list(APPEND PROXYRES_HDRS
-        config_env.h
-        config_gnome2.h
-        config_gnome3.h
-        config_kde.h
-        execute_jscore.h
-        resolver_gnome3.h
-        util_linux.h)
     list(APPEND PROXYRES_SRCS
+        config_env.h
         config_env.c
+        config_gnome2.h
         config_gnome2.c
+        config_gnome3.h
         config_gnome3.c
+        config_kde.h
         config_kde.c
         event_pthread.c
+        execute_jscore.h
         execute_jscore.c
         mutex_pthread.c
         net_adapter_linux.c
+        resolver_gnome3.h
         resolver_gnome3.c
         threadpool_pthread.c
+        util_linux.h
         util_linux.c)
 endif()
 
@@ -138,7 +131,7 @@ else()
     add_compile_definitions(_NDEBUG)
 endif()
 
-add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS})
+add_library(proxyres ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
 target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
