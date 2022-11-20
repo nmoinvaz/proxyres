@@ -204,8 +204,8 @@ static void threadpool_delete_threads(threadpool_s *threadpool) {
             // Signal wake up condition to wake up threads to stop
             SetEvent(threadpool->wakeup_cond);
             DWORD wait = WaitForSingleObject(thread->handle, 250);
-            if (wait == WAIT_TIMEOUT)
-                continue;
+            if (wait != WAIT_TIMEOUT)
+                break;
         }
 
         free(thread);
