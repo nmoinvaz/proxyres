@@ -27,6 +27,7 @@ jobs:
             compiler: gcc
             cxx-compiler: g++
             codecov: windows
+            binary-dir: build/test
 
     steps:
     - name: Install dependencies
@@ -133,7 +134,7 @@ jobs:
           echo "Proxy bypass set failed"
           exit 1
         fi
-      working-directory: build/test/Release
+      working-directory: ${{ matrix.binary-dir || 'build/test/Release' }}
 
     - name: Turn off proxy settings (IE)
       run: |
@@ -171,7 +172,7 @@ jobs:
           echo "Proxy for https://multi.com/ set failed"
           exit 1
         fi
-      working-directory: build/test/Release
+      working-directory: ${{ matrix.binary-dir || 'build/test/Release' }}
 
     - name: Reset proxy settings (IE)
       run: |
