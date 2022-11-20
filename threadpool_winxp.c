@@ -123,8 +123,7 @@ static DWORD WINAPI threadpool_do_work(LPVOID arg) {
 
         // Do the job
         if (job) {
-            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", thread->id,
-                      (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", thread->id, (intptr_t)job);
             job->callback(job->user_data);
             LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", thread->id, (intptr_t)job);
             threadpool_job_delete(&job);

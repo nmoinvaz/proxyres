@@ -52,7 +52,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         // Ignore non-physical adapters
         if (adapter_addresses->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
             continue;
-        if (adapter_addresses->IfType != IF_TYPE_ETHERNET_CSMACD &&  adapter_addresses->IfType != IF_TYPE_IEEE80211)
+        if (adapter_addresses->IfType != IF_TYPE_ETHERNET_CSMACD && adapter_addresses->IfType != IF_TYPE_IEEE80211)
             continue;
 
         memset(&adapter, 0, sizeof(adapter));

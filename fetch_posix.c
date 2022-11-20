@@ -19,8 +19,8 @@
 #ifdef _WIN32
 #define socketerr WSAGetLastError()
 #else
-#define socketerr errno
-#define SOCKET int
+#define socketerr   errno
+#define SOCKET      int
 #define closesocket close
 #endif
 
@@ -95,11 +95,12 @@ char *fetch_get(const char *url, int32_t *error) {
     // Create http request using bare-minimum headers
     char request[512];
     snprintf(request, sizeof(request),
-        "GET %s HTTP/1.0\r\n"
-        "Host: %s\r\n"
-        "Accept: application/x-ns-proxy-autoconfig\r\n"
-        "Connection: close\r\n"
-        "\r\n", get_url_path(url), host);
+             "GET %s HTTP/1.0\r\n"
+             "Host: %s\r\n"
+             "Accept: application/x-ns-proxy-autoconfig\r\n"
+             "Connection: close\r\n"
+             "\r\n",
+             get_url_path(url), host);
 
     // Send request
     size_t written = send(sfd, request, (int)strlen(request), 0);

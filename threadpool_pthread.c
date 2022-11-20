@@ -118,9 +118,11 @@ static void *threadpool_do_work(void *arg) {
 
         // Do the job
         if (job) {
-            LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - processing job 0x%" PRIxPTR "\n", (uint64_t)pthread_self(), (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - processing job 0x%" PRIxPTR "\n", (uint64_t)pthread_self(),
+                      (intptr_t)job);
             job->callback(job->user_data);
-            LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - job complete 0x%" PRIxPTR "\n", (uint64_t)pthread_self(), (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - job complete 0x%" PRIxPTR "\n", (uint64_t)pthread_self(),
+                      (intptr_t)job);
             threadpool_job_delete(&job);
         }
 

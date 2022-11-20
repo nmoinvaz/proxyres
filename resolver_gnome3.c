@@ -126,7 +126,7 @@ bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
     if (proxy_resolver_gnome3_create_resolver(proxy_resolver)) {
         // Get list of proxies from resolver
         proxies = g_proxy_resolver_gnome3.g_proxy_resolver_lookup(proxy_resolver->resolver, url,
-                                                                proxy_resolver->cancellable, &error);
+                                                                  proxy_resolver->cancellable, &error);
         proxy_resolver_gnome3_get_proxies(proxy_resolver, proxies, error);
 
         if (error) {
