@@ -23,13 +23,13 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Generate project
-      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=OFF -D PROXYRES_TEST_WPAD=ON
+      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=RelWithDebInfo -D BUILD_SHARED_LIBS=OFF -D PROXYRES_TEST_WPAD=ON
       env:
         CC: ${{ matrix.compiler }}
         CXX: ${{ matrix.cxx-compiler }}
 
     - name: Build project
-      run: cmake --build build --config Release
+      run: cmake --build build --config RelWithDebInfo
 
     - name: Install test dependencies
       run: |
@@ -51,7 +51,7 @@ jobs:
       working-directory: test
 
     - name: Run tests
-      run: ctest --verbose -C Release
+      run: ctest --verbose -C RelWithDebInfo
       working-directory: build
 
     - name: Download pac from http server
@@ -77,7 +77,7 @@ jobs:
           echo "Auto discovery set failed"
           exit 1
         fi
-      working-directory: build/test/Release
+      working-directory: build/test/RelWithDebInfo
 
     - name: Turn off proxy auto discovery (networksetup)
       run: networksetup -setproxyautodiscovery Ethernet off
@@ -95,7 +95,7 @@ jobs:
           echo "Auto config url set failed"
           exit 1
         fi
-      working-directory: build/test/Release
+      working-directory: build/test/RelWithDebInfo
 
     - name: Set manual proxy settings (networksetup)
       run: |
@@ -130,7 +130,7 @@ jobs:
           echo "Proxy bypass set failed"
           exit 1
         fi
-      working-directory: build/test/Release
+      working-directory: build/test/RelWithDebInfo
 
     - name: Set proxy auto config url setting (networksetup)
       run: |
@@ -180,7 +180,7 @@ jobs:
           echo "Proxy for https://multi-legacy.com/ set failed"
           exit 1
         fi
-      working-directory: build/test/Release
+      working-directory: build/test/RelWithDebInfo
 
     - name: Reset proxy settings (networksetup)
       run: |

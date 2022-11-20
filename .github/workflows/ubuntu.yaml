@@ -35,13 +35,13 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Generate project
-      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=OFF -D PROXYRES_TEST_WPAD=ON
+      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=RelWithDebInfo -D BUILD_SHARED_LIBS=OFF -D PROXYRES_TEST_WPAD=ON
       env:
         CC: ${{ matrix.compiler }}
         CXX: ${{ matrix.cxx-compiler }}
 
     - name: Build project
-      run: cmake --build build --config Release
+      run: cmake --build build --config RelWithDebInfo
 
     - name: Install test dependencies
       run: |
@@ -63,7 +63,7 @@ jobs:
       working-directory: test
 
     - name: Run tests
-      run: sudo ctest --verbose -C Release
+      run: sudo ctest --verbose -C RelWithDebInfo
       working-directory: build
 
     - name: Download pac from http server
