@@ -129,6 +129,8 @@ endif()
 add_compile_definitions($<IF:$<CONFIG:Debug>,_DEBUG,_NDEBUG>)
 
 if(PROXYRES_CODE_COVERAGE AND NOT MSVC)
+    include(CheckCCompilerFlag)
+
     # Check for -coverage flag support for Clang/GCC
     if(CMAKE_VERSION VERSION_LESS 3.14)
         set(CMAKE_REQUIRED_LIBRARIES -lgcov)
