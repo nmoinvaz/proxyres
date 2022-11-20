@@ -96,7 +96,7 @@ static bool script_engine_create(proxy_execute_wsh_s *proxy_execute_wsh) {
 }
 
 static bool script_engine_parse_text(proxy_execute_wsh_s *proxy_execute_wsh, const char *script) {
-    EXCEPINFO exception = {0};
+    EXCEPINFO excep_info = {0};
 
     wchar_t *script_wchar = utf8_dup_to_wchar(script);
     if (!script_wchar)
@@ -107,7 +107,7 @@ static bool script_engine_parse_text(proxy_execute_wsh_s *proxy_execute_wsh, con
         return false;
 
     HRESULT result = IActiveScriptParse_ParseScriptText(proxy_execute_wsh->active_script_parse, script_bstr,
-                                                        WSH_SCRIPT_NAME, NULL, NULL, 0, 0, 0, NULL, &exception);
+                                                        WSH_SCRIPT_NAME, NULL, NULL, 0, 0, 0, NULL, &excep_info);
     SysFreeString(script_bstr);
 
     if (FAILED(result)) {

@@ -74,7 +74,7 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_get_ids_of_names(IDispatch *dis
 
 static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DISPID disp_id, REFIID riid, LCID lcid,
                                                         WORD flags, DISPPARAMS *disp_params, VARIANT *result_ptr,
-                                                        EXCEPINFO *exception_info, unsigned int *arg_err) {
+                                                        EXCEPINFO *excep_info, UINT *arg_err) {
     // Check ID of the function and return the result
     if (disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_ID) {
         if (disp_params->cArgs != 1)

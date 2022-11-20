@@ -76,7 +76,7 @@ static HRESULT STDMETHODCALLTYPE active_script_site_get_doc_version_string(IActi
 
 static HRESULT STDMETHODCALLTYPE active_script_site_on_script_terminate(IActiveScriptSite *site,
                                                                         const VARIANT *result_ptr,
-                                                                        const EXCEPINFO *exception_info) {
+                                                                        const EXCEPINFO *excep_info) {
     return S_OK;
 }
 
@@ -86,20 +86,20 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_state_change(IActiveScrip
 
 static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScriptSite *site,
                                                                     IActiveScriptError *error) {
-    EXCEPINFO exception = {0};
+    EXCEPINFO excep_info = {0};
 
     // Print exception information to log
-    HRESULT result = IActiveScriptError_GetExceptionInfo(error, &exception);
+    HRESULT result = IActiveScriptError_GetExceptionInfo(error, &excep_info);
     if (FAILED(result)) {
         LOG_ERROR("Failed to get active script error (0x%08x)\n", result);
         return S_OK;
     }
 
     printf("EXCEPTION: ");
-    char *exception_description = wchar_dup_to_utf8(exception.bstrDescription);
-    if (exception_description) {
-        printf("%s\n", exception_description);
-        free(exception_description);
+    char *excep_description = wchar_dup_to_utf8(excep_info.bstrDescription);
+    if (excep_description) {
+        printf("%s\n", excep_description);
+        free(excep_description);
     }
 
     BSTR source_line_text;
@@ -109,10 +109,10 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScrip
         return S_OK;
     }
 
-    char *exception_source_line = wchar_dup_to_utf8(source_line_text);
-    if (exception_source_line) {
-        printf("  %s\n", exception_source_line);
-        free(exception_source_line);
+    char *excep_source_line = wchar_dup_to_utf8(source_line_text);
+    if (excep_source_line) {
+        printf("  %s\n", excep_source_line);
+        free(excep_source_line);
     }
 
     return S_OK;
