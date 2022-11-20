@@ -190,6 +190,16 @@ bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) 
     return true;
 }
 
+static void threadpool_stop_threads(threadpool_s *threadpool) {
+    EnterCriticalSection(&threadpool->queue_lock);
+    // Stop threads from doing anymore work
+    threadpool->stop = true;
+    LeaveCriticalSection(&threadpool->queue_lock);
+
+    // Wake up all threads to check stop flag
+    SetEvent(threadpool->wakeup_cond);
+}
+
 static void threadpool_delete_threads(threadpool_s *threadpool) {
     threadpool_thread_s *thread = NULL;
 
@@ -221,14 +231,6 @@ static void threadpool_delete_jobs(threadpool_s *threadpool) {
         threadpool->queue_first = threadpool->queue_first->next;
         threadpool_job_delete(&job);
     }
-}
-
-static void threadpool_stop_threads(threadpool_s *threadpool) {
-    // Stop threads from doing anymore work
-    threadpool->stop = true;
-
-    // Wake up all threads to check stop flag
-    SetEvent(threadpool->wakeup_cond);
 }
 
 void threadpool_wait(void *ctx) {
