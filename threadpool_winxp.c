@@ -7,6 +7,7 @@
 #include <inttypes.h>
 
 #include <windows.h>
+#include <process.h>
 
 #include "log.h"
 #include "threadpool.h"
@@ -88,7 +89,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
     return job;
 }
 
-static DWORD WINAPI threadpool_do_work(LPVOID arg) {
+static unsigned __stdcall threadpool_do_work(void *arg) {
     threadpool_thread_s *thread = (threadpool_thread_s *)arg;
     threadpool_s *threadpool = thread->pool;
 
@@ -162,7 +163,7 @@ static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
     threadpool->threads = thread;
     threadpool->num_threads++;
 
-    thread->handle = CreateThread(NULL, 0, threadpool_do_work, thread, 0, &thread->id);
+    thread->handle = (HANDLE)_beginthreadex(NULL, 0, threadpool_do_work, thread, 0, &thread->id);
 }
 
 bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) {
