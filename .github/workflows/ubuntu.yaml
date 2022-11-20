@@ -16,7 +16,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
-            gcov-exec: llvm-cov gcov
+            gcov-exec: llvm-cov-11 gcov
             codecov: ubuntu
 
           - name: Build - Ubuntu Clang CURL
@@ -24,7 +24,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON -D PROXYRES_CURL=ON
-            gcov-exec: llvm-cov gcov
+            gcov-exec: llvm-cov-11 gcov
             codecov: ubuntu_curl
 
     steps:
@@ -37,7 +37,11 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Generate project
-      run: cmake -S . -B build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=RelWithDebInfo -D BUILD_SHARED_LIBS=OFF -D PROXYRES_TEST_WPAD=ON
+      run: |
+        cmake -S . -B build ${{ matrix.cmake-args }} \
+          -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+          -D BUILD_SHARED_LIBS=OFF \
+          -D PROXYRES_TEST_WPAD=ON
       env:
         CC: ${{ matrix.compiler }}
         CXX: ${{ matrix.cxx-compiler }}
