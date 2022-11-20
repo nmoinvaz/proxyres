@@ -23,7 +23,7 @@ jobs:
 
           - name: Build - Windows GCC
             runs-on: windows-latest
-            cmake-args: -D PROXYRES_CODE_COVERAGE=ON
+            cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
             compiler: gcc
             cxx-compiler: g++
             codecov: windows
@@ -31,6 +31,13 @@ jobs:
     steps:
     - name: Install dependencies
       run: choco install curl
+
+    - name: Install gcc dependencies
+      if: matrix.compiler == 'gcc'
+      run: |
+        # strawberryperl installs incompatible libraries so remove it
+        choco uninstall --no-progress strawberryperl
+        choco install ninja --no-progress
 
     - name: Checkout repository
       uses: actions/checkout@v3
