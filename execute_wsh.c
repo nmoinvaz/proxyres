@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include <windows.h>
+#include <initguid.h>
 #include <activscp.h>
 #include <activdbg.h>
 
