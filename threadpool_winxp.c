@@ -22,7 +22,7 @@ struct threadpool_s;
 
 typedef struct threadpool_thread_s {
     HANDLE handle;
-    DWORD id;
+    uint32_t id;
     struct threadpool_s *pool;
     struct threadpool_thread_s *next;
 } threadpool_thread_s;
@@ -89,7 +89,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
     return job;
 }
 
-static unsigned __stdcall threadpool_do_work(void *arg) {
+static uint32_t __stdcall threadpool_do_work(void *arg) {
     threadpool_thread_s *thread = (threadpool_thread_s *)arg;
     threadpool_s *threadpool = thread->pool;
 
