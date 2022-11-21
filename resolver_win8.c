@@ -252,6 +252,9 @@ win8_cleanup:
         GlobalFree(proxy_info.lpszProxy);
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
+    // Free auto config url
+    if (options.lpszAutoConfigUrl)
+        free(options.lpszAutoConfigUrl);
 
     return is_ok;
 }
