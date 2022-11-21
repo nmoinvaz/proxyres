@@ -74,6 +74,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
     }
 
     if (proxy_result.cEntries == 0) {
+        // No support for FindProxyForURL return types HTTP/HTTPS
         proxy_resolver->list = strdup("direct://");
         goto win8_async_done;
     }
