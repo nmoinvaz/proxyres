@@ -14,11 +14,11 @@ The following native OS proxy resolution libraries are used if available:
 
 |OS|Library|Info|
 |:-|:-|:-|
-|Linux|Gnome3/GProxyResolver|Does not return anything other than direct:// on Ubuntu 20.|
-|macOS|CFNetwork||
+|Linux|Gnome3/GProxyResolver|Does not return anything other than direct:// on Ubuntu 20.</br>Currently disabled.|
+|macOS|CFNetwork|Always returns proxy type of request URL.|
 |Windows|WinHTTP|Uses IE proxy configuration.|
 
-When there is no built-in proxy resolution library on the system, we use our own resolver.
+When there is no built-in proxy resolution library on the system, we use our own posix-based resolver.
 
 ## API <!-- omit in toc -->
 

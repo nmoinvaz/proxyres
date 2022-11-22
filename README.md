@@ -4,6 +4,8 @@
 
 Cross-platform proxy resolution with support for Linux, macOS, & Windows.
 
+[Read the Documentation](docs/README.md)
+
 ## Features
 
 * Read user's proxy configuration from `IE`, `CFNetwork`, `GSettings`, `KDE user config`, or `Environment Variables`.
@@ -12,15 +14,7 @@ Cross-platform proxy resolution with support for Linux, macOS, & Windows.
   * Or with a fallback proxy resolver featuring:
     * Support for `WPAD` using `DHCP` and `DNS`.
     * Support for PAC file execution using system scripting libraries.
-* Documentation and example command line utility.
-
-## API
-
-|Class|Description|
-|-|:-|
-|[proxy_config](./doc/proxy_config.md)|Read the user's proxy configuration.|
-|[proxy_execute](./doc/proxy_execute.md)|Executes a Proxy Auto-Configuration (PAC) script containing the JavasScript function `FindProxyForURL` for a particular URL to determine its proxies.|
-|[proxy_resolver](./doc/proxy_resolver.md)|Resolves proxies for a given URL based on the operating system's proxy configuration.|
+* Example command line utility.
 
 ## Example
 
