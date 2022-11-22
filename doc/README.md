@@ -21,3 +21,20 @@ Specifically, both macOS and Windows do not support:
 Only the posix resolver in proxyres can handle these types when returning from `FindProxyForURL`.
 
 For more information on PAC scripts can be found in Mozilla's [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file).
+
+## Using with CMake
+
+Run the following git commands to add a new submodule to your repository:
+```
+git submodule add git@github.com:nmoinvaz/proxyres third-party/proxyres
+git submodule update --init
+```
+Add thefollowing to your cmake:
+```
+add_subdirectory(third-party/proxyres proxyres EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} proxyres)
+```
+
+## Linking with V8
+
+If you are using a project that also uses V8, it is necessary to link JavaScriptCoreGTK before linking against V8. This will prevent any conflicts when JavaScriptCoreGTK is loaded dynamically at run-time.
