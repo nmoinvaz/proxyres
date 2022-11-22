@@ -5,8 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
+#endif
+
 #include "util.h"
-#include "util_socket.h"
 
 // Resolve a DNS name to an IP address
 char *dns_resolve(const char *host, int32_t *error) {

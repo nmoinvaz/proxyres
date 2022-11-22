@@ -6,7 +6,6 @@
 #include "log.h"
 #include "net_adapter.h"
 #include "util.h"
-#include "util_socket.h"
 #include "wpad_dhcp.h"
 #include "wpad_dhcp_posix.h"
 #if defined(_WIN32)

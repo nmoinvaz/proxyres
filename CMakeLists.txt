@@ -34,7 +34,6 @@ set(PROXYRES_SRCS
     resolver_posix.c
     threadpool.h
     util.h
-    util_socket.h
     util.c
     wpad_dhcp.h
     wpad_dhcp.c

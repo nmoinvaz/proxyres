@@ -4,15 +4,15 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#include "log.h"
-#include "net_adapter.h"
-#include "util.h"
-#include "util_socket.h"
-#include "util_win.h"
-
+#include <winsock2.h>
 #include <windows.h>
 #include <iptypes.h>
 #include <iphlpapi.h>
+
+#include "log.h"
+#include "net_adapter.h"
+#include "util.h"
+#include "util_win.h"
 
 bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     IP_ADAPTER_ADDRESSES *adapter_addresses = NULL;

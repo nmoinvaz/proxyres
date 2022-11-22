@@ -14,7 +14,6 @@
 #include "log.h"
 #include "net_adapter.h"
 #include "util.h"
-#include "util_socket.h"
 #include "util_win.h"
 
 bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
