@@ -3,6 +3,17 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
+#endif
+
 #include <gtest/gtest.h>
 
 extern "C" {
@@ -11,7 +22,6 @@ extern "C" {
 #include "wpad_dhcp_posix.h"
 #include "wpad_dns.h"
 #include "util.h"
-#include "util_socket.h"
 }
 
 TEST(wpad, dhcp) {
