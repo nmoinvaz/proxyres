@@ -41,6 +41,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
+    wchar_t *auto_config_url_wide = NULL;
     char *proxy = NULL;
     bool is_ok = false;
 
@@ -48,14 +49,15 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     const char *auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
         // Use auto configuration script
-        options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
-        options.lpszAutoConfigUrl = utf8_dup_to_wchar(auto_config_url);
-
-        if (!options.lpszAutoConfigUrl) {
+        auto_config_url_wide = utf8_dup_to_wchar(auto_config_url);
+        if (!auto_config_url_wide) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
             LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "auto config url", proxy_resolver->error);
             goto winxp_done;
         }
+
+        options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
+        options.lpszAutoConfigUrl = auto_config_url_wide;
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Use explicit proxy list
         proxy_resolver->list = get_url_from_host(url, proxy);
@@ -133,15 +135,13 @@ winxp_done:
     event_set(proxy_resolver->complete);
 
     free(url_wide);
+    free(auto_config_url_wide);
 
     // Free proxy info
     if (proxy_info.lpszProxy)
         GlobalFree(proxy_info.lpszProxy);
     if (proxy_info.lpszProxyBypass)
         GlobalFree(proxy_info.lpszProxyBypass);
-    // Free auto config url
-    if (options.lpszAutoConfigUrl)
-        free(options.lpszAutoConfigUrl);
 
     return is_ok;
 }
