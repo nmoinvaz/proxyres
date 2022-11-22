@@ -263,7 +263,7 @@ elseif(UNIX)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
     target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
-    target_link_libraries(proxyres dl)
+    target_link_libraries(proxyres ${CMAKE_DL_LIBS})
 endif()
 
 if(PROXYRES_TEST)
