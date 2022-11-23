@@ -248,15 +248,11 @@ elseif(UNIX)
     target_link_libraries(proxyres PkgConfig::deps)
 
     pkg_check_modules(GConf REQUIRED gconf-2.0)
-    # Don't set libraries since we are dynamically linking against them
-    unset(GConf_LDFLAGS CACHE)
-    unset(GConf_LIBRARIES CACHE)
+    # Don't link libraries at compile time since we dynamically load them at runtime
     target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
 
     pkg_search_module(JSCoreGTK REQUIRED javascriptcoregtk-4.0 javascriptcoregtk-3.0 javascriptcoregtk-1.0)
-    # Don't set libraries since we are dynamically linking against them
-    unset(JSCoreGTK_LDFLAGS CACHE)
-    unset(JSCoreGTK_LIBRARIES CACHE)
+    # Don't link libraries at compile time since we dynamically load them at runtime
     target_include_directories(proxyres PRIVATE ${JSCoreGTK_INCLUDE_DIRS})
 
     find_package(Threads REQUIRED)
