@@ -1,11 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 
 option(PROXYRES_CURL "Enable building against CURL" OFF)
+option(PROXYRES_EXECUTE "Enable executing PAC scripts" ON)
 option(PROXYRES_JSPROXY "Enable building with deprecated Windows JSProxy support" OFF)
 
 option(PROXYRES_TEST "Enable unit tests" ON)
 option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
 option(PROXYRES_CODE_COVERAGE "Enable code coverage" OFF)
+
+if(UNIX AND NOT APPLE AND NOT PROXYRES_EXECUTE)
+    message(STATUS "PAC script execution enabled on linux")
+    set(PROXYRES_EXECUTE ON)
+endif()
 
 project(proxyres)
 
@@ -16,61 +22,71 @@ set(PROXYRES_SRCS
     dns.h
     dns.c
     event.h
-    execute.h
-    execute_i.h
-    execute.c
     fetch.h
     log.h
     mozilla_js.h
     mutex.h
-    net_adapter.h
-    net_adapter.c
     proxyres.h
     proxyres.c
     resolver.h
     resolver_i.h
     resolver.c
-    resolver_posix.h
-    resolver_posix.c
     threadpool.h
     util.h
-    util.c
-    wpad_dhcp.h
-    wpad_dhcp.c
-    wpad_dhcp_posix.h
-    wpad_dhcp_posix.c
-    wpad_dns.h
-    wpad_dns.c)
+    util.c)
+if(PROXYRES_EXECUTE)
+    list(APPEND PROXYRES_SRCS
+        execute.h
+        execute_i.h
+        execute.c
+        net_adapter.h
+        net_adapter.c
+        resolver_posix.h
+        resolver_posix.c
+        wpad_dhcp.h
+        wpad_dhcp.c
+        wpad_dhcp_posix.h
+        wpad_dhcp_posix.c
+        wpad_dns.h
+        wpad_dns.c)
+endif()
 if(WIN32)
     list(APPEND PROXYRES_SRCS
         config_win.h
         config_win.c
         event_win.c
-        net_adapter_winxp.c
         mutex_win.c
         util_win.h
-        util_win.c
-        wpad_dhcp_win.h
-        wpad_dhcp_win.c)
+        util_win.c)
+    if(PROXYRES_EXECUTE)
+        list(APPEND PROXYRES_SRCS
+            net_adapter_winxp.c
+            wpad_dhcp_win.h
+            wpad_dhcp_win.c)
+        if(PROXYRES_JSPROXY)
+            list(APPEND PROXYRES_SRCS
+                execute_jsproxy.h
+                execute_jsproxy.c)
+            add_compile_definitions(HAVE_JSPROXY)
+        endif()
+    endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
         list(APPEND PROXYRES_SRCS
             resolver_winrt.h
             resolver_winrt.c)
     else()
         list(APPEND PROXYRES_SRCS
-            execute_wsh.h
-            execute_wsh.c
             resolver_win8.h
             resolver_win8.c
             resolver_winxp.h
             resolver_winxp.c)
+        if(PROXYRES_EXECUTE)
+            list(APPEND PROXYRES_SRCS
+                execute_wsh.h
+                execute_wsh.c)
+        endif()
     endif()
-    if(PROXYRES_JSPROXY)
-        list(APPEND PROXYRES_SRCS
-            execute_jsproxy.h
-            execute_jsproxy.c)
-        add_compile_definitions(HAVE_JSPROXY)
-    endif()
+
     if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION GREATER_EQUAL 6.1)
         list(APPEND PROXYRES_SRCS
             threadpool_winvista.c)
@@ -83,15 +99,18 @@ elseif(APPLE)
         config_mac.h
         config_mac.c
         event_pthread.c
-        execute_jscore.h
-        execute_jscore.c
-        net_adapter_mac.c
         mutex_pthread.c
         resolver_mac.h
         resolver_mac.c
-        threadpool_pthread.c
-        wpad_dhcp_mac.h
-        wpad_dhcp_mac.c)
+        threadpool_pthread.c)
+    if(PROXYRES_EXECUTE)
+        list(APPEND PROXYRES_SRCS
+            execute_jscore.h
+            execute_jscore.c
+            net_adapter_mac.c
+            wpad_dhcp_mac.h
+            wpad_dhcp_mac.c)
+    endif()
 elseif(UNIX)
     list(APPEND PROXYRES_SRCS
         config_env.h
@@ -163,6 +182,10 @@ add_library(proxyres ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
 target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+if(PROXYRES_EXECUTE)
+    target_compile_definitions(proxyres PUBLIC PROXYRES_EXECUTE=1)
+endif()
+
 if(PROXYRES_CURL)
     if(NOT TARGET CURL::libcurl)
         include(FetchContent)
@@ -217,7 +240,7 @@ if(PROXYRES_CURL)
 endif()
 
 if(PROXYRES_CURL AND TARGET CURL::libcurl)
-    target_compile_definitions(proxyres PUBLIC HAVE_LIBCURL=1)
+    target_compile_definitions(proxyres PUBLIC HAVE_CURL=1)
     target_sources(proxyres PRIVATE fetch_curl.c)
     target_link_libraries(proxyres CURL::libcurl)
 else()

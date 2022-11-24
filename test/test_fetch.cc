@@ -11,7 +11,7 @@ extern "C" {
 
 TEST(fetch, get) {
     int32_t error = 0;
-#ifdef HAVE_LIBCURL
+#ifdef HAVE_CURL
     const char *url = "https://google.com/";
     const char *expected_string = "world's information";
 #else
@@ -26,4 +26,3 @@ TEST(fetch, get) {
         free(body);
     }
 }
-

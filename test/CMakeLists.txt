@@ -22,9 +22,12 @@ add_test(NAME proxycli-config
     COMMAND proxycli config)
 add_test(NAME proxycli-resolve-google
     COMMAND proxycli resolve https://simple.com/ https://google.com/)
-add_test(NAME proxycli-execute-google
-    COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac.js https://simple.com/ https://google.com/)
+if(PROXYRES_EXECUTE OR (UNIX AND NOT APPLE))
+    add_test(NAME proxycli-execute-google
+        COMMAND proxycli execute ${CMAKE_SOURCE_DIR}/test/pac.js https://simple.com/ https://google.com/)
+endif()
 
+find_package(GTest QUIET)
 if(NOT TARGET GTest::GTest)
     include(FetchContent)
 
@@ -63,22 +66,25 @@ endif()
 set(TEST_SRCS
     test_config.cc
     test_dns.cc
-    test_execute.cc
     test_fetch.cc
     test_main.cc
-    test_net_adapter.cc
     test_threadpool.cc
     test_util.cc)
-if(PROXYRES_TEST_WPAD)
-    list(APPEND TEST_SRCS
-        test_wpad.cc)
-endif()
 if(WIN32)
     list(APPEND TEST_SRCS
         test_util_win.cc)
 elseif(UNIX AND NOT APPLE)
     list(APPEND TEST_SRCS
         test_util_linux.cc)
+endif()
+if(PROXYRES_EXECUTE)
+    list(APPEND TEST_SRCS
+        test_execute.cc
+        test_net_adapter.cc)
+    if(PROXYRES_TEST_WPAD)
+        list(APPEND TEST_SRCS
+            test_wpad.cc)
+    endif()
 endif()
 
 add_executable(gtest_proxyres ${TEST_SRCS})

@@ -117,6 +117,7 @@ static bool resolve_proxies_for_url_async(int argc, char *argv[], bool verbose) 
     return is_ok;
 }
 
+#ifdef PROXYRES_EXECUTE
 static bool execute_pac_script(const char *script_path, const char *url, bool verbose) {
     bool is_ok = false;
     char *script = NULL;
@@ -175,11 +176,14 @@ execute_pac_cleanup:
 
     return is_ok;
 }
+#endif
 
 static int print_help(void) {
     printf("proxyres [--verbose]\n");
     printf("  config                  - dumps all proxy configuration values\n");
+#ifdef PROXYRES_EXECUTE
     printf("  execute [file] [urls..] - executes pac file with script\n");
+#endif
     printf("  resolve [url..]         - resolves proxy for urls\n");
     return 1;
 }
@@ -205,6 +209,9 @@ int main(int argc, char *argv[]) {
         print_proxy_config(argc - argi, argv + argi);
         proxy_config_uninit();
     } else if (strcmp(cmd, "execute") == 0) {
+#ifndef PROXYRES_EXECUTE
+        return print_help();
+#else
         if (argc <= 3)
             return print_help();
         proxy_execute_init();
@@ -214,6 +221,7 @@ int main(int argc, char *argv[]) {
                 exit_code = 1;
         }
         proxy_execute_uninit();
+#endif
     } else if (strcmp(cmd, "resolve") == 0) {
         proxy_resolver_init();
         if (!resolve_proxies_for_url_async(argc - argi, argv + argi, verbose))

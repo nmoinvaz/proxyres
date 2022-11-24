@@ -160,8 +160,10 @@ bool proxy_resolver_init(void) {
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winrt_get_interface();
 #endif
 #endif
+#ifdef PROXYRES_EXECUTE
     if (!g_proxy_resolver.proxy_resolver_i)
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_posix_get_interface();
+#endif
 
     if (!g_proxy_resolver.proxy_resolver_i) {
         LOG_ERROR("No proxy resolver available\n");
@@ -182,6 +184,7 @@ bool proxy_resolver_init(void) {
         return false;
     }
 
+#ifdef PROXYRES_EXECUTE
     // Pass threadpool to posix resolver to immediately start wpad discovery
     if (g_proxy_resolver.proxy_resolver_i == proxy_resolver_posix_get_interface()) {
         if (!proxy_resolver_posix_init_ex(g_proxy_resolver.threadpool)) {
@@ -190,6 +193,8 @@ bool proxy_resolver_init(void) {
             return false;
         }
     }
+#endif
+
     g_proxy_resolver.ref_count++;
     return true;
 }
