@@ -65,8 +65,6 @@ endif()
 
 set(TEST_SRCS
     test_config.cc
-    test_dns.cc
-    test_fetch.cc
     test_main.cc
     test_threadpool.cc
     test_util.cc)
@@ -79,7 +77,9 @@ elseif(UNIX AND NOT APPLE)
 endif()
 if(PROXYRES_EXECUTE)
     list(APPEND TEST_SRCS
+        test_dns.cc
         test_execute.cc
+        test_fetch.cc
         test_net_adapter.cc)
     if(PROXYRES_TEST_WPAD)
         list(APPEND TEST_SRCS

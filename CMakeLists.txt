@@ -19,12 +19,8 @@ set(PROXYRES_SRCS
     config.h
     config_i.h
     config.c
-    dns.h
-    dns.c
     event.h
-    fetch.h
     log.h
-    mozilla_js.h
     mutex.h
     proxyres.h
     proxyres.c
@@ -36,9 +32,13 @@ set(PROXYRES_SRCS
     util.c)
 if(PROXYRES_EXECUTE)
     list(APPEND PROXYRES_SRCS
+        dns.h
+        dns.c
         execute.h
         execute_i.h
         execute.c
+        fetch.h
+        mozilla_js.h
         net_adapter.h
         net_adapter.c
         resolver_posix.h
@@ -184,67 +184,67 @@ target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(PROXYRES_EXECUTE)
     target_compile_definitions(proxyres PUBLIC PROXYRES_EXECUTE=1)
-endif()
 
-if(PROXYRES_CURL)
-    if(NOT TARGET CURL::libcurl)
-        include(FetchContent)
+    if(PROXYRES_CURL)
+        if(NOT TARGET CURL::libcurl)
+            include(FetchContent)
 
-        # Disable compression and SSL support to avoid pulling in zlib and OpenSSL
-        set(CURL_ZLIB OFF CACHE BOOL "Build curl with ZLIB support" FORCE)
-        set(CURL_USE_LIBSSH2 OFF CACHE BOOL "Use libSSH2" FORCE)
+            # Disable compression and SSL support to avoid pulling in zlib and OpenSSL
+            set(CURL_ZLIB OFF CACHE BOOL "Build curl with ZLIB support" FORCE)
+            set(CURL_USE_LIBSSH2 OFF CACHE BOOL "Use libSSH2" FORCE)
 
-        # Disable tests
-        set(BUILD_CURL_EXE OFF CACHE BOOL "Build cURL executable" FORCE)
-        set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable cURL tests" FORCE)
-        set(CURL_ENABLE_EXPORT_TARGET OFF CACHE BOOL "to enable cmake export target" FORCE)
+            # Disable tests
+            set(BUILD_CURL_EXE OFF CACHE BOOL "Build cURL executable" FORCE)
+            set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable cURL tests" FORCE)
+            set(CURL_ENABLE_EXPORT_TARGET OFF CACHE BOOL "to enable cmake export target" FORCE)
 
-        # Disable unnecessary protocols
-        set(CURL_DISABLE_HSTS ON CACHE BOOL "to disable HSTS support" FORCE)
-        set(CURL_DISABLE_FTP ON CACHE BOOL "Disable FTP" FORCE)
-        set(CURL_DISABLE_TELNET ON CACHE BOOL "Disable TELNET" FORCE)
-        set(CURL_DISABLE_LDAP ON CACHE BOOL "Disable LDAP" FORCE)
-        set(CURL_DISABLE_LDAPS ON CACHE BOOL "Disable LDAPS" FORCE)
-        set(CURL_DISABLE_DICT ON CACHE BOOL "Disable DICT" FORCE)
-        set(CURL_DISABLE_TFTP ON CACHE BOOL "Disable TFTP" FORCE)
-        set(CURL_DISABLE_GOPHER ON CACHE BOOL "Disable GOPHER" FORCE)
-        set(CURL_DISABLE_POP3 ON CACHE BOOL "Disable POP3" FORCE)
-        set(CURL_DISABLE_IMAP ON CACHE BOOL "Disable IMAP" FORCE)
-        set(CURL_DISABLE_SMB ON CACHE BOOL "Disable SMB" FORCE)
-        set(CURL_DISABLE_SMTP ON CACHE BOOL "Disable SMTP" FORCE)
-        set(CURL_DISABLE_RTSP ON CACHE BOOL "Disable RTSP" FORCE)
-        set(CURL_DISABLE_MQTT ON CACHE BOOL "Disable MQTT" FORCE)
-        set(CURL_DISABLE_ALTSVC ON CACHE BOOL "Disable alt-svc support" FORCE)
-        set(CURL_DISABLE_GETOPTIONS ON CACHE BOOL "Disables curl_easy_options API for existing options to curl_easy_setopt" FORCE)
-        set(CURL_DISABLE_MIME ON CACHE BOOL "Disables MIME support" FORCE)
-        set(CURL_DISABLE_NETRC ON CACHE BOOL "Disables netrc parser" FORCE)
-        set(CURL_DISABLE_PROGRESS_METER ON CACHE BOOL "Disables built-in progress meter" FORCE)
+            # Disable unnecessary protocols
+            set(CURL_DISABLE_HSTS ON CACHE BOOL "to disable HSTS support" FORCE)
+            set(CURL_DISABLE_FTP ON CACHE BOOL "Disable FTP" FORCE)
+            set(CURL_DISABLE_TELNET ON CACHE BOOL "Disable TELNET" FORCE)
+            set(CURL_DISABLE_LDAP ON CACHE BOOL "Disable LDAP" FORCE)
+            set(CURL_DISABLE_LDAPS ON CACHE BOOL "Disable LDAPS" FORCE)
+            set(CURL_DISABLE_DICT ON CACHE BOOL "Disable DICT" FORCE)
+            set(CURL_DISABLE_TFTP ON CACHE BOOL "Disable TFTP" FORCE)
+            set(CURL_DISABLE_GOPHER ON CACHE BOOL "Disable GOPHER" FORCE)
+            set(CURL_DISABLE_POP3 ON CACHE BOOL "Disable POP3" FORCE)
+            set(CURL_DISABLE_IMAP ON CACHE BOOL "Disable IMAP" FORCE)
+            set(CURL_DISABLE_SMB ON CACHE BOOL "Disable SMB" FORCE)
+            set(CURL_DISABLE_SMTP ON CACHE BOOL "Disable SMTP" FORCE)
+            set(CURL_DISABLE_RTSP ON CACHE BOOL "Disable RTSP" FORCE)
+            set(CURL_DISABLE_MQTT ON CACHE BOOL "Disable MQTT" FORCE)
+            set(CURL_DISABLE_ALTSVC ON CACHE BOOL "Disable alt-svc support" FORCE)
+            set(CURL_DISABLE_GETOPTIONS ON CACHE BOOL "Disables curl_easy_options API" FORCE)
+            set(CURL_DISABLE_MIME ON CACHE BOOL "Disables MIME support" FORCE)
+            set(CURL_DISABLE_NETRC ON CACHE BOOL "Disables netrc parser" FORCE)
+            set(CURL_DISABLE_PROGRESS_METER ON CACHE BOOL "Disables built-in progress meter" FORCE)
 
-        # Allow specifying alternative curl repository
-        if(NOT DEFINED CURL_REPOSITORY)
-            set(CURL_REPOSITORY https://github.com/curl/curl.git)
+            # Allow specifying alternative curl repository
+            if(NOT DEFINED CURL_REPOSITORY)
+                set(CURL_REPOSITORY https://github.com/curl/curl.git)
+            endif()
+
+            # Fetch curl source code from official repository
+            FetchContent_Declare(curl
+                GIT_REPOSITORY ${CURL_REPOSITORY})
+
+            FetchContent_GetProperties(curl)
+            if(NOT curl_POPULATED)
+                FetchContent_Populate(curl)
+                add_subdirectory(${curl_SOURCE_DIR} ${curl_BINARY_DIR} EXCLUDE_FROM_ALL)
+            endif()
+
+            add_library(CURL::libcurl ALIAS libcurl)
         endif()
-
-        # Fetch curl source code from official repository
-        FetchContent_Declare(curl
-            GIT_REPOSITORY ${CURL_REPOSITORY})
-
-        FetchContent_GetProperties(curl)
-        if(NOT curl_POPULATED)
-            FetchContent_Populate(curl)
-            add_subdirectory(${curl_SOURCE_DIR} ${curl_BINARY_DIR} EXCLUDE_FROM_ALL)
-        endif()
-
-        add_library(CURL::libcurl ALIAS libcurl)
     endif()
-endif()
 
-if(PROXYRES_CURL AND TARGET CURL::libcurl)
-    target_compile_definitions(proxyres PUBLIC HAVE_CURL=1)
-    target_sources(proxyres PRIVATE fetch_curl.c)
-    target_link_libraries(proxyres CURL::libcurl)
-else()
-    target_sources(proxyres PRIVATE fetch_posix.c)
+    if(TARGET CURL::libcurl)
+        target_compile_definitions(proxyres PUBLIC HAVE_CURL=1)
+        target_sources(proxyres PRIVATE fetch_curl.c)
+        target_link_libraries(proxyres CURL::libcurl)
+    else()
+        target_sources(proxyres PRIVATE fetch_posix.c)
+    endif()
 endif()
 
 if(WIN32)
@@ -287,5 +287,6 @@ endif()
 
 if(PROXYRES_TEST)
     enable_testing()
+
     add_subdirectory(test)
 endif()
