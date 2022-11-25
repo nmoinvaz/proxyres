@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 
-option(PROXYRES_CURL "Enable building against CURL" OFF)
-option(PROXYRES_EXECUTE "Enable executing PAC scripts" ON)
+option(PROXYRES_CURL "Build with cURL to download PAC scripts." OFF)
+option(PROXYRES_EXECUTE "Build with support for PAC script execution." ON)
 
-option(PROXYRES_TEST "Enable unit tests" ON)
-option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
-option(PROXYRES_CODE_COVERAGE "Enable code coverage" OFF)
+option(PROXYRES_TEST "Build command line utility and unit tests." ON)
+option(PROXYRES_TEST_WPAD "Enable Googletest unit tests for WPAD." OFF)
+option(PROXYRES_CODE_COVERAGE "Build for code coverage." OFF)
 
 if(UNIX AND NOT APPLE AND NOT PROXYRES_EXECUTE)
     message(STATUS "PAC script execution enabled on linux")

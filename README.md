@@ -35,6 +35,16 @@ To run CMake tests use the following command:
 ctest --verbose -C Debug
 ```
 
+### Options
+
+|Name|Description|Default|
+|:-|:-|-|
+|PROXYRES_CURL|Build with cURL to download PAC scripts. Without this option set, PAC scripts will only be downloaded using HTTP 1.0.|OFF|
+|PROXYRES_EXECUTE|Build with support for PAC script execution.|ON|
+|PROXYRES_TEST|Build command line utility and unit tests.|ON|
+|PROXYRES_TEST_WPAD|Enable Googletest unit tests for WPAD.|OFF|
+|PROXYRES_CODE_COVERAGE|Build for code coverage.|OFF|
+
 ## History & Motivation
 
 Portions of the code for this library started many years ago as part of a custom HTTP/HTTPS stack we developed at [Solid State Networks](https://solidstatenetworks.com/). Recently we made the decision to switch over to `libcurl` but realized that we still needed to implement our own proxy resolution code. We investigated using `libproxy`, however it did not allow us to statically link the library for closed source commerical purposes.
