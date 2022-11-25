@@ -91,28 +91,3 @@ add_executable(gtest_proxyres ${TEST_SRCS})
 target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
 
 add_test(NAME gtest_proxyres COMMAND gtest_proxyres)
-
-if(WIN32 AND PROXYRES_JSPROXY)
-    # Windows 11 or greater no longer supports PAC script execution in wininet
-    if(CMAKE_HOST_SYSTEM_VERSION GREATER_EQUAL 10.0.22000)
-        if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-            file(TO_NATIVE_PATH
-                $<SHELL_PATH:${CMAKE_CURRENT_SOURCE_DIR}/jsproxy32.dll> SOURCE_JS_PROXY_DLL)
-        else()
-            file(TO_NATIVE_PATH
-                $<SHELL_PATH:${CMAKE_CURRENT_SOURCE_DIR}/jsproxy64.dll> SOURCE_JS_PROXY_DLL)
-        endif()
-
-        file(TO_NATIVE_PATH
-            $<SHELL_PATH:$<TARGET_FILE_DIR:proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
-        add_custom_command(TARGET proxycli POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE_JS_PROXY_DLL} ${TARGET_JS_PROXY_DLL}
-            COMMENT "Copying jsproxy.dll to build directory")
-
-        file(TO_NATIVE_PATH
-            $<SHELL_PATH:$<TARGET_FILE_DIR:gtest_proxyres>/jsproxy.dll> TARGET_JS_PROXY_DLL)
-        add_custom_command(TARGET gtest_proxyres POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE_JS_PROXY_DLL} ${TARGET_JS_PROXY_DLL}
-            COMMENT "Copying jsproxy.dll to build directory")
-    endif()
-endif()

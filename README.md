@@ -9,7 +9,7 @@ Cross-platform proxy resolution with support for Linux, macOS, & Windows.
 ## Features
 
 * Read user's proxy configuration from `IE`, `CFNetwork`, `GSettings`, `KDE user config`, or `Environment Variables`.
-* Execute a PAC file using `Windows Script Host`, `JSProxy`, or `JavaScriptCore`.
+* Execute a PAC file using `Windows Script Host` or `JavaScriptCore`.
 * Get the proxies for a URL asynchronously using `WinHTTP`, `ProxyConfiguration`, `CFNetwork`, and `Gnome3`*.
   * Or with a fallback proxy resolver featuring:
     * Support for `WPAD` using `DHCP` and `DNS`.

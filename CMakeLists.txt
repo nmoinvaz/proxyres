@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.12)
 
 option(PROXYRES_CURL "Enable building against CURL" OFF)
 option(PROXYRES_EXECUTE "Enable executing PAC scripts" ON)
-option(PROXYRES_JSPROXY "Enable building with deprecated Windows JSProxy support" OFF)
 
 option(PROXYRES_TEST "Enable unit tests" ON)
 option(PROXYRES_TEST_WPAD "Enable WPAD unit tests" OFF)
@@ -63,12 +62,6 @@ if(WIN32)
             net_adapter_winxp.c
             wpad_dhcp_win.h
             wpad_dhcp_win.c)
-        if(PROXYRES_JSPROXY)
-            list(APPEND PROXYRES_SRCS
-                execute_jsproxy.h
-                execute_jsproxy.c)
-            add_compile_definitions(HAVE_JSPROXY)
-        endif()
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
         list(APPEND PROXYRES_SRCS
