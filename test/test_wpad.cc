@@ -25,6 +25,9 @@ extern "C" {
 }
 
 TEST(wpad, dhcp) {
+    if (getenv("WPAD") == NULL)
+        GTEST_SKIP();
+
     const int32_t timeout_sec = 5;
     uint8_t bind_ip[4] = {0};
     char hostname[HOST_MAX] = {0};
@@ -55,6 +58,9 @@ TEST(wpad, dhcp) {
 }
 
 TEST(wpad, dns) {
+    if (getenv("WPAD") == NULL)
+        GTEST_SKIP();
+
     char *wpad = wpad_dns(NULL);
     (void *)wpad;
     /*EXPECT_NE(wpad, nullptr);

@@ -26,8 +26,7 @@ jobs:
       run: |
         cmake -S . -B build ${{ matrix.cmake-args }} \
           -D CMAKE_BUILD_TYPE=RelWithDebInfo \
-          -D BUILD_SHARED_LIBS=OFF \
-          -D PROXYRES_TEST_WPAD=ON
+          -D BUILD_SHARED_LIBS=OFF
       env:
         CC: ${{ matrix.compiler }}
         CXX: ${{ matrix.cxx-compiler }}
@@ -57,6 +56,8 @@ jobs:
     - name: Run tests
       run: ctest --verbose -C RelWithDebInfo
       working-directory: build
+      env:
+        WPAD: true
 
     - name: Download pac from http server
       run: curl -v http://127.0.0.1:8080/pac.js

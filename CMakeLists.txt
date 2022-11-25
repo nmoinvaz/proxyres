@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.12)
 option(PROXYRES_CURL "Build with cURL to download PAC scripts." OFF)
 option(PROXYRES_EXECUTE "Build with support for PAC script execution." ON)
 
-option(PROXYRES_TEST "Build command line utility and unit tests." ON)
-option(PROXYRES_TEST_WPAD "Enable Googletest unit tests for WPAD." OFF)
+option(PROXYRES_BUILD_CLI "Builds command line utility." ON)
+option(PROXYRES_BUILD_TESTS "Builds Googletest unit tests project." ON)
+
 option(PROXYRES_CODE_COVERAGE "Build for code coverage." OFF)
 
 if(UNIX AND NOT APPLE AND NOT PROXYRES_EXECUTE)
@@ -278,8 +279,4 @@ elseif(UNIX)
     target_link_libraries(proxyres ${CMAKE_DL_LIBS})
 endif()
 
-if(PROXYRES_TEST)
-    enable_testing()
-
-    add_subdirectory(test)
-endif()
+add_subdirectory(test)
