@@ -116,6 +116,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
     char *proxy = NULL;
     char *script = NULL;
+    char *bypass_list = NULL;
     char *auto_config_url = NULL;
     bool locked = false;
     bool is_ok = false;
@@ -164,9 +165,18 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
 
         proxy_execute_delete(&proxy_execute);
     } else if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
-        // Use explicit proxy list
-        proxy_resolver->list = get_url_from_host(scheme, proxy);
-        free(proxy);
+        // Check to see if we need to bypass the proxy for the url
+        bool should_bypass = false;
+        if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
+            should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list);
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
+            proxy_resolver->list = get_url_from_host(scheme, proxy);
+        }
     } else {
         // Use DIRECT connection
         proxy_resolver->list = strdup("direct://");
@@ -182,6 +192,8 @@ posix_done:
     is_ok = proxy_resolver->list != NULL;
     event_set(proxy_resolver->complete);
 
+    free(bypass_list);
+    free(proxy);
     free(auto_config_url);
 
     return is_ok;

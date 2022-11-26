@@ -43,6 +43,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     wchar_t *url_wide = NULL;
     wchar_t *auto_config_url_wide = NULL;
     char *proxy = NULL;
+    char *bypass_list = NULL;
     bool is_ok = false;
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
@@ -59,9 +60,18 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = auto_config_url_wide;
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
-        // Use explicit proxy list
-        proxy_resolver->list = get_url_from_host(url, proxy);
-        free(proxy);
+        // Check to see if we need to bypass the proxy for the url
+        bool should_bypass = false;
+        if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
+            should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list);
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
+            proxy_resolver->list = get_url_from_host(url, proxy);
+        }
         goto winxp_done;
     } else if (proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
@@ -117,10 +127,21 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
             goto winxp_done;
         }
 
-        // Convert proxy list to uri list
-        proxy_resolver->list = convert_winhttp_proxy_list_to_uri_list(proxy);
-        free(proxy);
+        if (proxy_info.lpszProxyBypass)
+            bypass_list = wchar_dup_to_utf8(proxy_info.lpszProxyBypass);
+        if (bypass_list) {
+            // Check to see if we need to bypass the proxy for the url
+            bool should_bypass = should_bypass_proxy(url, bypass_list);
+            if (should_bypass) {
+                // Bypass the proxy for the url
+                LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list);
+                proxy_resolver->list = strdup("direct://");
+            }
+        }
 
+        // Convert proxy list to uri list
+        if (proxy_resolver->list)
+            proxy_resolver->list = convert_winhttp_proxy_list_to_uri_list(proxy);
         if (!proxy_resolver->list) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
             LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "proxy list", proxy_resolver->error);
@@ -134,6 +155,8 @@ winxp_done:
     is_ok = proxy_resolver->list != NULL;
     event_set(proxy_resolver->complete);
 
+    free(bypass_list);
+    free(proxy);
     free(url_wide);
     free(auto_config_url_wide);
 

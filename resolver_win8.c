@@ -160,6 +160,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     wchar_t *url_wide = NULL;
     wchar_t *auto_config_url_wide = NULL;
     char *proxy = NULL;
+    char *bypass_list = NULL;
     bool is_ok = false;
     int32_t error = 0;
 
@@ -177,9 +178,18 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = auto_config_url_wide;
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
-        // Use explicit proxy list
-        proxy_resolver->list = get_url_from_host(url, proxy);
-        free(proxy);
+        // Check to see if we need to bypass the proxy for the url
+        bool should_bypass = false;
+        if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
+            should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list);
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
+            proxy_resolver->list = get_url_from_host(url, proxy);
+        }
         goto win8_done;
     } else if (!proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
@@ -243,6 +253,8 @@ win8_done:
 
 win8_cleanup:
 
+    free(bypass_list);
+    free(proxy);
     free(url_wide);
     free(auto_config_url_wide);
 

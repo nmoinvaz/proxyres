@@ -116,6 +116,8 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
     char *auto_config_url = NULL;
+    char *proxy = NULL;
+    char *bypass_list = NULL;
     bool is_ok = false;
 
     if (!proxy_resolver || !url)
@@ -150,12 +152,18 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
         CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
         CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
-    } else {
-        // No proxy auto config url specified so use manually configured proxy
-        char *proxy = proxy_config_get_proxy(url);
-        if (proxy) {
+    } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
+        // Check to see if we need to bypass the proxy for the url
+        bool should_bypass = false;
+        if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
+            should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list);
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
             proxy_resolver->list = get_url_from_host(url, proxy);
-            free(proxy);
         }
     }
 
@@ -164,6 +172,8 @@ mac_done:
     is_ok = proxy_resolver->error == 0;
     event_set(proxy_resolver->complete);
 
+    free(bypass_list);
+    free(proxy);
     free(auto_config_url);
 
     if (url_ref)
