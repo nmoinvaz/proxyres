@@ -17,8 +17,6 @@ if(PROXYRES_BUILD_CLI)
         return()
     endif()
 
-    enable_testing()
-
     add_test(NAME proxycli-help
         COMMAND proxycli help)
     add_test(NAME proxycli-config

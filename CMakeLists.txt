@@ -279,4 +279,9 @@ elseif(UNIX)
     target_link_libraries(proxyres ${CMAKE_DL_LIBS})
 endif()
 
-add_subdirectory(test)
+if(PROXYRES_BUILD_CLI OR PROXYRES_BUILD_TESTS)
+    # Should be enabled in source root CMakeLists.txt
+    enable_testing()
+
+    add_subdirectory(test)
+endif()
