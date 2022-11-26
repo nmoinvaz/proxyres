@@ -31,12 +31,10 @@ char *proxy_config_win_get_auto_config_url(void) {
     char *auto_config_url = NULL;
 
     if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
-        if (options[0].Value.dwValue & PROXY_TYPE_AUTO_PROXY_URL) {
-            if (options[1].Value.pszValue) {
-                if (*options[1].Value.pszValue != 0)
-                    auto_config_url = wchar_dup_to_utf8(options[1].Value.pszValue);
-                GlobalFree(options[1].Value.pszValue);
-            }
+        if (options[1].Value.pszValue) {
+            if (options[0].Value.dwValue & PROXY_TYPE_AUTO_PROXY_URL && *options[1].Value.pszValue)
+                auto_config_url = wchar_dup_to_utf8(options[1].Value.pszValue);
+            GlobalFree(options[1].Value.pszValue);
         }
     }
 
@@ -50,12 +48,10 @@ char *proxy_config_win_get_proxy(const char *scheme) {
     char *proxy_list = NULL;
 
     if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
-        if (options[0].Value.dwValue & PROXY_TYPE_PROXY) {
-            if (options[1].Value.pszValue) {
-                if (*options[1].Value.pszValue != 0)
-                    proxy_list = wchar_dup_to_utf8(options[1].Value.pszValue);
-                GlobalFree(options[1].Value.pszValue);
-            }
+        if (options[1].Value.pszValue) {
+            if (options[0].Value.dwValue & PROXY_TYPE_PROXY && *options[1].Value.pszValue)
+                proxy_list = wchar_dup_to_utf8(options[1].Value.pszValue);
+            GlobalFree(options[1].Value.pszValue);
         }
     }
 
@@ -75,12 +71,10 @@ char *proxy_config_win_get_bypass_list(void) {
     char *list = NULL;
 
     if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
-        if (options[0].Value.dwValue & PROXY_TYPE_PROXY) {
-            if (options[1].Value.pszValue) {
-                if (*options[1].Value.pszValue != 0)
-                    list = wchar_dup_to_utf8(options[1].Value.pszValue);
-                GlobalFree(options[1].Value.pszValue);
-            }
+        if (options[1].Value.pszValue) {
+            if (options[0].Value.dwValue & PROXY_TYPE_PROXY && *options[1].Value.pszValue)
+                list = wchar_dup_to_utf8(options[1].Value.pszValue);
+            GlobalFree(options[1].Value.pszValue);
         }
     }
 
