@@ -242,7 +242,7 @@ if(PROXYRES_EXECUTE)
 endif()
 
 if(WIN32)
-    target_link_libraries(proxyres dhcpcsvc.lib iphlpapi.lib winhttp ws2_32)
+    target_link_libraries(proxyres dhcpcsvc.lib iphlpapi.lib wininet winhttp ws2_32)
 elseif(APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries(proxyres ${CFNETWORK_LIBRARY})

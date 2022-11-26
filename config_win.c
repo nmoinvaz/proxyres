@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #include <windows.h>
-#include <winhttp.h>
+#include <wininet.h>
 
 #include "config.h"
 #include "config_i.h"
@@ -11,75 +11,83 @@
 #include "util.h"
 #include "util_win.h"
 
-static void free_winhttp_ie_proxy_config(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG *ie_config) {
-    if (ie_config->lpszAutoConfigUrl)
-        GlobalFree(ie_config->lpszAutoConfigUrl);
-    if (ie_config->lpszProxy)
-        GlobalFree(ie_config->lpszProxy);
-    if (ie_config->lpszProxyBypass)
-        GlobalFree(ie_config->lpszProxyBypass);
-}
+// Use WinInet to retrieve user's proxy configuration because WinHttpGetIEProxyConfigForCurrentUser
+// has a network dependency that causes it to be slow https://stackoverflow.com/questions/2151462/.
 
 bool proxy_config_win_get_auto_discover(void) {
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
-
-    if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
-        return false;
-
-    bool auto_discover = ie_config.fAutoDetect;
-    free_winhttp_ie_proxy_config(&ie_config);
+    INTERNET_PER_CONN_OPTIONW options[1] = {{INTERNET_PER_CONN_FLAGS, 0}};
+    INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 1, 0, options};
+    DWORD option_list_size = sizeof(option_list);
+    bool auto_discover = false;
+    if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size))
+        auto_discover = options[0].Value.dwValue & PROXY_TYPE_AUTO_DETECT;
     return auto_discover;
 }
 
 char *proxy_config_win_get_auto_config_url(void) {
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
+    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, 0}, {INTERNET_PER_CONN_AUTOCONFIG_URL, 0}};
+    INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 2, 0, options};
+    DWORD option_list_size = sizeof(option_list);
     char *auto_config_url = NULL;
 
-    if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
-        return NULL;
+    if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
+        if (options[0].Value.dwValue & PROXY_TYPE_AUTO_PROXY_URL) {
+            if (options[1].Value.pszValue) {
+                if (*options[1].Value.pszValue != 0)
+                    auto_config_url = wchar_dup_to_utf8(options[1].Value.pszValue);
+                GlobalFree(options[1].Value.pszValue);
+            }
+        }
+    }
 
-    if (ie_config.lpszAutoConfigUrl && *ie_config.lpszAutoConfigUrl)
-        auto_config_url = wchar_dup_to_utf8(ie_config.lpszAutoConfigUrl);
-
-    free_winhttp_ie_proxy_config(&ie_config);
     return auto_config_url;
 }
 
 char *proxy_config_win_get_proxy(const char *scheme) {
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
-    char *proxy = NULL;
+    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, 0}, {INTERNET_PER_CONN_PROXY_SERVER, 0}};
+    INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 2, 0, options};
+    DWORD option_list_size = sizeof(option_list);
+    char *proxy_list = NULL;
 
-    if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
-        return NULL;
-
-    if (ie_config.lpszProxy && *ie_config.lpszProxy) {
-        char *proxy_list = wchar_dup_to_utf8(ie_config.lpszProxy);
-        if (proxy_list) {
-            proxy = get_winhttp_proxy_by_scheme(scheme, proxy_list);
-            free(proxy_list);
+    if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
+        if (options[0].Value.dwValue & PROXY_TYPE_PROXY) {
+            if (options[1].Value.pszValue) {
+                if (*options[1].Value.pszValue != 0)
+                    proxy_list = wchar_dup_to_utf8(options[1].Value.pszValue);
+                GlobalFree(options[1].Value.pszValue);
+            }
         }
     }
 
-    free_winhttp_ie_proxy_config(&ie_config);
+    if (!proxy_list)
+        return NULL;
+
+    // Proxy may be returned as a list of proxies
+    char *proxy = get_winhttp_proxy_by_scheme(scheme, proxy_list);
+    free(proxy_list);
     return proxy;
 }
 
 char *proxy_config_win_get_bypass_list(void) {
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_config = {0};
+    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, 0}, {INTERNET_PER_CONN_PROXY_BYPASS, 0}};
+    INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 2, 0, options};
+    DWORD option_list_size = sizeof(option_list);
     char *list = NULL;
 
-    if (!WinHttpGetIEProxyConfigForCurrentUser(&ie_config))
-        return NULL;
-
-    if (ie_config.lpszProxyBypass && *ie_config.lpszProxyBypass) {
-        list = wchar_dup_to_utf8(ie_config.lpszProxyBypass);
-
-        // Normalize separators for all platforms to comma
-        if (list)
-            str_change_chr(list, ';', ',');
+    if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
+        if (options[0].Value.dwValue & PROXY_TYPE_PROXY) {
+            if (options[1].Value.pszValue) {
+                if (*options[1].Value.pszValue != 0)
+                    list = wchar_dup_to_utf8(options[1].Value.pszValue);
+                GlobalFree(options[1].Value.pszValue);
+            }
+        }
     }
 
-    free_winhttp_ie_proxy_config(&ie_config);
+    // Normalize separators for all platforms to comma
+    if (list)
+        str_change_chr(list, ';', ',');
+
     return list;
 }
 
