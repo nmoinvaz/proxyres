@@ -25,14 +25,31 @@ For more information on PAC scripts can be found in Mozilla's [documentation](ht
 ## Using with CMake
 
 Run the following git commands to add a new submodule to your repository:
-```
+
+```bash
 git submodule add git@github.com:nmoinvaz/proxyres third-party/proxyres
 git submodule update --init
 ```
+
 Add thefollowing to your cmake:
-```
+
+```cmake
 add_subdirectory(third-party/proxyres proxyres EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} proxyres)
+```
+
+## Using with cURL
+
+Since `proxy_resolver` can return multiple proxies, each proxy in the list must be attempted. A direct connection should only be attempted if `direct://` was returned.
+
+It is also import to check cURL's feature list to ensure that HTTPS proxies are supported. It is possible to build `cURL` without HTTPS proxy support on some platforms. On such platforms it may be preferrible to change the proxy URL from HTTPS to HTTP:
+```c
+static curl_version_info_data *version_info = curl_version_info(CURLVERSION_NOW);
+// cURL is not built with HTTPS proxy support so just use HTTP proxy
+if ((version_info->features & CURL_VERSION_HTTPS_PROXY) == 0) {
+    memmove(proxy, proxy + 1, strlen(proxy) + 1);
+    memcpy(proxy, "http:", MIN(5, strlen(proxy)));
+}
 ```
 
 ## Linking with V8
