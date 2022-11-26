@@ -1,6 +1,12 @@
-# proxyres
+# proxyres <!-- omit from toc -->
 
-## API Overview
+- [API](#api)
+- [FindProxyForURL](#findproxyforurl)
+- [Using with CMake](#using-with-cmake)
+- [Using with cURL](#using-with-curl)
+- [Linking with V8](#linking-with-v8)
+
+## API
 
 |Class|Description|
 |-|:-|
@@ -20,7 +26,7 @@ Specifically, both macOS and Windows do not support:
 
 Only the posix resolver in proxyres can handle these types when returning from `FindProxyForURL`.
 
-For more information on PAC scripts can be found in Mozilla's [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file).
+More information on PAC scripts can be found in Mozilla's [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file).
 
 ## Using with CMake
 
@@ -47,8 +53,9 @@ It is also import to check cURL's feature list to ensure that HTTPS proxies are 
 static curl_version_info_data *version_info = curl_version_info(CURLVERSION_NOW);
 // cURL is not built with HTTPS proxy support so just use HTTP proxy
 if ((version_info->features & CURL_VERSION_HTTPS_PROXY) == 0) {
-    memmove(proxy, proxy + 1, strlen(proxy) + 1);
-    memcpy(proxy, "http:", MIN(5, strlen(proxy)));
+    // Remove s from https
+    if (strncasecmp(proxy, "https:", 6) == 0)
+        memmove(proxy + 4, proxy + 5, strlen(proxy) - 4);
 }
 ```
 
