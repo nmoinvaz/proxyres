@@ -157,7 +157,11 @@ constexpr should_bypass_list_param should_bypass_list_tests[] = {
     {"http://google.com/", "*google.com", true},
     {"http://google.com/", "google.com,apple.com", true},
     // Don't bypass due to no url matches
-    {"http://google.com/", "apple.com", false}
+    {"http://google.com/", "apple.com", false},
+    // Bypass subdomains
+    {"http://my.google.com/", ".google.com", true},
+    // Don't bypass if subdomain not supplied
+    {"http://google.com/", ".google.com", false},
 };
 
 class util_should_bypass : public ::testing::TestWithParam<should_bypass_list_param> {};

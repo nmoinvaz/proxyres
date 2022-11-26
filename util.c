@@ -417,8 +417,14 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
         if (!rule_end)
             rule_end = rule_start + strlen(rule_start);
         size_t rule_len = (size_t)(rule_end - rule_start);
-        if (rule_len > sizeof(bypass_rule))
-            rule_len = sizeof(bypass_rule) - 1;
+        if (rule_len > sizeof(bypass_rule) - 1)
+            rule_len = sizeof(bypass_rule) - 2;
+
+        // Copy wildcard to match subdomain rule
+        if (*rule_start == '.')
+            strncat(bypass_rule, "*", 1);
+
+        // Copy rule to temporary buffer
         strncat(bypass_rule, rule_start, rule_len);
 
         // If the rule matches hostname of url then bypass proxy
