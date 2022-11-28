@@ -30,7 +30,10 @@ if(PROXYRES_BUILD_CLI)
 endif()
 
 if(PROXYRES_BUILD_TESTS)
-    find_package(GTest QUIET)
+    if(NOT TARGET GTest::GTest)
+        find_package(GTest QUIET)
+    endif()
+
     if(NOT TARGET GTest::GTest)
         include(FetchContent)
 
