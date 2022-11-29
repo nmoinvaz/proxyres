@@ -41,8 +41,8 @@ ctest --verbose -C Debug
 |:-|:-|:-:|
 |PROXYRES_CURL|Enables downloading PAC scripts using [curl](https://github.com/curl/curl). Without this option set, PAC scripts will only be downloaded using HTTP 1.0.|OFF|
 |PROXYRES_EXECUTE|Enables support for PAC script execution. Required on Linux due to the lack of a system level proxy resolver.|ON|
-|PROXYRES_BUILD_CLI|Builds command line utility.|ON|
-|PROXYRES_BUILD_TESTS|Builds Googletest unit tests project.|ON|
+|PROXYRES_BUILD_CLI|Build command line utility.|ON|
+|PROXYRES_BUILD_TESTS|Build Googletest unit tests project.|ON|
 |PROXYRES_CODE_COVERAGE|Build for code coverage.|OFF|
 
 ## History & Motivation

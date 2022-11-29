@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
-option(PROXYRES_CURL "Build with cURL to download PAC scripts." OFF)
-option(PROXYRES_EXECUTE "Build with support for PAC script execution." ON)
+option(PROXYRES_CURL "Enable support for downloading PAC scripts using cURL." OFF)
+option(PROXYRES_EXECUTE "Enable support for PAC script execution." ON)
 
-option(PROXYRES_BUILD_CLI "Builds command line utility." ON)
-option(PROXYRES_BUILD_TESTS "Builds Googletest unit tests project." ON)
+option(PROXYRES_BUILD_CLI "Build command line utility." ON)
+option(PROXYRES_BUILD_TESTS "Build Googletest unit tests project." ON)
 
 option(PROXYRES_CODE_COVERAGE "Build for code coverage." OFF)
 
