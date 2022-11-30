@@ -4,7 +4,7 @@
 
 #include "config.h"
 #ifdef PROXYRES_EXECUTE
-#include "execute.h"
+#  include "execute.h"
 #endif
 #include "log.h"
 #include "resolver.h"

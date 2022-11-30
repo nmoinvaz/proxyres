@@ -9,13 +9,13 @@
 #include "config_i.h"
 #include "config_env.h"
 #if defined(__APPLE__)
-#include "config_mac.h"
+#  include "config_mac.h"
 #elif defined(__linux__)
-#include "config_gnome2.h"
-#include "config_gnome3.h"
-#include "config_kde.h"
+#  include "config_gnome2.h"
+#  include "config_gnome3.h"
+#  include "config_kde.h"
 #elif defined(_WIN32)
-#include "config_win.h"
+#  include "config_win.h"
 #endif
 #include "log.h"
 #include "util_linux.h"

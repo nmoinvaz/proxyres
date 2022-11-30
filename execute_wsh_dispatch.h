@@ -16,7 +16,7 @@ typedef struct script_dispatch_s {
 #define SCRIPT_DISPATCH_MY_IP_ADDRESS_ID 2
 
 #define cast_from_dispatch_interface(this) \
-    (script_dispatch_s *)((uint8_t *)this - offsetof(script_dispatch_s, dispatch))
+  (script_dispatch_s *)((uint8_t *)this - offsetof(script_dispatch_s, dispatch))
 
 static ULONG STDMETHODCALLTYPE script_dispatch_add_ref(IDispatch *dispatch) {
     script_dispatch_s *this = cast_from_dispatch_interface(dispatch);

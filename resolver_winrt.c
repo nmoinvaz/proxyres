@@ -20,11 +20,11 @@
 #include "util_win.h"
 
 #if defined(__cplusplus)
-#define CIID(iid)   (iid)
-#define CGUID(guid) (guid)
+#  define CIID(iid)   (iid)
+#  define CGUID(guid) (guid)
 #else
-#define CIID(iid)   (&iid)
-#define CGUID(guid) (&guid)
+#  define CIID(iid)   (&iid)
+#  define CGUID(guid) (&guid)
 #endif
 
 // There is a bug in the Windows SDK and no WinRT IIDs are defined
@@ -37,37 +37,37 @@ const IID IID_AsyncOperationCompletedHandler_ProxyConfiguration = {
 // INetworkInformationStatics
 typedef __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics WinRT_INetworkInformationStatics;
 #define WinRT_INetworkInformationStatics_GetProxyConfigurationAsync(this, uri, value) \
-    __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_GetProxyConfigurationAsync(this, uri, value)
+  __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_GetProxyConfigurationAsync(this, uri, value)
 #define WinRT_INetworkInformationStatics_Release(this) \
-    __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_Release(this)
+  __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_Release(this)
 
 // IUriRuntimeClass
 typedef __x_ABI_CWindows_CFoundation_CIUriRuntimeClass WinRT_IUriRuntimeClass;
 #define WinRT_IUriRuntimeClass_GetAbsoluteUri(this, value) \
-    __x_ABI_CWindows_CFoundation_CIUriRuntimeClass_get_AbsoluteUri(this, value)
+  __x_ABI_CWindows_CFoundation_CIUriRuntimeClass_get_AbsoluteUri(this, value)
 #define WinRT_IUriRuntimeClass_Release(this) __x_ABI_CWindows_CFoundation_CIUriRuntimeClass_Release(this)
 
 // IUriRuntimeClassFactory
 typedef __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory WinRT_IUriRuntimeClassFactory;
 #define WinRT_IUriRuntimeClassFactory_CreateUri(this, uri, instance) \
-    __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory_CreateUri(this, uri, instance)
+  __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory_CreateUri(this, uri, instance)
 #define WinRT_IUriRuntimeClassFactory_Release(this) __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory_Release(this)
 
 // IVectorView<Uri>
 typedef __FIVectorView_1_Windows__CFoundation__CUri WinRT_IVectorView_Uri;
 #define WinRT_IVectorView_Uri_GetAt(This, Index, Item) \
-    __FIVectorView_1_Windows__CFoundation__CUri_GetAt(This, Index, Item)
+  __FIVectorView_1_Windows__CFoundation__CUri_GetAt(This, Index, Item)
 #define WinRT_IVectorView_Uri_GetSize(This, Size) __FIVectorView_1_Windows__CFoundation__CUri_get_Size(This, Size)
 #define WinRT_IVectorView_Uri_Release(This)       __FIVectorView_1_Windows__CFoundation__CUri_Release(This)
 
 // IProxyConfiguration
 typedef __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration WinRT_IProxyConfiguration;
 #define WinRT_IProxyConfiguration_GetCanConnectDirectly(This, Value) \
-    __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_CanConnectDirectly(This, Value)
+  __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_CanConnectDirectly(This, Value)
 #define WinRT_IProxyConfiguration_GetProxyUris(This, Value) \
-    __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_ProxyUris(This, Value)
+  __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_ProxyUris(This, Value)
 #define WinRT_IProxyConfiguration_Release(This) \
-    __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_Release(This)
+  __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_Release(This)
 
 // IAsyncOperationCompletedHandler<ProxyConfiguration>
 typedef __FIAsyncOperationCompletedHandler_1_Windows__CNetworking__CConnectivity__CProxyConfiguration
@@ -81,11 +81,11 @@ typedef __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfigur
 typedef __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfigurationVtbl
     WinRT_IAsyncOperation_ProxyConfigurationVtbl;
 #define WinRT_IAsyncOperation_ProxyConfiguration_PutCompleted(this, handler) \
-    __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_put_Completed(this, handler)
+  __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_put_Completed(this, handler)
 #define WinRT_IAsyncOperation_ProxyConfiguration_GetResults(this, results) \
-    __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_GetResults(this, results)
+  __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_GetResults(this, results)
 #define WinRT_IAsyncOperation_ProxyConfiguration_Release(this) \
-    __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_Release(this)
+  __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_Release(this)
 
 struct async_complete_handler_s;
 
@@ -112,7 +112,7 @@ typedef struct async_complete_handler_s {
 } async_complete_handler_s;
 
 #define cast_from_complete_handler_interface(this) \
-    (async_complete_handler_s *)((uint8_t *)this - offsetof(async_complete_handler_s, complete))
+  (async_complete_handler_s *)((uint8_t *)this - offsetof(async_complete_handler_s, complete))
 
 ULONG STDMETHODCALLTYPE
 async_complete_handler_add_ref(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler) {

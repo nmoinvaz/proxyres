@@ -29,13 +29,13 @@ typedef struct proxy_execute_wsh_s {
 } proxy_execute_wsh_s;
 
 #ifdef _WIN64
-#define IActiveScriptParse_InitNew         IActiveScriptParse64_InitNew
-#define IActiveScriptParse_ParseScriptText IActiveScriptParse64_ParseScriptText
-#define IActiveScriptParse_Release         IActiveScriptParse64_Release
+#  define IActiveScriptParse_InitNew         IActiveScriptParse64_InitNew
+#  define IActiveScriptParse_ParseScriptText IActiveScriptParse64_ParseScriptText
+#  define IActiveScriptParse_Release         IActiveScriptParse64_Release
 #else
-#define IActiveScriptParse_InitNew         IActiveScriptParse32_InitNew
-#define IActiveScriptParse_ParseScriptText IActiveScriptParse32_ParseScriptText
-#define IActiveScriptParse_Release         IActiveScriptParse32_Release
+#  define IActiveScriptParse_InitNew         IActiveScriptParse32_InitNew
+#  define IActiveScriptParse_ParseScriptText IActiveScriptParse32_ParseScriptText
+#  define IActiveScriptParse_Release         IActiveScriptParse32_Release
 #endif
 
 static bool script_engine_create(proxy_execute_wsh_s *proxy_execute_wsh) {

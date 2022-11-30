@@ -7,14 +7,14 @@
 #include <errno.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
+#  include <winsock2.h>
+#  include <ws2tcpip.h>
+#  include <windows.h>
 #else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
+#  include <sys/types.h>
+#  include <sys/socket.h>
+#  include <netdb.h>
+#  include <unistd.h>
 #endif
 
 #include "dns.h"
@@ -23,9 +23,9 @@
 #include "util.h"
 
 #ifdef _WIN32
-#define socketerr WSAGetLastError()
+#  define socketerr WSAGetLastError()
 #else
-#define socketerr errno
+#  define socketerr errno
 #endif
 
 // Request WPAD script using DNS

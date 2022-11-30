@@ -7,8 +7,8 @@
 #include <ctype.h>
 
 #ifdef _WIN32
-#define strcasecmp  _stricmp
-#define strncasecmp _strnicmp
+#  define strcasecmp  _stricmp
+#  define strncasecmp _strnicmp
 #endif
 
 #include "util.h"

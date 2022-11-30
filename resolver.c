@@ -7,7 +7,7 @@
 
 #include <errno.h>
 #ifdef _WIN32
-#include <windows.h>
+#  include <windows.h>
 #endif
 
 #include "config.h"
@@ -16,16 +16,16 @@
 #include "resolver_i.h"
 #include "resolver_posix.h"
 #if defined(__APPLE__)
-#include "resolver_mac.h"
+#  include "resolver_mac.h"
 #elif defined(__linux__)
-#include "resolver_gnome3.h"
+#  include "resolver_gnome3.h"
 #elif defined(_WIN32)
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-#include "resolver_winxp.h"
-#include "resolver_win8.h"
-#elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
-#include "resolver_winrt.h"
-#endif
+#  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#    include "resolver_winxp.h"
+#    include "resolver_win8.h"
+#  elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
+#    include "resolver_winrt.h"
+#  endif
 #endif
 #include "threadpool.h"
 
@@ -146,19 +146,19 @@ bool proxy_resolver_init(void) {
     if (proxy_resolver_mac_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_mac_get_interface();
 #elif defined(__linux__)
-    /* Does not work for manually specified proxy auto-config urls
-    if (proxy_resolver_gnome3_init())
-        g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
+        /* Does not work for manually specified proxy auto-config urls
+        if (proxy_resolver_gnome3_init())
+            g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
 #elif defined(_WIN32)
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     if (proxy_resolver_win8_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_win8_get_interface();
     else if (proxy_resolver_winxp_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winxp_get_interface();
-#elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
+#  elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
     if (proxy_resolver_winrt_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winrt_get_interface();
-#endif
+#  endif
 #endif
 #ifdef PROXYRES_EXECUTE
     if (!g_proxy_resolver.proxy_resolver_i)

@@ -6,11 +6,11 @@
 #include "execute.h"
 #include "execute_i.h"
 #ifdef _WIN32
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-#include "execute_wsh.h"
-#endif
+#  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#    include "execute_wsh.h"
+#  endif
 #else
-#include "execute_jscore.h"
+#  include "execute_jscore.h"
 #endif
 
 typedef struct g_proxy_execute_s {
@@ -59,10 +59,10 @@ bool proxy_execute_init(void) {
     }
     memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
 #ifdef _WIN32
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     if (proxy_execute_wsh_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
-#endif
+#  endif
 #else
     if (proxy_execute_jscore_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_jscore_get_interface();

@@ -9,9 +9,9 @@
 #include "wpad_dhcp.h"
 #include "wpad_dhcp_posix.h"
 #if defined(_WIN32)
-#include "wpad_dhcp_win.h"
+#  include "wpad_dhcp_win.h"
 #elif defined(__APPLE__)
-#include "wpad_dhcp_mac.h"
+#  include "wpad_dhcp_mac.h"
 #endif
 
 char *wpad_dhcp_adapter(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
