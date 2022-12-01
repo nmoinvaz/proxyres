@@ -1,7 +1,6 @@
 ---
 BasedOnStyle: Google
 
-AccessModifierOffset: -2
 AlignConsecutiveMacros: AcrossEmptyLines
 AlignOperands: DontAlign
 AllowShortFunctionsOnASingleLine: false
