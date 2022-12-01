@@ -44,6 +44,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     wchar_t *auto_config_url_wide = NULL;
     char *proxy = NULL;
     char *bypass_list = NULL;
+    char *scheme = NULL;
     bool is_ok = false;
 
     // Set proxy options for calls to WinHttpGetProxyForUrl
@@ -59,7 +60,18 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
 
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = auto_config_url_wide;
-    } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
+        goto winxp_resolve;
+    }
+
+    // Use scheme associated with the URL when determining proxy
+    scheme = get_url_scheme(url, "http");
+    if (!scheme) {
+        proxy_resolver->error = ERROR_OUTOFMEMORY;
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme", proxy_resolver->error);
+        goto winxp_done;
+    }
+
+    if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
         // Check to see if we need to bypass the proxy for the url
         bool should_bypass = false;
         if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
@@ -73,14 +85,19 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
             proxy_resolver->list = get_url_from_host(url, proxy);
         }
         goto winxp_done;
-    } else if (proxy_config_get_auto_discover()) {
+    }
+
+    if (proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
         goto winxp_done;
-    } else {
-        // Use WPAD to automatically retrieve proxy auto-configuration and evaluate it
-        options.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
-        options.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
     }
+
+    // Use WPAD to automatically retrieve proxy auto-configuration and evaluate it
+    options.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+    options.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+
+
+winxp_resolve:
 
     // Convert url to wide char for WinHttpGetProxyForUrl
     url_wide = utf8_dup_to_wchar(url);
@@ -155,6 +172,7 @@ winxp_done:
     is_ok = proxy_resolver->list != NULL;
     event_set(proxy_resolver->complete);
 
+    free(scheme);
     free(bypass_list);
     free(proxy);
     free(url_wide);

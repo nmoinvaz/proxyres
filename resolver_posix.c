@@ -114,12 +114,21 @@ static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t
 
 bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
-    char *proxy = NULL;
-    char *script = NULL;
-    char *bypass_list = NULL;
     char *auto_config_url = NULL;
+    char *proxy = NULL;
+    char *bypass_list = NULL;
+    char *scheme = NULL;
+    char *script = NULL;
     bool locked = false;
     bool is_ok = false;
+
+    // Use scheme associated with the URL when determining proxy
+    scheme = get_url_scheme(url, "http");
+    if (!scheme) {
+        proxy_resolver->error = ENOMEM;
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme", proxy_resolver->error);
+        goto posix_done;
+    }
 
     if (proxy_config_get_auto_discover()) {
         locked = mutex_lock(g_proxy_resolver_posix.mutex);
@@ -130,9 +139,6 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     // Use manually specified proxy auto configuration
     if (!auto_config_url)
         auto_config_url = proxy_config_get_auto_config_url();
-
-    // Use scheme associated with the URL when determining proxy
-    char *scheme = get_url_scheme(url, "http");
 
     if (auto_config_url) {
         // Download proxy auto config script if available
@@ -164,7 +170,10 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         proxy_resolver->list = convert_proxy_list_to_uri_list(list, scheme);
 
         proxy_execute_delete(&proxy_execute);
-    } else if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
+        goto posix_done;
+    }
+
+    if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
         // Check to see if we need to bypass the proxy for the url
         bool should_bypass = false;
         if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
@@ -177,20 +186,21 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
             // Use proxy from settings
             proxy_resolver->list = get_url_from_host(scheme, proxy);
         }
-    } else {
-        // Use DIRECT connection
-        proxy_resolver->list = strdup("direct://");
+        goto posix_done;
     }
 
-    free(scheme);
+    // Use DIRECT connection
+    proxy_resolver->list = strdup("direct://");
+
+posix_done:
 
     if (locked)
         mutex_unlock(g_proxy_resolver_posix.mutex);
 
-posix_done:
-
     is_ok = proxy_resolver->list != NULL;
     event_set(proxy_resolver->complete);
+
+    free(scheme);
 
     free(bypass_list);
     free(proxy);
