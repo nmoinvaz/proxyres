@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-option(PROXYRES_CURL "Enable support for downloading PAC scripts using cURL." OFF)
+option(PROXYRES_CURL "Enable support for downloading PAC scripts using curl." OFF)
 option(PROXYRES_EXECUTE "Enable support for PAC script execution." ON)
 
 option(PROXYRES_BUILD_CLI "Build command line utility." ON)
@@ -188,8 +188,8 @@ if(PROXYRES_EXECUTE)
             set(CURL_USE_LIBSSH2 OFF CACHE BOOL "Use libSSH2" FORCE)
 
             # Disable tests
-            set(BUILD_CURL_EXE OFF CACHE BOOL "Build cURL executable" FORCE)
-            set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable cURL tests" FORCE)
+            set(BUILD_CURL_EXE OFF CACHE BOOL "Build executable" FORCE)
+            set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable tests" FORCE)
             set(CURL_ENABLE_EXPORT_TARGET OFF CACHE BOOL "to enable cmake export target" FORCE)
 
             # Disable unnecessary protocols

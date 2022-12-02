@@ -19,7 +19,7 @@ jobs:
             gcov-exec: llvm-cov-14 gcov
             codecov: ubuntu
 
-          - name: Build - Ubuntu Clang cURL
+          - name: Build - Ubuntu Clang (curl)
             runs-on: ubuntu-latest
             compiler: clang
             cxx-compiler: clang++
