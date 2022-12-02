@@ -10,7 +10,6 @@ The script execution process is blocking.
 |:-|:-|:-|
 |Linux|JavaScriptCoreGTK|Dynamically loaded at run-time.|
 |macOS|JavaScriptCore|Dynamically loaded at run-time.|
-|Windows|JSProxy|Deprecated on Windows 11.<br>A copy of jsproxy.dll can be found in the `test` folder.|
 |Windows|Windows Script Host|Uses IActiveScript COM interfaces.|
 
 ## API <!-- omit in toc -->
