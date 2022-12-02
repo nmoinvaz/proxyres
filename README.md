@@ -4,7 +4,7 @@
 
 Cross-platform proxy resolution with support for Linux, macOS, & Windows.
 
-[Read the Documentation](docs/README.md)
+[Read the Documentation](doc/README.md)
 
 ## Features
 
