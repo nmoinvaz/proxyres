@@ -92,6 +92,7 @@ if(PROXYRES_BUILD_TESTS)
 
     add_executable(gtest_proxyres ${TEST_SRCS})
     target_link_libraries(gtest_proxyres PRIVATE proxyres GTest::GTest)
+    target_include_directories(gtest_proxyres PRIVATE ${CMAKE_SOURCE_DIR})
 
     add_test(NAME gtest_proxyres COMMAND gtest_proxyres)
 endif()

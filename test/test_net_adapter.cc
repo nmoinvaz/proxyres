@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "net_adapter.h"
-}
 
 static inline bool print_adapter(void *user_data, net_adapter_s *adapter) {
     net_adapter_print(adapter);

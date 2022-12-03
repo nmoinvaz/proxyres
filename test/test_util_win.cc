@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "util_win.h"
-}
 
 struct get_winhttp_proxy_by_scheme_param {
     const char *proxy_list;

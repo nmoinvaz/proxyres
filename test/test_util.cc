@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "util.h"
-}
 
 struct get_url_host_param {
     const char *string;

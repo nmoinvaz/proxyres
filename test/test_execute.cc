@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
-#include "execute.h"
-}
+#include "proxyres/execute.h"
 
 struct execute_param {
     const char *url;

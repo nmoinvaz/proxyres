@@ -16,15 +16,21 @@ endif()
 project(proxyres)
 
 set(PROXYRES_SRCS
-    config.h
+    include/proxyres/config.h
+    include/proxyres/proxyres.h
+    include/proxyres/resolver.h)
+if(PROXYRES_EXECUTE)
+    list(APPEND PROXYRES_SRCS
+        include/proxyres/execute.h)
+endif()
+
+list(APPEND PROXYRES_SRCS
     config_i.h
     config.c
     event.h
     log.h
     mutex.h
-    proxyres.h
     proxyres.c
-    resolver.h
     resolver_i.h
     resolver.c
     threadpool.h
@@ -34,7 +40,6 @@ if(PROXYRES_EXECUTE)
     list(APPEND PROXYRES_SRCS
         dns.h
         dns.c
-        execute.h
         execute_i.h
         execute.c
         fetch.h
@@ -174,7 +179,11 @@ endif()
 
 add_library(proxyres ${PROXYRES_SRCS})
 set_property(TARGET proxyres PROPERTY C_STANDARD 99)
-target_include_directories(proxyres PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(proxyres PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/proxyres)
+target_include_directories(proxyres PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 if(PROXYRES_EXECUTE)
     target_compile_definitions(proxyres PUBLIC PROXYRES_EXECUTE=1)

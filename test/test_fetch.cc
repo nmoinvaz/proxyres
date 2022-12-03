@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "fetch.h"
-}
 
 TEST(fetch, get) {
     int32_t error = 0;

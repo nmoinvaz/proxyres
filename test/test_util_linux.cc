@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "util_linux.h"
-}
 
 struct get_config_value_param {
     const char *section;

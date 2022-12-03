@@ -16,13 +16,11 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "net_adapter.h"
 #include "wpad_dhcp.h"
 #include "wpad_dhcp_posix.h"
 #include "wpad_dns.h"
 #include "util.h"
-}
 
 TEST(wpad, dhcp) {
     if (getenv("WPAD") == NULL)

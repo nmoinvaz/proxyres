@@ -5,9 +5,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "threadpool.h"
-}
 
 TEST(threadpool, create) {
     void *pool = threadpool_create(1, 1);

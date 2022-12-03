@@ -8,10 +8,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "log.h"
-#include "config.h"
-#include "execute.h"
-#include "resolver.h"
+#include "proxyres/config.h"
+#include "proxyres/execute.h"
+#include "proxyres/resolver.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -107,7 +106,7 @@ static bool resolve_proxies_for_url_async(int argc, char *argv[], bool verbose) 
 
         int32_t error = proxy_resolver_get_error(proxy_resolver[i]);
         if (error != 0) {
-            LOG_ERROR("Unable to resolve proxy (%d)\n", error);
+            printf("Unable to resolve proxy (%d)\n", error);
             is_ok = false;
         }
 
