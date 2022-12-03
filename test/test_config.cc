@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include "proxyres/proxyres.h"
+#include "proxyres.h"
 
 TEST(config, override_auto_config_url) {
     proxy_config_set_auto_config_url_override("http://127.0.0.1:8000/wpad.dat");

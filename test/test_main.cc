@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "proxyres/proxyres.h"
+#include "proxyres.h"
 
 GTEST_API_ int main(int argc, char **argv) {
     int32_t error = 0;
