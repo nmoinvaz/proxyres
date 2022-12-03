@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-// Read whether WPAD proxy auto discovery is enabled on the user's system.
+// Read whether WPAD is enabled on the user's system.
 bool proxy_config_get_auto_discover(void);
 
 // Read the proxy auto config (PAC) url configured on the user's system.

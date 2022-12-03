@@ -16,7 +16,7 @@ Read the user's proxy configuration.
 
 ### proxy_config_get_auto_discover
 
-Read whether WPAD proxy auto discovery is enabled on the user's system.
+Read whether WPAD is enabled on the user's system.
 
 **Return**
 |Type|Description|
