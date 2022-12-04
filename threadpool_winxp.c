@@ -9,7 +9,9 @@
 #include <windows.h>
 #include <process.h>
 
+#include "event.h"
 #include "log.h"
+#include "mutex.h"
 #include "threadpool.h"
 
 typedef struct threadpool_job_s {
@@ -33,10 +35,10 @@ typedef struct threadpool_s {
     int32_t num_threads;
     int32_t max_threads;
     int32_t busy_threads;
-    HANDLE wakeup_cond;
-    HANDLE lazy_cond;
+    void *wakeup_cond;
+    void *lazy_cond;
     int32_t queue_count;
-    CRITICAL_SECTION queue_lock;
+    void *queue_lock;
     threadpool_job_s *queue_first;
     threadpool_job_s *queue_last;
     threadpool_thread_s *threads;
@@ -99,16 +101,16 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
         return 1;
 
     while (true) {
-        EnterCriticalSection(&threadpool->queue_lock);
+        mutex_lock(threadpool->queue_lock);
         LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - waiting for job\n", thread->id);
 
         // Sleep until there is work to do
         while (!threadpool->stop && !threadpool->queue_first) {
-            LeaveCriticalSection(&threadpool->queue_lock);
+            mutex_unlock(threadpool->queue_lock);
             // queue_lock will be unlocked during sleep and locked during awake
-            DWORD wait = WaitForSingleObject(threadpool->wakeup_cond, 250);
-            EnterCriticalSection(&threadpool->queue_lock);
-            if (wait == WAIT_TIMEOUT)
+            bool wakeup = event_wait(threadpool->wakeup_cond, 250);
+            mutex_lock(threadpool->queue_lock);
+            if (!wakeup)
                 continue;
         }
 
@@ -120,7 +122,7 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
 
         // Increment count of busy threads
         threadpool->busy_threads++;
-        LeaveCriticalSection(&threadpool->queue_lock);
+        mutex_unlock(threadpool->queue_lock);
 
         // Do the job
         if (job) {
@@ -130,24 +132,24 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
             threadpool_job_delete(&job);
         }
 
-        EnterCriticalSection(&threadpool->queue_lock);
+        mutex_lock(threadpool->queue_lock);
 
         // Decrement count of busy threads
         threadpool->busy_threads--;
 
         // If no busy threads then signal threadpool_wait that we are lazy
         if (threadpool->busy_threads == 0 && !threadpool->queue_first)
-            SetEvent(threadpool->lazy_cond);
+            event_set(threadpool->lazy_cond);
 
-        LeaveCriticalSection(&threadpool->queue_lock);
+        mutex_unlock(threadpool->queue_lock);
     }
 
     LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", thread->id);
 
     // Reduce thread count
     threadpool->num_threads--;
-    SetEvent(threadpool->lazy_cond);
-    LeaveCriticalSection(&threadpool->queue_lock);
+    event_set(threadpool->lazy_cond);
+    mutex_unlock(threadpool->queue_lock);
     return 0;
 }
 
@@ -174,7 +176,7 @@ bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) 
     if (!job)
         return false;
 
-    EnterCriticalSection(&threadpool->queue_lock);
+    mutex_lock(threadpool->queue_lock);
 
     // Add job to the job queue
     threadpool_enqueue_job(threadpool, job);
@@ -183,21 +185,21 @@ bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) 
     if (threadpool->busy_threads == threadpool->num_threads && threadpool->num_threads < threadpool->max_threads)
         threadpool_create_thread_on_demand(threadpool);
 
-    LeaveCriticalSection(&threadpool->queue_lock);
+    mutex_unlock(threadpool->queue_lock);
 
     // Wake up waiting threads
-    SetEvent(threadpool->wakeup_cond);
+    event_set(threadpool->wakeup_cond);
     return true;
 }
 
 static void threadpool_stop_threads(threadpool_s *threadpool) {
-    EnterCriticalSection(&threadpool->queue_lock);
+    mutex_lock(threadpool->queue_lock);
     // Stop threads from doing anymore work
     threadpool->stop = true;
-    LeaveCriticalSection(&threadpool->queue_lock);
+    mutex_unlock(threadpool->queue_lock);
 
     // Wake up all threads to check stop flag
-    SetEvent(threadpool->wakeup_cond);
+    event_set(threadpool->wakeup_cond);
 }
 
 static void threadpool_delete_threads(threadpool_s *threadpool) {
@@ -212,7 +214,7 @@ static void threadpool_delete_threads(threadpool_s *threadpool) {
         // Wait for thread to exit
         while (true) {
             // Signal wake up condition to wake up threads to stop
-            SetEvent(threadpool->wakeup_cond);
+            event_set(threadpool->wakeup_cond);
             DWORD wait = WaitForSingleObject(thread->handle, 250);
             if (wait != WAIT_TIMEOUT)
                 break;
@@ -238,19 +240,19 @@ void threadpool_wait(void *ctx) {
     if (!threadpool)
         return;
 
-    EnterCriticalSection(&threadpool->queue_lock);
+    mutex_lock(threadpool->queue_lock);
     while (true) {
         if ((!threadpool->stop && (threadpool->busy_threads != 0 || threadpool->queue_count != 0)) ||
             (threadpool->stop && threadpool->num_threads != 0)) {
-            LeaveCriticalSection(&threadpool->queue_lock);
+            mutex_unlock(threadpool->queue_lock);
             // Wait for signal that indicates there is no more work to do
-            WaitForSingleObject(threadpool->lazy_cond, 250);
-            EnterCriticalSection(&threadpool->queue_lock);
+            event_wait(threadpool->lazy_cond, 250);
+            mutex_lock(threadpool->queue_lock);
         } else {
             break;
         }
     }
-    LeaveCriticalSection(&threadpool->queue_lock);
+    mutex_unlock(threadpool->queue_lock);
 }
 
 void *threadpool_create(int32_t min_threads, int32_t max_threads) {
@@ -258,13 +260,29 @@ void *threadpool_create(int32_t min_threads, int32_t max_threads) {
     if (!threadpool)
         return NULL;
 
+    threadpool->queue_lock = mutex_create();
+    if (!threadpool->queue_lock) {
+        free(threadpool);
+        return NULL;
+    }
+
+    threadpool->wakeup_cond = event_create();
+    if (!threadpool->wakeup_cond) {
+        mutex_delete(&threadpool->queue_lock);
+        free(threadpool);
+        return NULL;
+    }
+
+    threadpool->lazy_cond = event_create();
+    if (!threadpool->lazy_cond) {
+        event_delete(&threadpool->wakeup_cond);
+        mutex_delete(&threadpool->queue_lock);
+        free(threadpool);
+        return NULL;
+    }
+
     threadpool->min_threads = min_threads;
     threadpool->max_threads = max_threads;
-
-    InitializeCriticalSection(&threadpool->queue_lock);
-
-    threadpool->wakeup_cond = CreateEvent(NULL, FALSE, FALSE, NULL);
-    threadpool->lazy_cond = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     return threadpool;
 }
@@ -280,12 +298,10 @@ bool threadpool_delete(void **ctx) {
     threadpool_delete_threads(threadpool);
     threadpool_delete_jobs(threadpool);
 
-    DeleteCriticalSection(&threadpool->queue_lock);
+    mutex_delete(&threadpool->queue_lock);
 
-    if (threadpool->wakeup_cond)
-        CloseHandle(threadpool->wakeup_cond);
-    if (threadpool->lazy_cond)
-        CloseHandle(threadpool->lazy_cond);
+    event_delete(&threadpool->wakeup_cond);
+    event_delete(&threadpool->lazy_cond);
 
     free(threadpool);
     *ctx = NULL;

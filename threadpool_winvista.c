@@ -6,6 +6,7 @@
 #include <windows.h>
 
 #include "log.h"
+#include "mutex.h"
 #include "threadpool.h"
 
 typedef struct threadpool_job_s {
@@ -20,8 +21,7 @@ typedef struct threadpool_job_s {
 typedef struct threadpool_s {
     PTP_POOL handle;
     TP_CALLBACK_ENVIRON cb_environ;
-
-    CRITICAL_SECTION queue_lock;
+    void *queue_lock;
     int32_t queue_count;
     threadpool_job_s *queue_first;
     threadpool_job_s *queue_last;
@@ -91,9 +91,9 @@ VOID CALLBACK threadpool_job_callback(PTP_CALLBACK_INSTANCE instance, PVOID cont
 
     // Remove job from job queue
     threadpool_s *threadpool = job->pool;
-    EnterCriticalSection(&threadpool->queue_lock);
+    mutex_lock(threadpool->queue_lock);
     threadpool_remove_job(threadpool, job);
-    LeaveCriticalSection(&threadpool->queue_lock);
+    mutex_unlock(threadpool->queue_lock);
 }
 
 bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) {
@@ -110,9 +110,9 @@ bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) 
         return false;
     }
 
-    EnterCriticalSection(&threadpool->queue_lock);
+    mutex_lock(threadpool->queue_lock);
     threadpool_add_job(threadpool, job);
-    LeaveCriticalSection(&threadpool->queue_lock);
+    mutex_unlock(threadpool->queue_lock);
 
     SubmitThreadpoolWork(job->handle);
     return true;
@@ -127,11 +127,11 @@ void threadpool_wait(void *ctx) {
         return;
 
     while (true) {
-        EnterCriticalSection(&threadpool->queue_lock);
+        mutex_lock(threadpool->queue_lock);
         job = threadpool->queue_first;
         if (job)
             work_handle = job->handle;
-        LeaveCriticalSection(&threadpool->queue_lock);
+        mutex_unlock(threadpool->queue_lock);
         if (!job)
             break;
         WaitForThreadpoolWorkCallbacks(work_handle, FALSE);
@@ -147,11 +147,18 @@ void *threadpool_create(int32_t min_threads, int32_t max_threads) {
 
     threadpool->handle = CreateThreadpool(NULL);
     if (!threadpool->handle) {
+        DestroyThreadpoolEnvironment(&threadpool->cb_environ);
         free(threadpool);
         return NULL;
     }
 
-    InitializeCriticalSection(&threadpool->queue_lock);
+    threadpool->queue_lock = mutex_create();
+    if (!threadpool->queue_lock) {
+        CloseThreadpool(threadpool->handle);
+        DestroyThreadpoolEnvironment(&threadpool->cb_environ);
+        free(threadpool);
+        return NULL;
+    }
 
     SetThreadpoolThreadMinimum(threadpool->handle, min_threads);
     SetThreadpoolThreadMaximum(threadpool->handle, max_threads);
@@ -168,7 +175,7 @@ bool threadpool_delete(void **ctx) {
         return false;
     if (threadpool->handle)
         CloseThreadpool(threadpool->handle);
-    DeleteCriticalSection(&threadpool->queue_lock);
+    mutex_delete(&threadpool->queue_lock);
     DestroyThreadpoolEnvironment(&threadpool->cb_environ);
     free(threadpool);
     *ctx = NULL;
