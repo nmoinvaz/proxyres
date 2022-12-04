@@ -246,9 +246,9 @@ void *threadpool_create(int32_t min_threads, int32_t max_threads) {
     threadpool->min_threads = min_threads;
     threadpool->max_threads = max_threads;
 
-    pthread_mutex_global_init(&threadpool->queue_mutex, NULL);
-    pthread_cond_global_init(&threadpool->wakeup_cond, NULL);
-    pthread_cond_global_init(&threadpool->lazy_cond, NULL);
+    pthread_mutex_init(&threadpool->queue_mutex, NULL);
+    pthread_cond_init(&threadpool->wakeup_cond, NULL);
+    pthread_cond_init(&threadpool->lazy_cond, NULL);
 
     return threadpool;
 }
