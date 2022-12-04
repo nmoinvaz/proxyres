@@ -77,7 +77,7 @@ bool proxy_execute_global_cleanup(void) {
     if (--g_proxy_execute.ref_count > 0)
         return true;
     if (g_proxy_execute.proxy_execute_i)
-        g_proxy_execute.proxy_execute_i->uninit();
+        g_proxy_execute.proxy_execute_i->global_cleanup();
 
     memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
     return true;
