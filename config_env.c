@@ -96,12 +96,9 @@ bool proxy_config_env_global_cleanup(void) {
 }
 
 proxy_config_i_s *proxy_config_env_get_interface(void) {
-    static proxy_config_i_s proxy_config_env_i = {proxy_config_env_get_auto_discover,
-                                                  proxy_config_env_get_auto_config_url,
-                                                  proxy_config_env_get_proxy,
-                                                  proxy_config_env_get_bypass_list,
-                                                  proxy_config_env_global_init,
-                                                  proxy_config_env_global_cleanup};
+    static proxy_config_i_s proxy_config_env_i = {
+        proxy_config_env_get_auto_discover, proxy_config_env_get_auto_config_url, proxy_config_env_get_proxy,
+        proxy_config_env_get_bypass_list,   proxy_config_env_global_init,         proxy_config_env_global_cleanup};
     return &proxy_config_env_i;
 }
 

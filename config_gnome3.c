@@ -199,11 +199,9 @@ bool proxy_config_gnome3_global_cleanup(void) {
 }
 
 proxy_config_i_s *proxy_config_gnome3_get_interface(void) {
-    static proxy_config_i_s proxy_config_gnome3_i = {proxy_config_gnome3_get_auto_discover,
-                                                     proxy_config_gnome3_get_auto_config_url,
-                                                     proxy_config_gnome3_get_proxy,
-                                                     proxy_config_gnome3_get_bypass_list,
-                                                     proxy_config_gnome3_global_init,
-                                                     proxy_config_gnome3_global_cleanup};
+    static proxy_config_i_s proxy_config_gnome3_i = {
+        proxy_config_gnome3_get_auto_discover, proxy_config_gnome3_get_auto_config_url,
+        proxy_config_gnome3_get_proxy,         proxy_config_gnome3_get_bypass_list,
+        proxy_config_gnome3_global_init,       proxy_config_gnome3_global_cleanup};
     return &proxy_config_gnome3_i;
 }
