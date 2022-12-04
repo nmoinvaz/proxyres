@@ -44,7 +44,7 @@ static size_t fetch_write_script(void *contents, size_t size, size_t nscriptb, v
 char *fetch_get(const char *url, int32_t *error) {
     script_s script = {(char *)calloc(1, sizeof(char)), 0};
 
-    CURL *curl_handle = curl_easy_global_init();
+    CURL *curl_handle = curl_easy_init();
     if (!curl_handle) {
         LOG_ERROR("Unable to initialize curl handle\n");
         return NULL;
@@ -81,7 +81,7 @@ char *fetch_get(const char *url, int32_t *error) {
 }
 
 bool fetch_global_init(void) {
-    CURLcode res = curl_global_global_init(CURL_GLOBAL_ALL);
+    CURLcode res = curl_global_init(CURL_GLOBAL_ALL);
     if (res != CURLE_OK) {
         LOG_ERROR("Unable to initialize curl\n");
         return false;
