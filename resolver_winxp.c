@@ -96,7 +96,6 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     options.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
     options.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
 
-
 winxp_resolve:
 
     // Convert url to wide char for WinHttpGetProxyForUrl
