@@ -236,11 +236,11 @@ bool proxy_resolver_mac_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_mac_init(void) {
+bool proxy_resolver_mac_global_init(void) {
     return true;
 }
 
-bool proxy_resolver_mac_uninit(void) {
+bool proxy_resolver_mac_global_cleanup(void) {
     memset(&g_proxy_resolver_mac, 0, sizeof(g_proxy_resolver_mac));
     return true;
 }
@@ -254,7 +254,7 @@ proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,
                                                       proxy_resolver_mac_is_async,
-                                                      proxy_resolver_mac_init,
-                                                      proxy_resolver_mac_uninit};
+                                                      proxy_resolver_mac_global_init,
+                                                      proxy_resolver_mac_global_cleanup};
     return &proxy_resolver_mac_i;
 }

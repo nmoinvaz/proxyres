@@ -292,11 +292,11 @@ bool proxy_execute_wsh_delete(void **ctx) {
     return true;
 }
 
-bool proxy_execute_wsh_init(void) {
+bool proxy_execute_wsh_global_init(void) {
     return true;
 }
 
-bool proxy_execute_wsh_uninit(void) {
+bool proxy_execute_wsh_global_cleanup(void) {
     return true;
 }
 
@@ -307,8 +307,8 @@ proxy_execute_i_s *proxy_execute_wsh_get_interface(void) {
         proxy_execute_wsh_get_error,
         proxy_execute_wsh_create,
         proxy_execute_wsh_delete,
-        proxy_execute_wsh_init,
-        proxy_execute_wsh_uninit,
+        proxy_execute_wsh_global_init,
+        proxy_execute_wsh_global_cleanup,
     };
     return &proxy_execute_wsh_i;
 }

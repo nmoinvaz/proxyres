@@ -4,15 +4,15 @@ Read the user's proxy configuration.
 
 ## API <!-- omit in toc -->
 
-- [proxy_config_get_auto_discover](#proxy_config_get_auto_discover)
-- [proxy_config_get_auto_config_url](#proxy_config_get_auto_config_url)
-- [proxy_config_get_proxy](#proxy_config_get_proxy)
-- [proxy_config_get_bypass_list](#proxy_config_get_bypass_list)
-- [proxy_config_set_auto_config_url_override](#proxy_config_set_auto_config_url_override)
-- [proxy_config_set_proxy_override](#proxy_config_set_proxy_override)
-- [proxy_config_set_bypass_list_override](#proxy_config_set_bypass_list_override)
-- [proxy_config_init](#proxy_config_init)
-- [proxy_config_uninit](#proxy_config_uninit)
+- [proxy\_config\_get\_auto\_discover](#proxy_config_get_auto_discover)
+- [proxy\_config\_get\_auto\_config\_url](#proxy_config_get_auto_config_url)
+- [proxy\_config\_get\_proxy](#proxy_config_get_proxy)
+- [proxy\_config\_get\_bypass\_list](#proxy_config_get_bypass_list)
+- [proxy\_config\_set\_auto\_config\_url\_override](#proxy_config_set_auto_config_url_override)
+- [proxy\_config\_set\_proxy\_override](#proxy_config_set_proxy_override)
+- [proxy\_config\_set\_bypass\_list\_override](#proxy_config_set_bypass_list_override)
+- [proxy\_config\_global\_init](#proxy_config_global_init)
+- [proxy\_config\_global\_cleanup](#proxy_config_global_cleanup)
 
 ### proxy_config_get_auto_discover
 
@@ -123,7 +123,7 @@ Override the user's configured proxy bypass list.
 proxy_config_set_bypass_list_override("complex.com,welldone.com");
 ```
 
-### proxy_config_init
+### proxy_config_global_init
 
 Initialize function for reading user's proxy configuration. Must be called before running any other `proxy_config` function.
 
@@ -134,10 +134,10 @@ Initialize function for reading user's proxy configuration. Must be called befor
 
 **Example**
 ```c
-proxy_config_init();
+proxy_config_global_init();
 ```
 
-### proxy_config_uninit
+### proxy_config_global_cleanup
 
 Uninitialize function for reading user's proxy configuration. Must be called after all calls to `proxy_config` are finished.
 
@@ -148,7 +148,7 @@ Uninitialize function for reading user's proxy configuration. Must be called aft
 
 **Example**
 ```c
-proxy_config_uninit();
+proxy_config_global_cleanup();
 ```
 
 ## Example <!-- omit in toc -->
@@ -157,7 +157,7 @@ proxy_config_uninit();
 void print_proxy_config(void) {
     printf("Proxy configuration\n");
 
-    proxy_config_init();
+    proxy_config_global_init();
 
     printf("  Auto discover: %s\n",
         proxy_config_get_auto_discover() ? "enabled" : "disabled");
@@ -178,6 +178,6 @@ void print_proxy_config(void) {
     printf("  Proxy bypass: %s\n", bypass_list ? bypass_list : "not set");
     free(bypass_list);
 
-    proxy_config_uninit();
+    proxy_config_global_cleanup();
 }
 ```

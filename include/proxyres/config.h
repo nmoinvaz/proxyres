@@ -29,10 +29,10 @@ void proxy_config_set_proxy_override(const char *proxy);
 void proxy_config_set_bypass_list_override(const char *bypass_list);
 
 // Initialization function for reading user's proxy configuration.
-bool proxy_config_init(void);
+bool proxy_config_global_init(void);
 
 // Uninitialization function for reading user's proxy configuration.
-bool proxy_config_uninit(void);
+bool proxy_config_global_cleanup(void);
 
 #ifdef __cplusplus
 }

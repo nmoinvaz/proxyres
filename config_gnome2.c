@@ -151,7 +151,7 @@ char *proxy_config_gnome2_get_bypass_list(void) {
     return bypass_list;
 }
 
-bool proxy_config_gnome2_init(void) {
+bool proxy_config_gnome2_global_init(void) {
     g_proxy_config_gnome2.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_config_gnome2.glib_module)
         goto gnome2_init_error;
@@ -194,11 +194,11 @@ bool proxy_config_gnome2_init(void) {
     return true;
 
 gnome2_init_error:
-    proxy_config_gnome2_uninit();
+    proxy_config_gnome2_global_cleanup();
     return false;
 }
 
-bool proxy_config_gnome2_uninit(void) {
+bool proxy_config_gnome2_global_cleanup(void) {
     if (g_proxy_config_gnome2.glib_module)
         dlclose(g_proxy_config_gnome2.glib_module);
     if (g_proxy_config_gnome2.gconf_module)
@@ -213,7 +213,7 @@ proxy_config_i_s *proxy_config_gnome2_get_interface(void) {
                                                      proxy_config_gnome2_get_auto_config_url,
                                                      proxy_config_gnome2_get_proxy,
                                                      proxy_config_gnome2_get_bypass_list,
-                                                     proxy_config_gnome2_init,
-                                                     proxy_config_gnome2_uninit};
+                                                     proxy_config_gnome2_global_init,
+                                                     proxy_config_gnome2_global_cleanup};
     return &proxy_config_gnome2_i;
 }

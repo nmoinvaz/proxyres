@@ -277,7 +277,7 @@ static void proxy_resolver_posix_wpad_startup(void *arg) {
     mutex_unlock(g_proxy_resolver_posix.mutex);
 }
 
-bool proxy_resolver_posix_init(void) {
+bool proxy_resolver_posix_global_init(void) {
     return proxy_resolver_posix_init_ex(NULL);
 }
 
@@ -286,8 +286,8 @@ bool proxy_resolver_posix_init_ex(void *threadpool) {
     if (!g_proxy_resolver_posix.mutex)
         return false;
 
-    if (!fetch_init() || !proxy_execute_init())
-        return proxy_resolver_posix_uninit();
+    if (!fetch_global_init() || !proxy_execute_global_init())
+        return proxy_resolver_posix_global_cleanup();
 
     // Start WPAD discovery process immediately
     if (threadpool && proxy_config_get_auto_discover())
@@ -296,13 +296,13 @@ bool proxy_resolver_posix_init_ex(void *threadpool) {
     return true;
 }
 
-bool proxy_resolver_posix_uninit(void) {
+bool proxy_resolver_posix_global_cleanup(void) {
     free(g_proxy_resolver_posix.script);
     free(g_proxy_resolver_posix.auto_config_url);
     mutex_delete(&g_proxy_resolver_posix.mutex);
 
-    fetch_uninit();
-    proxy_execute_uninit();
+    fetch_global_cleanup();
+    proxy_execute_global_cleanup();
 
     memset(&g_proxy_resolver_posix, 0, sizeof(g_proxy_resolver_posix));
     return true;
@@ -317,7 +317,7 @@ proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
                                                         proxy_resolver_posix_create,
                                                         proxy_resolver_posix_delete,
                                                         proxy_resolver_posix_is_async,
-                                                        proxy_resolver_posix_init,
-                                                        proxy_resolver_posix_uninit};
+                                                        proxy_resolver_posix_global_init,
+                                                        proxy_resolver_posix_global_cleanup};
     return &proxy_resolver_posix_i;
 }

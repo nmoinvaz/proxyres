@@ -32,10 +32,10 @@ void *proxy_resolver_create(void);
 bool proxy_resolver_delete(void **ctx);
 
 // Initialization function for proxy resolution.
-bool proxy_resolver_init(void);
+bool proxy_resolver_global_init(void);
 
 // Uninitialization function for proxy resolution.
-bool proxy_resolver_uninit(void);
+bool proxy_resolver_global_cleanup(void);
 
 #ifdef __cplusplus
 }

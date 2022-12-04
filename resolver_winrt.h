@@ -15,8 +15,8 @@ bool proxy_resolver_winrt_delete(void **ctx);
 
 bool proxy_resolver_winrt_is_async(void);
 
-bool proxy_resolver_winrt_init(void);
-bool proxy_resolver_winrt_uninit(void);
+bool proxy_resolver_winrt_global_init(void);
+bool proxy_resolver_winrt_global_cleanup(void);
 
 proxy_resolver_i_s *proxy_resolver_winrt_get_interface(void);
 

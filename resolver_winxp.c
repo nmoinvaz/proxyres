@@ -246,7 +246,7 @@ bool proxy_resolver_winxp_is_async(void) {
     return false;
 }
 
-bool proxy_resolver_winxp_init(void) {
+bool proxy_resolver_winxp_global_init(void) {
     g_proxy_resolver_winxp.session =
         WinHttpOpen(L"cproxyres", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 
@@ -255,7 +255,7 @@ bool proxy_resolver_winxp_init(void) {
     return true;
 }
 
-bool proxy_resolver_winxp_uninit(void) {
+bool proxy_resolver_winxp_global_cleanup(void) {
     if (g_proxy_resolver_winxp.session)
         WinHttpCloseHandle(g_proxy_resolver_winxp.session);
 
@@ -272,7 +272,7 @@ proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
                                                         proxy_resolver_winxp_create,
                                                         proxy_resolver_winxp_delete,
                                                         proxy_resolver_winxp_is_async,
-                                                        proxy_resolver_winxp_init,
-                                                        proxy_resolver_winxp_uninit};
+                                                        proxy_resolver_winxp_global_init,
+                                                        proxy_resolver_winxp_global_cleanup};
     return &proxy_resolver_winxp_i;
 }

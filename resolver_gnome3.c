@@ -207,7 +207,7 @@ bool proxy_resolver_gnome3_is_async(void) {
     return false;
 }
 
-bool proxy_resolver_gnome3_init(void) {
+bool proxy_resolver_gnome3_global_init(void) {
     g_proxy_resolver_gnome3.gio_module = dlopen("libgio-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_resolver_gnome3.gio_module)
         goto gnome3_init_error;
@@ -250,11 +250,11 @@ bool proxy_resolver_gnome3_init(void) {
     return true;
 
 gnome3_init_error:
-    proxy_resolver_gnome3_uninit();
+    proxy_resolver_gnome3_global_cleanup();
     return false;
 }
 
-bool proxy_resolver_gnome3_uninit(void) {
+bool proxy_resolver_gnome3_global_cleanup(void) {
     if (g_proxy_resolver_gnome3.gio_module)
         dlclose(g_proxy_resolver_gnome3.gio_module);
     if (g_proxy_resolver_gnome3.glib_module)
@@ -273,7 +273,7 @@ proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
                                                          proxy_resolver_gnome3_create,
                                                          proxy_resolver_gnome3_delete,
                                                          proxy_resolver_gnome3_is_async,
-                                                         proxy_resolver_gnome3_init,
-                                                         proxy_resolver_gnome3_uninit};
+                                                         proxy_resolver_gnome3_global_init,
+                                                         proxy_resolver_gnome3_global_cleanup};
     return &proxy_resolver_gnome3_i;
 }

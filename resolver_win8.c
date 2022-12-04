@@ -343,7 +343,7 @@ bool proxy_resolver_win8_is_async(void) {
     return true;
 }
 
-bool proxy_resolver_win8_init(void) {
+bool proxy_resolver_win8_global_init(void) {
     // Dynamically load WinHTTP and CreateProxyResolver which is only avaialble on Windows 8 or higher
     g_proxy_resolver_win8.win_http = LoadLibraryExA("winhttp.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!g_proxy_resolver_win8.win_http)
@@ -382,7 +382,7 @@ bool proxy_resolver_win8_init(void) {
     return true;
 }
 
-bool proxy_resolver_win8_uninit(void) {
+bool proxy_resolver_win8_global_cleanup(void) {
     if (g_proxy_resolver_win8.session)
         WinHttpCloseHandle(g_proxy_resolver_win8.session);
     if (g_proxy_resolver_win8.win_http)
@@ -401,7 +401,7 @@ proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
                                                        proxy_resolver_win8_create,
                                                        proxy_resolver_win8_delete,
                                                        proxy_resolver_win8_is_async,
-                                                       proxy_resolver_win8_init,
-                                                       proxy_resolver_win8_uninit};
+                                                       proxy_resolver_win8_global_init,
+                                                       proxy_resolver_win8_global_cleanup};
     return &proxy_resolver_win8_i;
 }

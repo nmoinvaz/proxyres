@@ -52,7 +52,7 @@ bool proxy_execute_delete(void **ctx) {
     return g_proxy_execute.proxy_execute_i->delete(ctx);
 }
 
-bool proxy_execute_init(void) {
+bool proxy_execute_global_init(void) {
     if (g_proxy_execute.ref_count > 0) {
         g_proxy_execute.ref_count++;
         return true;
@@ -60,11 +60,11 @@ bool proxy_execute_init(void) {
     memset(&g_proxy_execute, 0, sizeof(g_proxy_execute));
 #ifdef _WIN32
 #  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-    if (proxy_execute_wsh_init())
+    if (proxy_execute_wsh_global_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
 #  endif
 #else
-    if (proxy_execute_jscore_init())
+    if (proxy_execute_jscore_global_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_jscore_get_interface();
 #endif
     if (!g_proxy_execute.proxy_execute_i)
@@ -73,7 +73,7 @@ bool proxy_execute_init(void) {
     return true;
 }
 
-bool proxy_execute_uninit(void) {
+bool proxy_execute_global_cleanup(void) {
     if (--g_proxy_execute.ref_count > 0)
         return true;
     if (g_proxy_execute.proxy_execute_i)

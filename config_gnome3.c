@@ -146,7 +146,7 @@ char *proxy_config_gnome3_get_bypass_list(void) {
     return bypass_list;
 }
 
-bool proxy_config_gnome3_init(void) {
+bool proxy_config_gnome3_global_init(void) {
     g_proxy_config_gnome3.glib_module = dlopen("libglib-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_config_gnome3.glib_module)
         goto gnome3_init_error;
@@ -184,11 +184,11 @@ bool proxy_config_gnome3_init(void) {
     return true;
 
 gnome3_init_error:
-    proxy_config_gnome3_uninit();
+    proxy_config_gnome3_global_cleanup();
     return false;
 }
 
-bool proxy_config_gnome3_uninit(void) {
+bool proxy_config_gnome3_global_cleanup(void) {
     if (g_proxy_config_gnome3.gio_module)
         dlclose(g_proxy_config_gnome3.gio_module);
     if (g_proxy_config_gnome3.glib_module)
@@ -203,7 +203,7 @@ proxy_config_i_s *proxy_config_gnome3_get_interface(void) {
                                                      proxy_config_gnome3_get_auto_config_url,
                                                      proxy_config_gnome3_get_proxy,
                                                      proxy_config_gnome3_get_bypass_list,
-                                                     proxy_config_gnome3_init,
-                                                     proxy_config_gnome3_uninit};
+                                                     proxy_config_gnome3_global_init,
+                                                     proxy_config_gnome3_global_cleanup};
     return &proxy_config_gnome3_i;
 }

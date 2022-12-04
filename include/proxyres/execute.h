@@ -23,10 +23,10 @@ void *proxy_execute_create(void);
 bool proxy_execute_delete(void **ctx);
 
 // Initialization function for PAC script execution.
-bool proxy_execute_init(void);
+bool proxy_execute_global_init(void);
 
 // Uninitialization function for PAC script execution.
-bool proxy_execute_uninit(void);
+bool proxy_execute_global_cleanup(void);
 
 #ifdef __cplusplus
 }

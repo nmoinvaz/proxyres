@@ -11,8 +11,8 @@ int32_t proxy_execute_jscore_get_error(void *ctx);
 void *proxy_execute_jscore_create(void);
 bool proxy_execute_jscore_delete(void **ctx);
 
-bool proxy_execute_jscore_init(void);
-bool proxy_execute_jscore_uninit(void);
+bool proxy_execute_jscore_global_init(void);
+bool proxy_execute_jscore_global_cleanup(void);
 
 proxy_execute_i_s *proxy_execute_jscore_get_interface(void);
 

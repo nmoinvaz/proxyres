@@ -13,6 +13,6 @@ typedef struct proxy_resolver_i_s {
 
     bool (*is_async)(void);
 
-    bool (*init)(void);
-    bool (*uninit)(void);
+    bool (*global_init)(void);
+    bool (*global_cleanup)(void);
 } proxy_resolver_i_s;

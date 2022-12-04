@@ -8,10 +8,10 @@ extern "C" {
 char *fetch_get(const char *url, int32_t *error);
 
 // Initialize URL fetching
-bool fetch_init(void);
+bool fetch_global_init(void);
 
 // Uninitialize URL fetching
-bool fetch_uninit(void);
+bool fetch_global_cleanup(void);
 
 #ifdef __cplusplus
 }

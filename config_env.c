@@ -88,10 +88,10 @@ char *proxy_config_env_get_bypass_list(void) {
     return bypass_list;
 }
 
-bool proxy_config_env_init(void) {
+bool proxy_config_env_global_init(void) {
     return true;
 }
-bool proxy_config_env_uninit(void) {
+bool proxy_config_env_global_cleanup(void) {
     return true;
 }
 
@@ -100,8 +100,8 @@ proxy_config_i_s *proxy_config_env_get_interface(void) {
                                                   proxy_config_env_get_auto_config_url,
                                                   proxy_config_env_get_proxy,
                                                   proxy_config_env_get_bypass_list,
-                                                  proxy_config_env_init,
-                                                  proxy_config_env_uninit};
+                                                  proxy_config_env_global_init,
+                                                  proxy_config_env_global_cleanup};
     return &proxy_config_env_i;
 }
 

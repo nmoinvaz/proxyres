@@ -126,7 +126,7 @@ bool proxy_resolver_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_init(void) {
+bool proxy_resolver_global_init(void) {
     if (g_proxy_resolver.ref_count > 0) {
         g_proxy_resolver.ref_count++;
         return true;
@@ -140,23 +140,23 @@ bool proxy_resolver_init(void) {
     }
 #endif
 
-    if (!proxy_config_init())
+    if (!proxy_config_global_init())
         return false;
 #if defined(__APPLE__)
-    if (proxy_resolver_mac_init())
+    if (proxy_resolver_mac_global_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_mac_get_interface();
 #elif defined(__linux__)
         /* Does not work for manually specified proxy auto-config urls
-        if (proxy_resolver_gnome3_init())
+        if (proxy_resolver_gnome3_global_init())
             g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
 #elif defined(_WIN32)
 #  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-    if (proxy_resolver_win8_init())
+    if (proxy_resolver_win8_global_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_win8_get_interface();
-    else if (proxy_resolver_winxp_init())
+    else if (proxy_resolver_winxp_global_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winxp_get_interface();
 #  elif WINAPI_FAMILY == WINAPI_FAMILY_PC_APP
-    if (proxy_resolver_winrt_init())
+    if (proxy_resolver_winrt_global_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winrt_get_interface();
 #  endif
 #endif
@@ -180,7 +180,7 @@ bool proxy_resolver_init(void) {
     g_proxy_resolver.threadpool = threadpool_create(THREADPOOL_DEFAULT_MIN_THREADS, THREADPOOL_DEFAULT_MAX_THREADS);
     if (!g_proxy_resolver.threadpool) {
         LOG_ERROR("Failed to create thread pool\n");
-        proxy_resolver_uninit();
+        proxy_resolver_global_cleanup();
         return false;
     }
 
@@ -189,7 +189,7 @@ bool proxy_resolver_init(void) {
     if (g_proxy_resolver.proxy_resolver_i == proxy_resolver_posix_get_interface()) {
         if (!proxy_resolver_posix_init_ex(g_proxy_resolver.threadpool)) {
             LOG_ERROR("Failed to initialize posix proxy resolver\n");
-            proxy_resolver_uninit();
+            proxy_resolver_global_cleanup();
             return false;
         }
     }
@@ -199,7 +199,7 @@ bool proxy_resolver_init(void) {
     return true;
 }
 
-bool proxy_resolver_uninit(void) {
+bool proxy_resolver_global_cleanup(void) {
     if (--g_proxy_resolver.ref_count > 0)
         return true;
 
@@ -207,11 +207,11 @@ bool proxy_resolver_uninit(void) {
         threadpool_delete(&g_proxy_resolver.threadpool);
 
     if (g_proxy_resolver.proxy_resolver_i)
-        g_proxy_resolver.proxy_resolver_i->uninit();
+        g_proxy_resolver.proxy_resolver_i->global_cleanup();
 
     memset(&g_proxy_resolver, 0, sizeof(g_proxy_resolver));
 
-    if (!proxy_config_uninit())
+    if (!proxy_config_global_cleanup())
         return false;
 
 #if defined(_WIN32) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)

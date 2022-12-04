@@ -85,31 +85,31 @@ void proxy_config_set_bypass_list_override(const char *bypass_list) {
     g_proxy_config.bypass_list = bypass_list ? strdup(bypass_list) : NULL;
 }
 
-bool proxy_config_init(void) {
+bool proxy_config_global_init(void) {
     if (g_proxy_config.ref_count > 0) {
         g_proxy_config.ref_count++;
         return true;
     }
     memset(&g_proxy_config, 0, sizeof(g_proxy_config));
 #if defined(__APPLE__)
-    if (proxy_config_mac_init())
+    if (proxy_config_mac_global_init())
         g_proxy_config.proxy_config_i = proxy_config_mac_get_interface();
 #elif defined(__linux__)
     int32_t desktop_env = get_desktop_env();
 
     switch (desktop_env) {
     case DESKTOP_ENV_GNOME3:
-        if (proxy_config_gnome3_init())
+        if (proxy_config_gnome3_global_init())
             g_proxy_config.proxy_config_i = proxy_config_gnome3_get_interface();
         break;
     case DESKTOP_ENV_GNOME2:
-        if (proxy_config_gnome2_init())
+        if (proxy_config_gnome2_global_init())
             g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
         break;
     case DESKTOP_ENV_KDE5:
     case DESKTOP_ENV_KDE4:
     case DESKTOP_ENV_KDE3:
-        if (proxy_config_kde_init())
+        if (proxy_config_kde_global_init())
             g_proxy_config.proxy_config_i = proxy_config_kde_get_interface();
         break;
     }
@@ -117,7 +117,7 @@ bool proxy_config_init(void) {
     if (!g_proxy_config.proxy_config_i)
         g_proxy_config.proxy_config_i = proxy_config_env_get_interface();
 #elif defined(_WIN32)
-    if (proxy_config_win_init())
+    if (proxy_config_win_global_init())
         g_proxy_config.proxy_config_i = proxy_config_win_get_interface();
 #endif
     if (!g_proxy_config.proxy_config_i) {
@@ -128,13 +128,13 @@ bool proxy_config_init(void) {
     return true;
 }
 
-bool proxy_config_uninit(void) {
+bool proxy_config_global_cleanup(void) {
     if (--g_proxy_config.ref_count > 0)
         return true;
     free(g_proxy_config.auto_config_url);
     free(g_proxy_config.proxy);
     free(g_proxy_config.bypass_list);
     if (g_proxy_config.proxy_config_i)
-        return g_proxy_config.proxy_config_i->uninit();
+        return g_proxy_config.proxy_config_i->global_cleanup();
     return false;
 }

@@ -9,6 +9,6 @@ typedef struct proxy_execute_i_s {
     void *(*create)(void);
     bool (*delete)(void **ctx);
 
-    bool (*init)(void);
-    bool (*uninit)(void);
+    bool (*global_init)(void);
+    bool (*global_cleanup)(void);
 } proxy_execute_i_s;

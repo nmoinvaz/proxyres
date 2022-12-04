@@ -22,15 +22,15 @@ When there is no built-in proxy resolution library on the system, we use our own
 
 ## API <!-- omit in toc -->
 
-- [proxy_resolver_get_proxies_for_url](#proxy_resolver_get_proxies_for_url)
-- [proxy_resolver_get_list](#proxy_resolver_get_list)
-- [proxy_resolver_get_error](#proxy_resolver_get_error)
-- [proxy_resolver_wait](#proxy_resolver_wait)
-- [proxy_resolver_cancel](#proxy_resolver_cancel)
-- [proxy_resolver_create](#proxy_resolver_create)
-- [proxy_resolver_delete](#proxy_resolver_delete)
-- [proxy_resolver_init](#proxy_resolver_init)
-- [proxy_resolver_uninit](#proxy_resolver_uninit)
+- [proxy\_resolver\_get\_proxies\_for\_url](#proxy_resolver_get_proxies_for_url)
+- [proxy\_resolver\_get\_list](#proxy_resolver_get_list)
+- [proxy\_resolver\_get\_error](#proxy_resolver_get_error)
+- [proxy\_resolver\_wait](#proxy_resolver_wait)
+- [proxy\_resolver\_cancel](#proxy_resolver_cancel)
+- [proxy\_resolver\_create](#proxy_resolver_create)
+- [proxy\_resolver\_delete](#proxy_resolver_delete)
+- [proxy\_resolver\_global\_init](#proxy_resolver_global_init)
+- [proxy\_resolver\_global\_cleanup](#proxy_resolver_global_cleanup)
 
 ### proxy_resolver_get_proxies_for_url
 
@@ -127,7 +127,7 @@ Deletes a proxy resolver instance.
 |-|:-|
 |bool|`true` if successful, `false` otherwise.|
 
-### proxy_resolver_init
+### proxy_resolver_global_init
 
 Initialization function for proxy resolution. Must be called before any `proxy_resolver` instances are created.
 
@@ -136,7 +136,7 @@ Initialization function for proxy resolution. Must be called before any `proxy_r
 |-|:-|
 |bool|`true` if successful, `false` otherwise.|
 
-### proxy_resolver_uninit
+### proxy_resolver_global_cleanup
 
 Uninitialization function for proxy resolution. Must be called after all `proxy_resolver` instances have been deleted.
 

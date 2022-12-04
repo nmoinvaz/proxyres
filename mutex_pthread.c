@@ -27,7 +27,7 @@ void *mutex_create(void) {
     mutex_s *mutex = (mutex_s *)calloc(1, sizeof(mutex_s));
     if (!mutex)
         return NULL;
-    if (pthread_mutex_init(&mutex->handle, NULL)) {
+    if (pthread_mutex_global_init(&mutex->handle, NULL)) {
         free(mutex);
         return NULL;
     }

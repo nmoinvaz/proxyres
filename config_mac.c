@@ -192,11 +192,11 @@ bypass_list_error:
     return bypass_list;
 }
 
-bool proxy_config_mac_init(void) {
+bool proxy_config_mac_global_init(void) {
     return true;
 }
 
-bool proxy_config_mac_uninit(void) {
+bool proxy_config_mac_global_cleanup(void) {
     return true;
 }
 
@@ -205,7 +205,7 @@ proxy_config_i_s *proxy_config_mac_get_interface(void) {
                                                   proxy_config_mac_get_auto_config_url,
                                                   proxy_config_mac_get_proxy,
                                                   proxy_config_mac_get_bypass_list,
-                                                  proxy_config_mac_init,
-                                                  proxy_config_mac_uninit};
+                                                  proxy_config_mac_global_init,
+                                                  proxy_config_mac_global_cleanup};
     return &proxy_config_mac_i;
 }

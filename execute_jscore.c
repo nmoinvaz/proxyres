@@ -334,7 +334,7 @@ bool proxy_execute_jscore_delete(void **ctx) {
 
 /*********************************************************************/
 
-bool proxy_execute_jscore_init(void) {
+bool proxy_execute_jscore_global_init(void) {
     if (g_proxy_execute_jscore.module)
         return true;
 #ifdef __APPLE__
@@ -442,11 +442,11 @@ bool proxy_execute_jscore_init(void) {
     return true;
 
 jscore_init_error:
-    proxy_execute_jscore_uninit();
+    proxy_execute_jscore_global_cleanup();
     return false;
 }
 
-bool proxy_execute_jscore_uninit(void) {
+bool proxy_execute_jscore_global_cleanup(void) {
     if (g_proxy_execute_jscore.module)
         dlclose(g_proxy_execute_jscore.module);
 
@@ -460,7 +460,7 @@ proxy_execute_i_s *proxy_execute_jscore_get_interface(void) {
                                                        proxy_execute_jscore_get_error,
                                                        proxy_execute_jscore_create,
                                                        proxy_execute_jscore_delete,
-                                                       proxy_execute_jscore_init,
-                                                       proxy_execute_jscore_uninit};
+                                                       proxy_execute_jscore_global_init,
+                                                       proxy_execute_jscore_global_cleanup};
     return &proxy_execute_jscore_i;
 }

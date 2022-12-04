@@ -192,10 +192,10 @@ download_cleanup:
     return body;
 }
 
-bool fetch_init(void) {
+bool fetch_global_init(void) {
     return true;
 }
 
-bool fetch_uninit(void) {
+bool fetch_global_cleanup(void) {
     return true;
 }

@@ -15,8 +15,8 @@ bool proxy_resolver_win8_delete(void **ctx);
 
 bool proxy_resolver_win8_is_async(void);
 
-bool proxy_resolver_win8_init(void);
-bool proxy_resolver_win8_uninit(void);
+bool proxy_resolver_win8_global_init(void);
+bool proxy_resolver_win8_global_cleanup(void);
 
 proxy_resolver_i_s *proxy_resolver_win8_get_interface(void);
 

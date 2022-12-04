@@ -89,7 +89,7 @@ Delete a PAC script execution instance.
 |-|:-|
 |bool|`true` if successful, `false` otherwise.|
 
-### proxy_execute_init
+### proxy_execute_global_init
 
 Initialization function for PAC script execution. Must be called before any `proxy_execute` instances are created.
 
@@ -98,7 +98,7 @@ Initialization function for PAC script execution. Must be called before any `pro
 |-|:-|
 |bool|`true` if successful, `false` otherwise.|
 
-### proxy_execute_uninit
+### proxy_execute_global_cleanup
 
 Uninitialization function for PAC script execution. Must be called after all `proxy_execute` instances have been deleted.
 

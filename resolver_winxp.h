@@ -15,8 +15,8 @@ bool proxy_resolver_winxp_delete(void **ctx);
 
 bool proxy_resolver_winxp_is_async(void);
 
-bool proxy_resolver_winxp_init(void);
-bool proxy_resolver_winxp_uninit(void);
+bool proxy_resolver_winxp_global_init(void);
+bool proxy_resolver_winxp_global_cleanup(void);
 
 proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void);
 

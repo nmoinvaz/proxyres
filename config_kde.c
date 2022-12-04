@@ -80,7 +80,7 @@ char *proxy_config_kde_get_bypass_list(void) {
     return get_config_value(g_proxy_config_kde.config, "Proxy Settings", "NoProxyFor");
 }
 
-bool proxy_config_kde_init(void) {
+bool proxy_config_kde_global_init(void) {
     char user_home_path[PATH_MAX];
     char config_path[PATH_MAX];
     int fd = 0;
@@ -144,7 +144,7 @@ bool proxy_config_kde_init(void) {
     goto kde_ini_cleanup;
 
 kde_init_error:
-    proxy_config_kde_uninit();
+    proxy_config_kde_global_cleanup();
 
 kde_ini_cleanup:
     if (fd)
@@ -153,7 +153,7 @@ kde_ini_cleanup:
     return g_proxy_config_kde.config;
 }
 
-bool proxy_config_kde_uninit(void) {
+bool proxy_config_kde_global_cleanup(void) {
     free(g_proxy_config_kde.config);
 
     memset(&g_proxy_config_kde, 0, sizeof(g_proxy_config_kde));
@@ -165,8 +165,8 @@ proxy_config_i_s *proxy_config_kde_get_interface(void) {
                                                   proxy_config_kde_get_auto_config_url,
                                                   proxy_config_kde_get_proxy,
                                                   proxy_config_kde_get_bypass_list,
-                                                  proxy_config_kde_init,
-                                                  proxy_config_kde_uninit};
+                                                  proxy_config_kde_global_init,
+                                                  proxy_config_kde_global_cleanup};
     return &proxy_config_kde_i;
 }
 

@@ -53,11 +53,11 @@ void *event_create(void) {
     event_s *event = (event_s *)calloc(1, sizeof(event_s));
     if (!event)
         return NULL;
-    if (pthread_cond_init(&event->cond, NULL)) {
+    if (pthread_cond_global_init(&event->cond, NULL)) {
         free(event);
         return NULL;
     }
-    if (pthread_mutex_init(&event->mutex, NULL)) {
+    if (pthread_mutex_global_init(&event->mutex, NULL)) {
         pthread_cond_destroy(&event->cond);
         free(event);
         return NULL;

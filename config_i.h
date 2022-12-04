@@ -6,6 +6,6 @@ typedef struct proxy_config_i_s {
     char *(*get_proxy)(const char *scheme);
     char *(*get_bypass_list)(void);
 
-    bool (*init)(void);
-    bool (*uninit)(void);
+    bool (*global_init)(void);
+    bool (*global_cleanup)(void);
 } proxy_config_i_s;

@@ -204,28 +204,28 @@ int main(int argc, char *argv[]) {
     if (strcmp(cmd, "help") == 0) {
         print_help();
     } else if (strcmp(cmd, "config") == 0) {
-        proxy_config_init();
+        proxy_config_global_init();
         print_proxy_config(argc - argi, argv + argi);
-        proxy_config_uninit();
+        proxy_config_global_cleanup();
     } else if (strcmp(cmd, "execute") == 0) {
 #ifndef PROXYRES_EXECUTE
         return print_help();
 #else
         if (argc <= 3)
             return print_help();
-        proxy_execute_init();
+        proxy_execute_global_init();
         const char *script_path = argv[argi];
         while (argi < argc) {
             if (!execute_pac_script(script_path, argv[argi++], verbose))
                 exit_code = 1;
         }
-        proxy_execute_uninit();
+        proxy_execute_global_cleanup();
 #endif
     } else if (strcmp(cmd, "resolve") == 0) {
-        proxy_resolver_init();
+        proxy_resolver_global_init();
         if (!resolve_proxies_for_url_async(argc - argi, argv + argi, verbose))
             exit_code = 1;
-        proxy_resolver_uninit();
+        proxy_resolver_global_cleanup();
     }
 
     return exit_code;
