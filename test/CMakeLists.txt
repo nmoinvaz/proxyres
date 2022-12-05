@@ -13,6 +13,11 @@ if(PROXYRES_BUILD_CLI)
     add_executable(proxycli ${PROXYCLI_SRCS})
     target_link_libraries(proxycli PRIVATE proxyres)
 
+    if(TARGET CURL::libcurl)
+        add_executable(curl_proxyres curl_proxyres.c)
+        target_link_libraries(curl_proxyres PRIVATE proxyres CURL::libcurl)
+    endif()
+
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
         return()
     endif()
