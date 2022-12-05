@@ -87,6 +87,44 @@ const char *str_find_len_case_str(const char *str, size_t str_len, const char *f
     return NULL;
 }
 
+// Extract and duplicate token from string
+char *str_sep_dup(char **strp, const char *delim) {
+    if (!strp)
+        return NULL;
+
+    // Pointer to current token
+    char *token = *strp;
+    if (!token)
+        return NULL;
+
+    // Reached end of tokens
+    if (!*strp)
+        return NULL;
+
+    // Find end of current token, start of next token
+    char *end = strstr(token, delim);
+
+    // Calculate current token length
+    size_t token_length;
+    if (end) {
+        token_length = (size_t)(end - token);
+        end++;
+    } else {
+        token_length = strlen(token);
+    }
+
+    // Copy token
+    char *token_dup = calloc(token_length + 1, sizeof(char));
+    if (!token_dup)
+        return NULL;
+    strncat(token_dup, token, token_length);
+
+    // Pointer to next token
+    *strp = end;
+
+    return token_dup;
+}
+
 // Compare a string using wildcard pattern
 bool str_wildcard_match(const char *str, const char *pattern, bool ignore_case) {
     while (*str) {

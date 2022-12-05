@@ -170,3 +170,24 @@ TEST_P(util_should_bypass, list) {
     const auto &param = GetParam();
     EXPECT_EQ(should_bypass_proxy(param.url, param.bypass_list), param.expected);
 }
+
+TEST(util, str_sep_dup) {
+    const char *tokens = "hi;bye";
+    char **tokenp = (char **)&tokens;
+
+    char *first_token = str_sep_dup(tokenp, ";");
+    EXPECT_NE(first_token, nullptr);
+    if (first_token) {
+        EXPECT_STREQ(first_token, "hi");
+        free(first_token);
+    }
+    char *second_token = str_sep_dup(tokenp, ";");
+    EXPECT_NE(second_token, nullptr);
+    if (second_token) {
+        EXPECT_STREQ(second_token, "bye");
+        free(second_token);
+    }
+    EXPECT_EQ(*tokenp, nullptr);
+    char *third_token = str_sep_dup(tokenp, ";");
+    EXPECT_EQ(third_token, nullptr);
+}
