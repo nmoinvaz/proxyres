@@ -24,6 +24,7 @@ When there is no built-in proxy resolution library on the system, we use our own
 
 - [proxy\_resolver\_get\_proxies\_for\_url](#proxy_resolver_get_proxies_for_url)
 - [proxy\_resolver\_get\_list](#proxy_resolver_get_list)
+- [proxy\_resolver\_get\_next](#proxy_resolver_get_next)
 - [proxy\_resolver\_get\_error](#proxy_resolver_get_error)
 - [proxy\_resolver\_wait](#proxy_resolver_wait)
 - [proxy\_resolver\_cancel](#proxy_resolver_cancel)
@@ -60,6 +61,20 @@ Gets the list of proxies that have been resolved. Each proxy in the list is sepa
 |Type|Description|
 |-|:-|
 |char *|Comma-separated list of proxies uris. For a direct connection, `direct://` is used.|
+
+### proxy_resolver_get_next
+
+Gets the next list in the list of proxies. Caller must free the string returned by this function.
+
+**Arguments**
+|Type|Name|Description|
+|-|-|:-|
+|void *|ctx|Proxy resolver instance.|
+
+**Return**
+|Type|Description|
+|-|:-|
+|char *|Next proxy url to use when connecting.|
 
 ### proxy_resolver_get_error
 

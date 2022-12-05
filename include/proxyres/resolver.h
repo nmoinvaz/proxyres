@@ -16,6 +16,9 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url);
 // Gets the list of proxies that have been resolved.
 const char *proxy_resolver_get_list(void *ctx);
 
+// Gets the next proxy in the list of proxies that have been resolved.
+char *proxy_resolver_get_next(void *ctx);
+
 // Error code for proxy resolution process.
 int32_t proxy_resolver_get_error(void *ctx);
 

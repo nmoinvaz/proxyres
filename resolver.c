@@ -28,6 +28,7 @@
 #  endif
 #endif
 #include "threadpool.h"
+#include "util.h"
 
 typedef struct g_proxy_resolver_s {
     // Library reference count
@@ -45,6 +46,8 @@ typedef struct proxy_resolver_s {
     void *base;
     // Async job
     char *url;
+    // Next proxy pointer
+    char *listp;
 } proxy_resolver_s;
 
 static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
@@ -58,6 +61,8 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
+
+    proxy_resolver->listp = NULL;
 
     // Call get_proxies_for_url directly since the underlying interface is asynchronous
     if (g_proxy_resolver.proxy_resolver_i->is_async())
@@ -74,7 +79,19 @@ const char *proxy_resolver_get_list(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
-    return g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    return proxy_resolver->listp;
+}
+
+char *proxy_resolver_get_next(void *ctx) {
+    proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
+    if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
+        return false;
+    if (!proxy_resolver->listp)
+        return NULL;
+
+    // Get the next proxy to connect through
+    return str_sep_dup(&proxy_resolver->listp, ",");
 }
 
 int32_t proxy_resolver_get_error(void *ctx) {
@@ -88,7 +105,11 @@ bool proxy_resolver_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
-    return g_proxy_resolver.proxy_resolver_i->wait(proxy_resolver->base, timeout_ms);
+    if (g_proxy_resolver.proxy_resolver_i->wait(proxy_resolver->base, timeout_ms)) {
+        proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+        return true;
+    }
+    return false;
 }
 
 bool proxy_resolver_cancel(void *ctx) {
