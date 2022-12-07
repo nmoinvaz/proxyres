@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef _WIN32
+#  define strncasecmp _strnicmp
+#endif
+
 #include "curl/curl.h"
 
 #include "proxyres/proxyres.h"
@@ -79,6 +83,14 @@ int main(int argc, char *argv[]) {
         if (!proxy) {
             printf("No more proxies to try\n");
             break;
+        }
+        // If proxy is HTTPS, then check to see if curl is built with HTTPS proxy support
+        if (strncasecmp(proxy, "https:", 6) == 0) {
+            struct curl_version_info_data *version_info = curl_version_info(CURLVERSION_NOW);
+            if ((version_info->features & CURL_VERSION_HTTPS_PROXY) == 0) {
+                // Remove s from https and attempt HTTP proxy
+                memmove(proxy + 4, proxy + 5, strlen(proxy) - 4);
+            }
         }
         res = fetch_url_with_proxy(argv[1], proxy);
         free(proxy);
