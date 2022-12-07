@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url);
 const char *proxy_resolver_posix_get_list(void *ctx);
 int32_t proxy_resolver_posix_get_error(void *ctx);
@@ -20,7 +16,3 @@ bool proxy_resolver_posix_init_ex(void *threadpool);
 bool proxy_resolver_posix_global_cleanup(void);
 
 proxy_resolver_i_s *proxy_resolver_posix_get_interface(void);
-
-#ifdef __cplusplus
-}
-#endif
