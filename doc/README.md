@@ -4,6 +4,7 @@
 - [FindProxyForURL](#findproxyforurl)
 - [Using with CMake](#using-with-cmake)
 - [Using with curl](#using-with-curl)
+  - [HTTPS proxy support](#https-proxy-support)
 - [Linking with V8](#linking-with-v8)
 
 ## API
@@ -15,6 +16,8 @@
 |[proxy_resolver](proxy_resolver.md)|Resolves proxies for a given URL based on the operating system's proxy configuration.|
 
 ## FindProxyForURL
+
+Since `proxy_resolver` can return multiple proxies, each proxy in the list must be attempted. A direct connection should only be attempted if `direct://` was returned.
 
 Some proxy resolvers do not have support for specifying anything other than `DIRECT`, `PROXY`, and `SOCKS` as a type when returning from `FindProxyForURL`.
 
@@ -46,9 +49,11 @@ target_link_libraries(${PROJECT_NAME} proxyres)
 
 ## Using with curl
 
-Since `proxy_resolver` can return multiple proxies, each proxy in the list must be attempted. A direct connection should only be attempted if `direct://` was returned.
+See [curl_proxyres](../test/curl_proxyres.c) source for a full example on using with curl.
 
-It is also import to check curl's feature list to ensure that HTTPS proxies are supported. It is possible to build `curl` without HTTPS proxy support on some platforms. On such platforms it may be preferrible to change the proxy URL from HTTPS to HTTP:
+### HTTPS proxy support
+
+It is important to check curl's feature list to ensure that HTTPS proxies are supported. It is possible to build `curl` without HTTPS proxy support on some platforms. When an HTTPS proxy is encountered, it may be preferrible to change the proxy URL from HTTPS to HTTP:
 ```c
 static curl_version_info_data *version_info = curl_version_info(CURLVERSION_NOW);
 // curl is not built with HTTPS proxy support so just use HTTP proxy

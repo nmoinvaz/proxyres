@@ -6,7 +6,7 @@ Resolves proxies for a given URL based on the user's proxy configuration.
 * Supports Web Proxy Auto-Discovery Protocol (WPAD) using DHCP and DNS.
 * Evaluates any discovered [Proxy Auto-Configuration (PAC)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file) scripts to determine the proxies for the URL.
 
-The proxy resolution process runs asynchronously.
+The proxy resolution process runs asynchronously. Multiple proxies can be returned so each proxy in the list must be attempted. A direct connection should only be attempted if `direct://` was returned.
 
 **Operating System Support**
 
