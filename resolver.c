@@ -83,7 +83,7 @@ const char *proxy_resolver_get_list(void *ctx) {
     return proxy_resolver->listp;
 }
 
-char *proxy_resolver_get_next(void *ctx) {
+char *proxy_resolver_get_next_proxy(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;

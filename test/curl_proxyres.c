@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     // Enumerate each proxy for url and attempt to fetch
     char *proxy;
     do {
-        proxy = proxy_resolver_get_next(proxy_resolver);
+        proxy = proxy_resolver_get_next_proxy(proxy_resolver);
         if (!proxy) {
             printf("No more proxies to try\n");
             break;
