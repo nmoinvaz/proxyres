@@ -16,6 +16,11 @@ if(PROXYRES_BUILD_CLI)
     if(TARGET CURL::libcurl)
         add_executable(curl_proxyres curl_proxyres.c)
         target_link_libraries(curl_proxyres PRIVATE proxyres CURL::libcurl)
+
+        add_test(NAME curl_proxyres-help
+            COMMAND curl_proxyres help)
+        add_test(NAME curl_proxyres-google
+            COMMAND curl_proxyres http://google.com/)
     endif()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
