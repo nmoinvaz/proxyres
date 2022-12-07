@@ -18,7 +18,7 @@ if(PROXYRES_BUILD_CLI)
         target_link_libraries(curl_proxyres PRIVATE proxyres CURL::libcurl)
 
         add_test(NAME curl_proxyres-help
-            COMMAND curl_proxyres help)
+            COMMAND curl_proxyres)
         add_test(NAME curl_proxyres-google
             COMMAND curl_proxyres http://google.com/)
     endif()
