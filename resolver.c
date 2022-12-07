@@ -79,8 +79,7 @@ const char *proxy_resolver_get_list(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
-    proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
-    return proxy_resolver->listp;
+    return (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
 }
 
 char *proxy_resolver_get_next_proxy(void *ctx) {
@@ -91,7 +90,10 @@ char *proxy_resolver_get_next_proxy(void *ctx) {
         return NULL;
 
     // Get the next proxy to connect through
-    return str_sep_dup(&proxy_resolver->listp, ",");
+    char *proxy = str_sep_dup(&proxy_resolver->listp, ",");
+    if (!proxy)
+        proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    return proxy;
 }
 
 int32_t proxy_resolver_get_error(void *ctx) {
