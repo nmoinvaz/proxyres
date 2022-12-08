@@ -15,7 +15,7 @@
 // has a network dependency that causes it to be slow https://stackoverflow.com/questions/2151462/.
 
 bool proxy_config_win_get_auto_discover(void) {
-    INTERNET_PER_CONN_OPTIONW options[1] = {{INTERNET_PER_CONN_FLAGS, 0}};
+    INTERNET_PER_CONN_OPTIONW options[1] = {{INTERNET_PER_CONN_FLAGS, {0}}};
     INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 1, 0, options};
     DWORD option_list_size = sizeof(option_list);
     bool auto_discover = false;
@@ -25,7 +25,7 @@ bool proxy_config_win_get_auto_discover(void) {
 }
 
 char *proxy_config_win_get_auto_config_url(void) {
-    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, 0}, {INTERNET_PER_CONN_AUTOCONFIG_URL, 0}};
+    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, {0}}, {INTERNET_PER_CONN_AUTOCONFIG_URL, {0}}};
     INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 2, 0, options};
     DWORD option_list_size = sizeof(option_list);
     char *auto_config_url = NULL;
@@ -42,7 +42,7 @@ char *proxy_config_win_get_auto_config_url(void) {
 }
 
 char *proxy_config_win_get_proxy(const char *scheme) {
-    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, 0}, {INTERNET_PER_CONN_PROXY_SERVER, 0}};
+    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, {0}}, {INTERNET_PER_CONN_PROXY_SERVER, {0}}};
     INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 2, 0, options};
     DWORD option_list_size = sizeof(option_list);
     char *proxy_list = NULL;
@@ -65,7 +65,7 @@ char *proxy_config_win_get_proxy(const char *scheme) {
 }
 
 char *proxy_config_win_get_bypass_list(void) {
-    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, 0}, {INTERNET_PER_CONN_PROXY_BYPASS, 0}};
+    INTERNET_PER_CONN_OPTIONW options[2] = {{INTERNET_PER_CONN_FLAGS, {0}}, {INTERNET_PER_CONN_PROXY_BYPASS, {0}}};
     INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 2, 0, options};
     DWORD option_list_size = sizeof(option_list);
     char *list = NULL;
