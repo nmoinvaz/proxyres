@@ -244,7 +244,7 @@ bool proxy_execute_register_function(void *ctx, JSGlobalContextRef global, const
     }
 
     g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
-                                               function_name, function, kJSPropertyAttributeNone, NULL);
+                                               name_string, function, kJSPropertyAttributeNone, NULL);
     g_proxy_execute_jscore.JSStringRelease(name_string);
     return true;
 }
@@ -331,9 +331,6 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     }
 
 jscoregtk_execute_cleanup:
-
-    if (function_name)
-        g_proxy_execute_jscore.JSStringRelease(function_name);
 
     if (global) {
         g_proxy_execute_jscore.JSGarbageCollect(global);
