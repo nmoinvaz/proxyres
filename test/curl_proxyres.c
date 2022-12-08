@@ -10,7 +10,7 @@
 #include "proxyres/proxyres.h"
 
 static int print_help(void) {
-    printf("curl_proxyres [url]\n");
+    printf("curl_proxyres [--help] url\n");
     return 1;
 }
 
@@ -49,6 +49,11 @@ static int fetch_url_with_proxy(const char *url, const char *proxy) {
 int main(int argc, char *argv[]) {
     if (argc <= 1)
         return print_help();
+
+    if (strcmp(argv[1], "--help") == 0) {
+        print_help();
+        return 0;
+    }
 
     // Initialize curl library
     CURLcode res = curl_global_init(CURL_GLOBAL_ALL);

@@ -178,7 +178,8 @@ execute_pac_cleanup:
 #endif
 
 static int print_help(void) {
-    printf("proxyres [--verbose]\n");
+    printf("proxyres [--help] [--verbose] cmd cmd_args\n");
+    printf(" commands:\n");
     printf("  config                  - dumps all proxy configuration values\n");
 #ifdef PROXYRES_EXECUTE
     printf("  execute [file] [urls..] - executes pac file with script\n");
@@ -201,7 +202,7 @@ int main(int argc, char *argv[]) {
     }
 
     const char *cmd = argv[argi++];
-    if (strcmp(cmd, "help") == 0) {
+    if (strcmp(cmd, "--help") == 0) {
         print_help();
     } else if (strcmp(cmd, "config") == 0) {
         proxy_config_global_init();

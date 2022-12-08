@@ -18,7 +18,7 @@ if(PROXYRES_BUILD_CLI)
         target_link_libraries(curl_proxyres PRIVATE proxyres CURL::libcurl)
 
         add_test(NAME curl_proxyres-help
-            COMMAND curl_proxyres)
+            COMMAND curl_proxyres --help)
         add_test(NAME curl_proxyres-google
             COMMAND curl_proxyres http://google.com/)
     endif()
@@ -28,7 +28,7 @@ if(PROXYRES_BUILD_CLI)
     endif()
 
     add_test(NAME proxycli-help
-        COMMAND proxycli help)
+        COMMAND proxycli --help)
     add_test(NAME proxycli-config
         COMMAND proxycli config)
     add_test(NAME proxycli-resolve-google
