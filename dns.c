@@ -17,13 +17,14 @@
 
 #include "util.h"
 
-// Resolve a DNS name to an IP address
-char *dns_resolve(const char *host, int32_t *error) {
+// Resolve a host name to its addresses with a filter and custom separator
+static char *dns_resolve_filter(const char *host, int32_t family, uint8_t max_addrs, int32_t *error) {
     char name[HOST_MAX] = {0};
     struct addrinfo hints = {0};
     struct addrinfo *address_info = NULL;
-    struct addrinfo *next_address = NULL;
-    char *ip_addr = NULL;
+    struct addrinfo *address = NULL;
+    char *ai_string = NULL;
+    size_t ai_string_len = 0;
     int32_t err = 0;
 
     // If no host supplied, then use local machine name
@@ -56,31 +57,62 @@ char *dns_resolve(const char *host, int32_t *error) {
     if (err != 0)
         goto dns_resolve_error;
 
-    // Get AF_INET address from address list
-    next_address = address_info;
-    while (next_address->ai_family != AF_INET) {
-        next_address = next_address->ai_next;
-        // Name not resolved
-        if (!next_address)
-            goto dns_resolve_error;
+    // Calculate the length of the return string
+    size_t max_ai_string = 1;
+    address = address_info;
+    while (address) {
+        // Use different length depending on the address type
+        if (address->ai_family == AF_INET)
+            max_ai_string += INET_ADDRSTRLEN;
+        else
+            max_ai_string += INET6_ADDRSTRLEN;
+
+        // Add room for semi-colon separator
+        max_ai_string++;
+        address = address->ai_next;
     }
 
-    // Convert IP address to string
-    ip_addr = (char *)calloc(1, INET6_ADDRSTRLEN);
-    if (!ip_addr)
+    // Allocate buffer for the return string
+    ai_string = (char *)calloc(1, max_ai_string);
+    if (!ai_string)
         goto dns_resolve_error;
 
-    err = getnameinfo(next_address->ai_addr, (socklen_t)next_address->ai_addrlen, ip_addr, INET6_ADDRSTRLEN, NULL, 0,
-                      NI_NUMERICHOST);
+    // Enumerate each address
+    address = address_info;
+    while (address && max_addrs) {
+        // Only copy addresses that match the family filter
+        if (family == AF_UNSPEC || address->ai_family == family) {
+            // Ensure there is room to copy something into return string buffer
+            if (ai_string_len >= max_ai_string)
+                break;
+
+            // Copy address name into return string
+            err = getnameinfo(address->ai_addr, (socklen_t)address->ai_addrlen, ai_string + ai_string_len,
+                              (uint32_t)(max_ai_string - ai_string_len), NULL, 0, NI_NUMERICHOST);
+            if (err != 0)
+                goto dns_resolve_error;
+
+            max_addrs--;
+
+            // Append semi-colon separator
+            ai_string_len = strlen(ai_string);
+            if (max_addrs && address->ai_next && ai_string_len + 1 < max_ai_string) {
+                ai_string[ai_string_len++] = ';';
+                ai_string[ai_string_len] = 0;
+            }
+        }
+
+        address = address->ai_next;
+    }
 
     if (err != 0)
         goto dns_resolve_error;
 
-    return ip_addr;
+    return ai_string;
 
 dns_resolve_error:
 
-    free(ip_addr);
+    free(ai_string);
 
     if (address_info)
         freeaddrinfo(address_info);
@@ -89,4 +121,14 @@ dns_resolve_error:
         *error = err;
 
     return NULL;
+}
+
+// Resolve a host name to it an IPv4 address
+char *dns_resolve(const char *host, int32_t *error) {
+    return dns_resolve_filter(host, AF_INET, 1, error);
+}
+
+// Resolve a host name to its addresses
+char *dns_resolve_ex(const char *host, int32_t *error) {
+    return dns_resolve_filter(host, AF_UNSPEC, UINT8_MAX, error);
 }

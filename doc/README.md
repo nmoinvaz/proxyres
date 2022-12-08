@@ -17,8 +17,6 @@
 
 ## FindProxyForURL
 
-Since `proxy_resolver` can return multiple proxies, each proxy in the list must be attempted. A direct connection should only be attempted if `direct://` was returned.
-
 Some proxy resolvers do not have support for specifying anything other than `DIRECT`, `PROXY`, and `SOCKS` as a type when returning from `FindProxyForURL`.
 
 Specifically, both macOS and Windows do not support:

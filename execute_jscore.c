@@ -167,30 +167,90 @@ static JSValueRef proxy_execute_jscore_dns_resolve(JSContextRef ctx, JSObjectRef
     return address_value;
 }
 
+static JSValueRef proxy_execute_jscore_dns_resolve_ex(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
+                                                      size_t argc, const JSValueRef argv[], JSValueRef *exception) {
+    if (argc != 1)
+        return NULL;
+    if (!g_proxy_execute_jscore.JSValueIsString(ctx, argv[0]))
+        return NULL;
+
+    JSStringRef host_string = g_proxy_execute_jscore.JSValueToStringCopy(ctx, argv[0], NULL);
+    if (!host_string)
+        return NULL;
+
+    char *host = js_string_dup_to_utf8(host_string);
+    g_proxy_execute_jscore.JSStringRelease(host_string);
+    if (!host)
+        return NULL;
+
+    char *address = dns_resolve_ex(host, NULL);
+    free(host);
+    if (!address)
+        return NULL;
+
+    JSStringRef address_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(address);
+    free(address);
+    if (!address_string)
+        return NULL;
+
+    JSValueRef address_value = g_proxy_execute_jscore.JSValueMakeString(ctx, address_string);
+    g_proxy_execute_jscore.JSStringRelease(address_string);
+    return address_value;
+}
+
 static JSValueRef proxy_execute_jscore_my_ip_address(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
                                                      size_t argc, const JSValueRef argv[], JSValueRef *exception) {
     char *address = dns_resolve(NULL, NULL);
     if (!address)
         return NULL;
 
-    JSStringRef host_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(address);
+    JSStringRef address_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(address);
     free(address);
-
-    if (!host_string)
+    if (!address_string)
         return NULL;
 
-    JSValueRef host_value = g_proxy_execute_jscore.JSValueMakeString(ctx, host_string);
-    g_proxy_execute_jscore.JSStringRelease(host_string);
-    if (!host_value)
+    JSValueRef address_value = g_proxy_execute_jscore.JSValueMakeString(ctx, address_string);
+    g_proxy_execute_jscore.JSStringRelease(address_string);
+    return address_value;
+}
+
+static JSValueRef proxy_execute_jscore_my_ip_address_ex(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
+                                                        size_t argc, const JSValueRef argv[], JSValueRef *exception) {
+    char *address = dns_resolve_ex(NULL, NULL);
+    if (!address)
         return NULL;
 
-    return proxy_execute_jscore_dns_resolve(ctx, function, object, 1, &host_value, NULL);
+    JSStringRef address_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(address);
+    free(address);
+    if (!address_string)
+        return NULL;
+
+    JSValueRef address_value = g_proxy_execute_jscore.JSValueMakeString(ctx, address_string);
+    g_proxy_execute_jscore.JSStringRelease(address_string);
+    return address_value;
+}
+
+bool proxy_execute_register_function(void *ctx, JSGlobalContextRef global, const char *name,
+                                     JSObjectCallAsFunctionCallback callback) {
+    // Register native function with JavaScript engine
+    JSStringRef name_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(name);
+    if (!name_string)
+        return false;
+    JSObjectRef function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, name_string, callback);
+    if (!function) {
+        g_proxy_execute_jscore.JSStringRelease(name_string);
+        LOG_ERROR("Unable to hook native function for %s\n", name);
+        return false;
+    }
+
+    g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
+                                               function_name, function, kJSPropertyAttributeNone, NULL);
+    g_proxy_execute_jscore.JSStringRelease(name_string);
+    return true;
 }
 
 bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, const char *url) {
     proxy_execute_jscore_s *proxy_execute = (proxy_execute_jscore_s *)ctx;
-    JSObjectRef function = NULL;
-    JSStringRef function_name = NULL;
     JSGlobalContextRef global = NULL;
     JSValueRef exception = NULL;
     char find_proxy[4096];
@@ -206,36 +266,14 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     }
 
     // Register dnsResolve C function
-    function_name = g_proxy_execute_jscore.JSStringCreateWithUTF8CString("dnsResolve");
-    if (!function_name)
+    if (!proxy_execute_register_function(ctx, global, "dnsResolve", proxy_execute_jscore_dns_resolve))
         goto jscoregtk_execute_cleanup;
-    function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
-                                                                       proxy_execute_jscore_dns_resolve);
-    if (!function) {
-        LOG_ERROR("Unable to hook native function for dnsResolve\n");
+    if (!proxy_execute_register_function(ctx, global, "dnsResolveEx", proxy_execute_jscore_dns_resolve_ex))
         goto jscoregtk_execute_cleanup;
-    }
-
-    g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
-                                               function_name, function, kJSPropertyAttributeNone, NULL);
-    g_proxy_execute_jscore.JSStringRelease(function_name);
-    function_name = NULL;
-
-    // Register myIpAddress C function
-    function_name = g_proxy_execute_jscore.JSStringCreateWithUTF8CString("myIpAddress");
-    if (!function_name)
+    if (!proxy_execute_register_function(ctx, global, "myIpAddress", proxy_execute_jscore_my_ip_address))
         goto jscoregtk_execute_cleanup;
-    function = g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback(global, function_name,
-                                                                       proxy_execute_jscore_my_ip_address);
-    if (!function) {
-        LOG_ERROR("Unable to hook native function for myIpAddress\n");
+    if (!proxy_execute_register_function(ctx, global, "myIpAddressEx", proxy_execute_jscore_my_ip_address_ex))
         goto jscoregtk_execute_cleanup;
-    }
-
-    g_proxy_execute_jscore.JSObjectSetProperty(global, g_proxy_execute_jscore.JSContextGetGlobalObject(global),
-                                               function_name, function, kJSPropertyAttributeNone, NULL);
-    g_proxy_execute_jscore.JSStringRelease(function_name);
-    function_name = NULL;
 
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
     JSStringRef utils_javascript = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(MOZILLA_PAC_JAVASCRIPT);

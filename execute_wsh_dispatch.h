@@ -12,8 +12,10 @@ typedef struct script_dispatch_s {
     ULONG ref_count;
 } script_dispatch_s;
 
-#define SCRIPT_DISPATCH_DNS_RESOLVE_ID   1
-#define SCRIPT_DISPATCH_MY_IP_ADDRESS_ID 2
+#define SCRIPT_DISPATCH_DNS_RESOLVE_ID      1
+#define SCRIPT_DISPATCH_DNS_RESOLVE_EX_ID   2
+#define SCRIPT_DISPATCH_MY_IP_ADDRESS_ID    3
+#define SCRIPT_DISPATCH_MY_IP_ADDRESS_EX_ID 4
 
 #define cast_from_dispatch_interface(this) \
   (script_dispatch_s *)((uint8_t *)this - offsetof(script_dispatch_s, dispatch))
@@ -61,8 +63,12 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_get_ids_of_names(IDispatch *dis
     for (unsigned i = 0; i < names_count; i++) {
         if (wcscmp(names[i], OLESTR("dnsResolve")) == 0) {
             ret_disp_id[i] = SCRIPT_DISPATCH_DNS_RESOLVE_ID;
+        } else if (wcscmp(names[i], OLESTR("dnsResolveEx")) == 0) {
+            ret_disp_id[i] = SCRIPT_DISPATCH_DNS_RESOLVE_EX_ID;
         } else if (wcscmp(names[i], OLESTR("myIpAddress")) == 0) {
             ret_disp_id[i] = SCRIPT_DISPATCH_MY_IP_ADDRESS_ID;
+        } else if (wcscmp(names[i], OLESTR("myIpAddressEx")) == 0) {
+            ret_disp_id[i] = SCRIPT_DISPATCH_MY_IP_ADDRESS_EX_ID;
         } else {
             ret_disp_id[i] = DISPID_UNKNOWN;
             result = DISP_E_UNKNOWNNAME;
@@ -76,7 +82,7 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DIS
                                                         WORD flags, DISPPARAMS *disp_params, VARIANT *result_ptr,
                                                         EXCEPINFO *excep_info, UINT *arg_err) {
     // Check ID of the function and return the result
-    if (disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_ID) {
+    if (disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_ID || disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_EX_ID) {
         if (disp_params->cArgs != 1)
             return DISP_E_BADPARAMCOUNT;
         if (disp_params->cNamedArgs != 0)
@@ -90,8 +96,14 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DIS
         if (!host_utf8)
             return E_OUTOFMEMORY;
 
-        // Resolve hostname to IP string
-        char *ip = dns_resolve(host_utf8, NULL);
+        // Resolve hostname to IP addresses string
+        char *ip = NULL;
+
+        if (disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_EX_ID)
+            ip = dns_resolve_ex(host_utf8, NULL);
+        else
+            ip = dns_resolve(host_utf8, NULL);
+
         free(host_utf8);
         if (!ip)
             return E_FAIL;
@@ -103,20 +115,26 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DIS
 
         VariantInit(result_ptr);
 
-        // Return IP string as BSTR
+        // Return string as BSTR
         result_ptr->vt = VT_BSTR;
         result_ptr->bstrVal = SysAllocString(ip_wchar);
 
         free(ip_wchar);
         return S_OK;
-    } else if (disp_id == SCRIPT_DISPATCH_MY_IP_ADDRESS_ID) {
+    } else if (disp_id == SCRIPT_DISPATCH_MY_IP_ADDRESS_ID || disp_id == SCRIPT_DISPATCH_MY_IP_ADDRESS_EX_ID) {
         if (disp_params->cArgs != 0)
             return DISP_E_BADPARAMCOUNT;
         if (disp_params->cNamedArgs != 0)
             return DISP_E_NONAMEDARGS;
 
-        // Resolve local hostname to IP string
-        char *ip = dns_resolve(NULL, NULL);
+        // Resolve local hostname to IP addresses string
+        char *ip = NULL;
+
+        if (disp_id == SCRIPT_DISPATCH_MY_IP_ADDRESS_EX_ID)
+            ip = dns_resolve_ex(NULL, NULL);
+        else
+            ip = dns_resolve(NULL, NULL);
+
         if (!ip)
             return E_FAIL;
 
@@ -127,7 +145,7 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DIS
 
         VariantInit(result_ptr);
 
-        // Return IP string as BSTR
+        // Return string as BSTR
         result_ptr->vt = VT_BSTR;
         result_ptr->bstrVal = SysAllocString(ip_wchar);
 
