@@ -96,23 +96,34 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScrip
     }
 
     printf("EXCEPTION: ");
+    char *excep_source = wchar_dup_to_utf8(excep_info.bstrSource);
+    if (excep_source) {
+        printf("%s\n", excep_source);
+        free(excep_source);
+    }
     char *excep_description = wchar_dup_to_utf8(excep_info.bstrDescription);
     if (excep_description) {
-        printf("%s\n", excep_description);
+        printf("  %s", excep_description);
         free(excep_description);
     }
 
+    DWORD source_ctx = 0;
+    ULONG line_num = 0;
+    LONG char_pos = 0;
+    result = IActiveScriptError_GetSourcePosition(error, &source_ctx, &line_num, &char_pos);
+    if (SUCCEEDED(result))
+        printf(" @ line %d char %d", line_num, char_pos);
+    printf("\n");
+
     BSTR source_line_text;
     result = IActiveScriptError_GetSourceLineText(error, &source_line_text);
-    if (FAILED(result)) {
-        LOG_ERROR("Failed to get exception source line text (0x%08x)\n", result);
-        return S_OK;
-    }
-
-    char *excep_source_line = wchar_dup_to_utf8(source_line_text);
-    if (excep_source_line) {
-        printf("  %s\n", excep_source_line);
-        free(excep_source_line);
+    if (SUCCEEDED(result)) {
+        char *excep_source_line = wchar_dup_to_utf8(source_line_text);
+        if (excep_source_line) {
+            printf("  %s\n", excep_source_line);
+            free(excep_source_line);
+        }
+        SysFreeString(source_line_text);
     }
 
     return S_OK;

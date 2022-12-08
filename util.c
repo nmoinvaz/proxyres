@@ -26,6 +26,17 @@ int32_t str_change_chr(char *str, char from, char to) {
     return count;
 }
 
+// Count number of characters in a string
+int32_t str_count_chr(const char *str, char chr) {
+    int32_t count = 0;
+    while (*str) {
+        if (*str == chr)
+            count++;
+        str++;
+    }
+    return count;
+}
+
 // Trim a character from the end of the string
 int32_t str_trim_end(char *str, char c) {
     int32_t count = 0;

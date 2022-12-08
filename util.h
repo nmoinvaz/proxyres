@@ -10,6 +10,9 @@ extern "C" {
 // Replace one character in the string with another
 int32_t str_change_chr(char *str, char from, char to);
 
+// Count number of characters in a string
+int32_t str_count_chr(const char *str, char chr);
+
 // Trim a character from the end of the string
 int32_t str_trim_end(char *str, char c);
 
