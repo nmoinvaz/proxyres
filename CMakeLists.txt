@@ -81,6 +81,8 @@ if(WIN32)
             resolver_winxp.c)
         if(PROXYRES_EXECUTE)
             list(APPEND PROXYRES_SRCS
+                execute_wsh_dispatch.h
+                execute_wsh_site.h
                 execute_wsh.h
                 execute_wsh.c)
         endif()
