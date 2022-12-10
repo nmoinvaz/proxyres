@@ -19,8 +19,8 @@ The script execution process is blocking.
 - [proxy_execute_get_error](#proxy_execute_get_error)
 - [proxy_execute_create](#proxy_execute_create)
 - [proxy_execute_delete](#proxy_execute_delete)
-- [proxy_execute_init](#proxy_execute_init)
-- [proxy_execute_uninit](#proxy_execute_uninit)
+- [proxy_execute_global_init](#proxy_execute_global_init)
+- [proxy_execute_global_cleanup](#proxy_execute_global_cleanup)
 
 ### proxy_execute_get_proxies_for_url
 
