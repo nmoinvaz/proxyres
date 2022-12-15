@@ -22,7 +22,7 @@ jobs:
 
     - name: Run clang-format
       run: |
-        output=$(git clang-format-14 --binary=clang-format-14 --diff --commit=master)
+        output=$(git clang-format-14 --binary=clang-format-14 --diff --commit=origin/master)
         grep '^no modified files to format$' <<< "$output" && exit 0
         grep '^clang-format did not modify any files$' <<< "$output" && exit 0
         echo "$output"
