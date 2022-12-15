@@ -214,7 +214,9 @@ static void threadpool_delete_jobs(threadpool_s *threadpool) {
 
 static void threadpool_stop_threads(threadpool_s *threadpool) {
     // Stop threads from doing anymore work
+    pthread_mutex_lock(&threadpool->queue_mutex);
     threadpool->stop = true;
+    pthread_mutex_unlock(&threadpool->queue_mutex);
 
     // Wake up all threads to check stop flag
     pthread_cond_broadcast(&threadpool->wakeup_cond);
