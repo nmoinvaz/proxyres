@@ -25,7 +25,6 @@ struct threadpool_s;
 typedef struct threadpool_thread_s {
     HANDLE handle;
     uint32_t id;
-    struct threadpool_s *pool;
     struct threadpool_thread_s *next;
 } threadpool_thread_s;
 
@@ -92,13 +91,9 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
 }
 
 static uint32_t __stdcall threadpool_do_work(void *arg) {
-    threadpool_thread_s *thread = (threadpool_thread_s *)arg;
-    threadpool_s *threadpool = thread->pool;
+    threadpool_s *threadpool = arg;
 
     LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", thread->id);
-
-    if (!thread)
-        return 1;
 
     while (true) {
         mutex_lock(threadpool->queue_lock);
@@ -146,8 +141,6 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
 
     LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", thread->id);
 
-    // Reduce thread count
-    threadpool->num_threads--;
     event_set(threadpool->lazy_cond);
     mutex_unlock(threadpool->queue_lock);
     return 0;
@@ -155,17 +148,18 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
 
 static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
     // Create new thread and add it to the list of threads
-    threadpool_thread_s *thread = (threadpool_thread_s *)calloc(1, sizeof(threadpool_thread_s));
-    if (!thread)
+    uint32_t id = 0;
+    HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, threadpool_do_work, threadpool, 0, &id);
+    if (handle == -1)
         return;
 
-    thread->pool = threadpool;
+    threadpool_thread_s *thread = calloc(1, sizeof(threadpool_thread_s));
+    thread->handle = handle;
+    thread->id = id;
     thread->next = threadpool->threads;
 
     threadpool->threads = thread;
     threadpool->num_threads++;
-
-    thread->handle = (HANDLE)_beginthreadex(NULL, 0, threadpool_do_work, thread, 0, &thread->id);
 }
 
 bool threadpool_enqueue(void *ctx, void *user_data, threadpool_job_cb callback) {
@@ -209,7 +203,6 @@ static void threadpool_delete_threads(threadpool_s *threadpool) {
     while (threadpool->threads) {
         thread = threadpool->threads;
         threadpool->threads = threadpool->threads->next;
-        threadpool->num_threads--;
 
         // Wait for thread to exit
         while (true) {
@@ -222,6 +215,7 @@ static void threadpool_delete_threads(threadpool_s *threadpool) {
 
         free(thread);
     }
+    threadpool->num_threads = 0;
 }
 
 static void threadpool_delete_jobs(threadpool_s *threadpool) {
