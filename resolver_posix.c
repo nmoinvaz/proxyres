@@ -143,7 +143,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     if (auto_config_url) {
         // Download proxy auto config script if available
         script = proxy_resolver_posix_fetch_pac(auto_config_url, &proxy_resolver->error);
-        locked = !locked || !mutex_unlock(g_proxy_resolver_posix.mutex);
+        locked = locked && !mutex_unlock(g_proxy_resolver_posix.mutex);
 
         if (!script)
             goto posix_done;
