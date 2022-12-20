@@ -148,10 +148,17 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
         CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
             url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
+        if (!run_loop) {
+            proxy_resolver->error = ELOOP;
+            LOG_ERROR("Failed to execute pac url (%" PRId32 ")\n", proxy_resolver->error);
+            goto mac_done;
+        }
 
         CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
         CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
         CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
+        CFRunLoopSourceInvalidate(run_loop);
+        CFRelease(run_loop);
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Check to see if we need to bypass the proxy for the url
         bool should_bypass = false;
