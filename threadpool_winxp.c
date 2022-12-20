@@ -24,7 +24,6 @@ struct threadpool_s;
 
 typedef struct threadpool_thread_s {
     HANDLE handle;
-    uint32_t id;
     struct threadpool_thread_s *next;
 } threadpool_thread_s;
 
@@ -92,12 +91,13 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
 
 static uint32_t __stdcall threadpool_do_work(void *arg) {
     threadpool_s *threadpool = arg;
+    uint32_t id = GetCurrentThreadId();
 
-    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", thread->id);
+    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", id);
 
     while (true) {
         mutex_lock(threadpool->queue_lock);
-        LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - waiting for job\n", thread->id);
+        LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - waiting for job\n", id);
 
         // Sleep until there is work to do
         while (!threadpool->stop && !threadpool->queue_first) {
@@ -121,9 +121,9 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
 
         // Do the job
         if (job) {
-            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", thread->id, (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", id, (intptr_t)job);
             job->callback(job->user_data);
-            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", thread->id, (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", id, (intptr_t)job);
             threadpool_job_delete(&job);
         }
 
@@ -139,7 +139,7 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
         mutex_unlock(threadpool->queue_lock);
     }
 
-    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", thread->id);
+    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", id);
 
     event_set(threadpool->lazy_cond);
     mutex_unlock(threadpool->queue_lock);
@@ -148,14 +148,12 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
 
 static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
     // Create new thread and add it to the list of threads
-    uint32_t id = 0;
-    HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, threadpool_do_work, threadpool, 0, &id);
+    HANDLE handle = (HANDLE)_beginthread(threadpool_do_work, 0, threadpool);
     if (handle == -1)
         return;
 
     threadpool_thread_s *thread = calloc(1, sizeof(threadpool_thread_s));
     thread->handle = handle;
-    thread->id = id;
     thread->next = threadpool->threads;
 
     threadpool->threads = thread;
