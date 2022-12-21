@@ -45,6 +45,7 @@ jobs:
       run: |
         cmake -S . -B build ${{ matrix.cmake-args }} \
           -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+          -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
           -D BUILD_SHARED_LIBS=OFF
       env:
         CC: ${{ matrix.compiler }}
