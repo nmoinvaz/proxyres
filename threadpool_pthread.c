@@ -10,6 +10,10 @@
 #include "log.h"
 #include "threadpool.h"
 
+#ifdef __APPLE__
+#  include <objc/message.h>
+#endif
+
 typedef struct threadpool_job_s {
     void *user_data;
     threadpool_job_cb callback;
@@ -113,11 +117,29 @@ static void *threadpool_do_work(void *arg) {
 
         // Do the job
         if (job) {
+#ifdef __APPLE__
+            // The implicit thread autorelease pool on macOS doesn’t drain until the thread terminates, and long-lived
+            // threads can run out of memory. Thus, create and drain the autorelease pool for every job callback.
+            typedef id (*init)(id, SEL);
+            static Class autorelease_pool_class = NULL;
+
+            if (autorelease_pool_class == NULL)
+                autorelease_pool_class = objc_getClass("NSAutoreleasePool");
+            id autorelease_pool = class_createInstance(autorelease_pool_class, 0);
+            ((init)objc_msgSend)(autorelease_pool, sel_getUid("init"));
+#endif
+
             LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - processing job 0x%" PRIxPTR "\n", (uint64_t)pthread_self(),
                       (intptr_t)job);
             job->callback(job->user_data);
             LOG_DEBUG("threadpool - worker 0x%" PRIx64 " - job complete 0x%" PRIxPTR "\n", (uint64_t)pthread_self(),
                       (intptr_t)job);
+
+#ifdef __APPLE__
+            typedef void (*drain)(id, SEL);
+            ((drain)objc_msgSend)(autorelease_pool, sel_getUid("drain"));
+#endif
+
             threadpool_job_delete(&job);
         }
 
