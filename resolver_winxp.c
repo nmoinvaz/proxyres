@@ -21,9 +21,9 @@ typedef struct g_proxy_resolver_winxp_s {
     HMODULE win_http;
     // WinHTTP session handle
     HINTERNET session;
-} g_proxy_resolver_win2k_s;
+} g_proxy_resolver_winxp_s;
 
-struct g_proxy_resolver_winxp_s g_proxy_resolver_winxp;
+g_proxy_resolver_winxp_s g_proxy_resolver_winxp;
 
 typedef struct proxy_resolver_winxp_s {
     // WinHTTP proxy resolver handle

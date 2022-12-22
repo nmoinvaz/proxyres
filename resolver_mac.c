@@ -20,9 +20,9 @@
 
 typedef struct g_proxy_resolver_mac_s {
     bool reserved;
-} g_proxy_resolver_win2k_s;
+} g_proxy_resolver_mac_s;
 
-struct g_proxy_resolver_mac_s g_proxy_resolver_mac;
+g_proxy_resolver_mac_s g_proxy_resolver_mac;
 
 typedef struct proxy_resolver_mac_s {
     // Last system error
