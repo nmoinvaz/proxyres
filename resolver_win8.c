@@ -35,7 +35,7 @@ typedef struct g_proxy_resolver_win8_s {
     LPWINHTTPFREEPROXYRESULT winhttp_free_proxy_result;
 } g_proxy_resolver_win8_s;
 
-struct g_proxy_resolver_win8_s g_proxy_resolver_win8;
+g_proxy_resolver_win8_s g_proxy_resolver_win8;
 
 typedef struct proxy_resolver_win8_s {
     // WinHTTP proxy resolver handle
