@@ -2,6 +2,7 @@ name: Lint
 on: [workflow_dispatch, pull_request]
 env:
   TERM: xterm-256color
+  CLANG_VERSION: 15
 
 jobs:
   clang-format:
@@ -11,9 +12,10 @@ jobs:
     - name: Install clang-format
       run: |
         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main'
+        UBCN=$(lsb_release --short --codename)
+        sudo add-apt-repository "deb https://apt.llvm.org/${UBCN}/ llvm-toolchain-${UBCN}-${CLANG_VERSION} main"
         sudo apt update
-        sudo apt install -y clang-format-14
+        sudo apt install -y clang-format-${CLANG_VERSION}
 
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -22,9 +24,8 @@ jobs:
 
     - name: Run clang-format
       run: |
-        output=$(git clang-format-14 --binary=clang-format-14 --diff --commit=origin/master)
-        grep '^no modified files to format$' <<< "$output" && exit 0
-        grep '^clang-format did not modify any files$' <<< "$output" && exit 0
-        echo "$output"
-        echo -e "\033[1;31mCode style does not match clang-format"
-        exit 1
+        if ! git clang-format-${CLANG_VERSION} --binary=clang-format-${CLANG_VERSION} --diff --commit=origin/master
+        then
+          echo -e "\033[1;31mCode style does not match clang-format"
+          exit 1
+        fi
