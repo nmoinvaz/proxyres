@@ -12,8 +12,8 @@ jobs:
     - name: Install clang-format
       run: |
         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        UBCN=$(lsb_release --short --codename)
-        sudo add-apt-repository "deb https://apt.llvm.org/${UBCN}/ llvm-toolchain-${UBCN}-${CLANG_VERSION} main"
+        CODENAME=$(lsb_release --short --codename)
+        sudo add-apt-repository "deb https://apt.llvm.org/${CODENAME}/ llvm-toolchain-${CODENAME}-${CLANG_VERSION} main"
         sudo apt update
         sudo apt install -y clang-format-${CLANG_VERSION}
 
