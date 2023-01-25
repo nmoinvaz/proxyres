@@ -91,7 +91,7 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScrip
     // Print exception information to log
     HRESULT result = IActiveScriptError_GetExceptionInfo(error, &excep_info);
     if (FAILED(result)) {
-        LOG_ERROR("Failed to get active script error (0x%08x)\n", result);
+        LOG_ERROR("Failed to get active script error (0x%08lx)\n", result);
         return S_OK;
     }
 
@@ -112,7 +112,7 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScrip
     LONG char_pos = 0;
     result = IActiveScriptError_GetSourcePosition(error, &source_ctx, &line_num, &char_pos);
     if (SUCCEEDED(result))
-        printf(" @ line %d char %d", line_num, char_pos);
+        printf(" @ line %lu char %ld", line_num, char_pos);
     printf("\n");
 
     BSTR source_line_text;
