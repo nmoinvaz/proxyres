@@ -16,7 +16,7 @@ TEST(fetch, get) {
     const char *url = "http://google.com/";
     const char *expected_string = "document has moved";
 #endif
-    char *body = fetch_get("http://google.com", &error);
+    char *body = fetch_get(url, &error);
     EXPECT_EQ(error, 0);
     EXPECT_NE(body, nullptr);
     if (body) {
