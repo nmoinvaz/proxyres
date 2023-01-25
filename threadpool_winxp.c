@@ -91,7 +91,9 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
 
 static void __cdecl threadpool_do_work(void *arg) {
     threadpool_s *threadpool = arg;
+#ifdef _DEBUG
     uint32_t id = GetCurrentThreadId();
+#endif
 
     LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", id);
 
