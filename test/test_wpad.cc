@@ -39,7 +39,7 @@ TEST(wpad, dhcp) {
     EXPECT_NE(localent, nullptr);
 
     // Create network adapter
-    net_adapter_s adapter = {0};
+    net_adapter_s adapter{};
     strncat(adapter.name, "Ethernet", sizeof(adapter.name) - 1);
     adapter.is_dhcp_v4 = true;
     memset(adapter.mac, 'a', sizeof(adapter.mac));
