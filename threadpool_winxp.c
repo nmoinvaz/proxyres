@@ -23,7 +23,7 @@ typedef struct threadpool_job_s {
 struct threadpool_s;
 
 typedef struct threadpool_thread_s {
-    HANDLE handle;
+    uintptr_t handle;
     struct threadpool_thread_s *next;
 } threadpool_thread_s;
 
@@ -147,7 +147,7 @@ static void __cdecl threadpool_do_work(void *arg) {
 
 static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
     // Create new thread and add it to the list of threads
-    HANDLE handle = (HANDLE)_beginthread(threadpool_do_work, 0, threadpool);
+    uintptr_t handle = _beginthread(threadpool_do_work, 0, threadpool);
     if (handle == -1)
         return;
 
@@ -205,7 +205,7 @@ static void threadpool_delete_threads(threadpool_s *threadpool) {
         while (true) {
             // Signal wake up condition to wake up threads to stop
             event_set(threadpool->wakeup_cond);
-            DWORD wait = WaitForSingleObject(thread->handle, 250);
+            DWORD wait = WaitForSingleObject((HANDLE)thread->handle, 250);
             if (wait != WAIT_TIMEOUT)
                 break;
         }
