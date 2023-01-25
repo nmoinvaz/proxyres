@@ -89,7 +89,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
     return job;
 }
 
-static uint32_t __stdcall threadpool_do_work(void *arg) {
+static void __cdecl threadpool_do_work(void *arg) {
     threadpool_s *threadpool = arg;
     uint32_t id = GetCurrentThreadId();
 
@@ -143,7 +143,6 @@ static uint32_t __stdcall threadpool_do_work(void *arg) {
 
     event_set(threadpool->lazy_cond);
     mutex_unlock(threadpool->queue_lock);
-    return 0;
 }
 
 static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
