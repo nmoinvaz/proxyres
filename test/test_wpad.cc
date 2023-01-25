@@ -60,7 +60,7 @@ TEST(wpad, dns) {
         GTEST_SKIP();
 
     char *wpad = wpad_dns(NULL);
-    (void *)wpad;
+    (void)wpad;
     /*EXPECT_NE(wpad, nullptr);
     if (wpad)
         EXPECT_STREQ(wpad, "http://wpad.com/wpad.dat");
