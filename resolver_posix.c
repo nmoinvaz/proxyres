@@ -229,6 +229,7 @@ bool proxy_resolver_posix_wait(void *ctx, int32_t timeout_ms) {
 }
 
 bool proxy_resolver_posix_cancel(void *ctx) {
+    UNUSED(ctx);
     return false;
 }
 
@@ -262,6 +263,8 @@ bool proxy_resolver_posix_is_async(void) {
 }
 
 static void proxy_resolver_posix_wpad_startup(void *arg) {
+    UNUSED(arg);
+
     mutex_lock(g_proxy_resolver_posix.mutex);
 
     // Discover the proxy auto config url
