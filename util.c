@@ -471,7 +471,7 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
 
         // Copy wildcard to match subdomain rule
         if (*rule_start == '.')
-            strncat(bypass_rule, "*", 1);
+            strncat(bypass_rule, "*", sizeof(bypass_rule) - strlen(bypass_rule) - 1);
 
         // Copy rule to temporary buffer
         strncat(bypass_rule, rule_start, rule_len);
