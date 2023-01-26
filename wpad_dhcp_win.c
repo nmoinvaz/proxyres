@@ -17,6 +17,9 @@ char *wpad_dhcp_adapter_win(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t 
     uint8_t buffer[4096];
     DWORD buffer_len = sizeof(buffer);
 
+    UNUSED(timeout_sec);
+    UNUSED(bind_ip);
+
     wchar_t *adapter_guid_wide = utf8_dup_to_wchar(adapter->guid);
     if (!adapter_guid_wide)
         return NULL;

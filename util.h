@@ -2,6 +2,7 @@
 
 #define HOST_MAX   (260)
 #define SCRIPT_MAX (256 * 1024)
+#define UNUSED(x)  ((void)x)
 
 #ifdef __cplusplus
 extern "C" {

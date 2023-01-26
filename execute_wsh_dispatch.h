@@ -43,6 +43,7 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_query_interface(IDispatch *disp
 }
 
 static HRESULT STDMETHODCALLTYPE script_dispatch_get_type_info_count(IDispatch *dispatch, unsigned int *pctinfo) {
+    UNUSED(dispatch);
     if (!pctinfo)
         return E_INVALIDARG;
     *pctinfo = 0;
@@ -51,6 +52,10 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_get_type_info_count(IDispatch *
 
 static HRESULT STDMETHODCALLTYPE script_dispatch_get_type_info(IDispatch *dispatch, unsigned int type, LCID lcid,
                                                                ITypeInfo **type_info) {
+    UNUSED(dispatch);
+    UNUSED(type);
+    UNUSED(lcid);
+    UNUSED(type_info);
     return E_NOTIMPL;
 }
 
@@ -58,6 +63,10 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_get_ids_of_names(IDispatch *dis
                                                                   unsigned names_count, LCID lcid,
                                                                   DISPID *ret_disp_id) {
     HRESULT result = S_OK;
+
+    UNUSED(dispatch);
+    UNUSED(riid);
+    UNUSED(lcid);
 
     // Return the ID of the function
     for (unsigned i = 0; i < names_count; i++) {
@@ -81,6 +90,12 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_get_ids_of_names(IDispatch *dis
 static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DISPID disp_id, REFIID riid, LCID lcid,
                                                         WORD flags, DISPPARAMS *disp_params, VARIANT *result_ptr,
                                                         EXCEPINFO *excep_info, UINT *arg_err) {
+    UNUSED(dispatch);
+    UNUSED(riid);
+    UNUSED(lcid);
+    UNUSED(flags);
+    UNUSED(excep_info);
+    UNUSED(arg_err);
     // Check ID of the function and return the result
     if (disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_ID || disp_id == SCRIPT_DISPATCH_DNS_RESOLVE_EX_ID) {
         if (disp_params->cArgs != 1)

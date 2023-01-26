@@ -36,6 +36,7 @@ static HRESULT STDMETHODCALLTYPE active_script_site_query_interface(IActiveScrip
 }
 
 static HRESULT STDMETHODCALLTYPE active_script_site_get_lcid(IActiveScriptSite *site, LCID *plcid) {
+    UNUSED(site);
     return plcid ? E_POINTER : E_NOTIMPL;
 }
 
@@ -71,16 +72,22 @@ static HRESULT STDMETHODCALLTYPE active_script_site_get_item_info(IActiveScriptS
 
 static HRESULT STDMETHODCALLTYPE active_script_site_get_doc_version_string(IActiveScriptSite *site,
                                                                            BSTR *version_string) {
+    UNUSED(site);
     return !version_string ? E_POINTER : E_NOTIMPL;
 }
 
 static HRESULT STDMETHODCALLTYPE active_script_site_on_script_terminate(IActiveScriptSite *site,
                                                                         const VARIANT *result_ptr,
                                                                         const EXCEPINFO *excep_info) {
+    UNUSED(site);
+    UNUSED(result_ptr);
+    UNUSED(excep_info);
     return S_OK;
 }
 
 static HRESULT STDMETHODCALLTYPE active_script_site_on_state_change(IActiveScriptSite *site, SCRIPTSTATE script_state) {
+    UNUSED(site);
+    UNUSED(script_state);
     return S_OK;
 }
 
@@ -88,6 +95,7 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScrip
                                                                     IActiveScriptError *error) {
     EXCEPINFO excep_info = {0};
 
+    UNUSED(site);
     // Print exception information to log
     HRESULT result = IActiveScriptError_GetExceptionInfo(error, &excep_info);
     if (FAILED(result)) {
@@ -130,10 +138,12 @@ static HRESULT STDMETHODCALLTYPE active_script_site_on_script_error(IActiveScrip
 }
 
 static HRESULT STDMETHODCALLTYPE active_script_site_on_enter_script(IActiveScriptSite *site) {
+    UNUSED(site);
     return S_OK;
 }
 
 static HRESULT STDMETHODCALLTYPE active_script_site_on_leave_script(IActiveScriptSite *site) {
+    UNUSED(site);
     return S_OK;
 }
 
