@@ -50,6 +50,7 @@ typedef struct proxy_resolver_win8_s {
 
 void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DWORD_PTR Context, DWORD InternetStatus,
                                                           LPVOID StatusInformation, DWORD StatusInformationLength) {
+    UNUSED(Internet, StatusInformationLength);
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)Context;
     WINHTTP_PROXY_RESULT proxy_result = {0};
 

@@ -80,6 +80,7 @@ static void threadpool_remove_job(threadpool_s *threadpool, threadpool_job_s *jo
 }
 
 VOID CALLBACK threadpool_job_callback(PTP_CALLBACK_INSTANCE instance, PVOID context, PTP_WORK work) {
+    UNUSED(instance);
     threadpool_job_s *job = (threadpool_job_s *)context;
     if (!job)
         return;
