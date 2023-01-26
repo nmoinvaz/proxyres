@@ -148,7 +148,7 @@ static void __cdecl threadpool_do_work(void *arg) {
 static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
     // Create new thread and add it to the list of threads
     uintptr_t handle = _beginthread(threadpool_do_work, 0, threadpool);
-    if (handle == -1)
+    if (handle == (unsigned)-1)
         return;
 
     threadpool_thread_s *thread = calloc(1, sizeof(threadpool_thread_s));
