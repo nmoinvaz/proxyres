@@ -91,15 +91,12 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
 
 static void __cdecl threadpool_do_work(void *arg) {
     threadpool_s *threadpool = arg;
-#ifdef _DEBUG
-    uint32_t id = GetCurrentThreadId();
-#endif
 
-    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", id);
+    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", GetCurrentThreadId());
 
     while (true) {
         mutex_lock(threadpool->queue_lock);
-        LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - waiting for job\n", id);
+        LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - waiting for job\n", GetCurrentThreadId());
 
         // Sleep until there is work to do
         while (!threadpool->stop && !threadpool->queue_first) {
@@ -123,9 +120,11 @@ static void __cdecl threadpool_do_work(void *arg) {
 
         // Do the job
         if (job) {
-            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", id, (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - processing job 0x%" PRIxPTR "\n", GetCurrentThreadId(),
+                      (intptr_t)job);
             job->callback(job->user_data);
-            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", id, (intptr_t)job);
+            LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - job complete 0x%" PRIxPTR "\n", GetCurrentThreadId(),
+                      (intptr_t)job);
             threadpool_job_delete(&job);
         }
 
@@ -141,7 +140,7 @@ static void __cdecl threadpool_do_work(void *arg) {
         mutex_unlock(threadpool->queue_lock);
     }
 
-    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", id);
+    LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - stopped\n", GetCurrentThreadId());
 
     event_set(threadpool->lazy_cond);
     mutex_unlock(threadpool->queue_lock);
