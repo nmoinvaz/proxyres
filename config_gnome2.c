@@ -131,18 +131,20 @@ char *proxy_config_gnome2_get_bypass_list(void) {
     if (hosts) {
         // Enumerate the list to get the size of the bypass list
         g_proxy_config_gnome2.g_slist_foreach(hosts, gs_list_for_each_func, &enum_bypass);
-        enum_bypass.max_value++;
+        if (enum_bypass.max_value > 0) {
+            enum_bypass.max_value++;
 
-        // Allocate space for the bypass list
-        bypass_list = calloc(enum_bypass.max_value, sizeof(char));
-        if (bypass_list) {
-            enum_bypass.value = bypass_list;
+            // Allocate space for the bypass list
+            bypass_list = calloc(enum_bypass.max_value, sizeof(char));
+            if (bypass_list) {
+                enum_bypass.value = bypass_list;
 
-            // Enumerate the list to get the bypass list string
-            g_proxy_config_gnome2.g_slist_foreach(hosts, gs_list_for_each_func, &enum_bypass);
+                // Enumerate the list to get the bypass list string
+                g_proxy_config_gnome2.g_slist_foreach(hosts, gs_list_for_each_func, &enum_bypass);
 
-            // Remove the last separator
-            str_trim_end(bypass_list, ',');
+                // Remove the last separator
+                str_trim_end(bypass_list, ',');
+            }
         }
 
         g_proxy_config_gnome2.g_slist_free_full(hosts, g_proxy_config_gnome2.g_free);
