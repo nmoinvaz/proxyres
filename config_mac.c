@@ -56,6 +56,12 @@ char *proxy_config_mac_get_auto_config_url(void) {
         }
     }
 
+    // Don't return empty url
+    if (url && !*url) {
+        free(url);
+        url = NULL;
+    }
+
     CFRelease(proxy_settings);
     return url;
 }
@@ -117,6 +123,12 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
             int32_t proxy_len = strlen(proxy);
             snprintf(proxy + proxy_len, max_proxy - proxy_len, ":%" PRId64 "", port_number);
         }
+    }
+
+    // Don't return empty proxy
+    if (proxy && !*proxy) {
+        free(proxy);
+        proxy = NULL;
     }
 
     CFRelease(proxy_settings);
@@ -187,6 +199,12 @@ char *proxy_config_mac_get_bypass_list(void) {
         str_trim_end(bypass_list, ',');
 
 bypass_list_error:
+
+    // Don't return empty bypass list
+    if (bypass_list && !*bypass_list) {
+        free(bypass_list);
+        bypass_list = NULL;
+    }
 
     CFRelease(proxy_settings);
     return bypass_list;
