@@ -162,11 +162,11 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
         // Check to see if we need to bypass the proxy for the url
         bool should_bypass = false;
-        if ((bypass_list = proxy_config_get_bypass_list()) != NULL)
-            should_bypass = should_bypass_proxy(url, bypass_list);
+        bypass_list = proxy_config_get_bypass_list();
+        should_bypass = should_bypass_proxy(url, bypass_list);
         if (should_bypass) {
             // Bypass the proxy for the url
-            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list);
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
             proxy_resolver->list = strdup("direct://");
         } else {
             // Use proxy from settings
