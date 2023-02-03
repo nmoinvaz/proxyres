@@ -29,7 +29,7 @@ typedef struct g_proxy_resolver_gnome3_s {
     // Glib module handle
     void *glib_module;
     // Glib functions
-    gint (*g_strv_length)(gchar **str_array);
+    guint (*g_strv_length)(gchar **str_array);
     void (*g_strfreev)(gchar **str_array);
     void (*g_error_free)(GError *error);
 } g_proxy_resolver_gnome3_s;
@@ -84,8 +84,8 @@ static bool proxy_resolver_gnome3_create_resolver(proxy_resolver_gnome3_s *proxy
 }
 
 static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_resolver, char **proxies, GError *error) {
-    int32_t proxy_count = g_proxy_resolver_gnome3.g_strv_length(proxies);
-    int32_t max_list = (proxy_count + 1) * MAX_PROXY_URL;
+    guint proxy_count = g_proxy_resolver_gnome3.g_strv_length(proxies);
+    size_t max_list = (proxy_count + 1) * MAX_PROXY_URL;
     int32_t list_len = 0;
 
     if (!proxies) {
