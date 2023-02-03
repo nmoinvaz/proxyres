@@ -66,7 +66,7 @@ typedef struct proxy_execute_jscore_s {
 } proxy_execute_jscore_s;
 
 static char *js_string_dup_to_utf8(JSStringRef str) {
-    int32_t utf8_string_size = 0;
+    size_t utf8_string_size = 0;
     char *utf8_string = NULL;
 
     if (!str)
