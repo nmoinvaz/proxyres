@@ -63,3 +63,4 @@ Portions of the code for this library started many years ago as part of a custom
 * RFC Drafts
   * [Web Proxy Auto-Discovery Protocol](https://datatracker.ietf.org/doc/html/draft-ietf-wrec-wpad-01)
   * [Generalize Client UDP Port Number of DHCP Relay](https://datatracker.ietf.org/doc/html/draft-shen-dhc-client-port-00)
+* [Windows Proxy Setting "Bypass proxy server for local addresses"](https://bugzilla.mozilla.org/show_bug.cgi?id=1028195#c14)
