@@ -425,7 +425,7 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
     bool is_simple = false;
     bool should_bypass = false;
 
-    if (!url || !bypass_list)
+    if (!url)
         return true;
 
     // Chromium documentation for proxy bypass rules:
@@ -443,13 +443,16 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
     if (strcmp(host, "127.0.0.1") == 0 || strcasecmp(host, "localhost") == 0)
         is_local = true;
 
-    // Check for simple hostnames
-    if (strchr(host, '.') == NULL)
-        is_simple = true;
-
     // By default don't allow localhost urls to go through proxy
     if (is_local)
         should_bypass = true;
+
+    if (!bypass_list)
+        return should_bypass;
+
+    // Check for simple hostnames
+    if (strchr(host, '.') == NULL)
+        is_simple = true;
 
     // Enumerate through each bypass expression in the bypass list
     const char *bypass_list_end = bypass_list + strlen(bypass_list);

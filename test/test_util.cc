@@ -129,15 +129,18 @@ struct should_bypass_list_param {
     bool expected;
 
     friend std::ostream &operator<<(std::ostream &os, const should_bypass_list_param &param) {
-        return os << "url: " << param.url << std::endl << "bypass list: " << param.bypass_list;
+        return os << "url: " << param.url << std::endl
+                  << "bypass list: " << (param.bypass_list ? param.bypass_list : "<null>");
     }
 };
 
 constexpr should_bypass_list_param should_bypass_list_tests[] = {
     // Bypass due to localhost hostname
     {"http://localhost/", "", true},
+    {"http://localhost/", nullptr, true},
     // Bypass due to localhost ip
     {"http://127.0.0.1/", "", true},
+    {"http://127.0.0.1/", nullptr, true},
     // Bypass due to <local> on simple hostnames
     {"http://apple/", "<local>", true},
     // Don't bypass due to <local> only applying to simple hostnames
