@@ -447,8 +447,10 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
     if (is_local)
         should_bypass = true;
 
-    if (!bypass_list)
+    if (!bypass_list) {
+        free(host);
         return should_bypass;
+    }
 
     // Check for simple hostnames
     if (strchr(host, '.') == NULL)
