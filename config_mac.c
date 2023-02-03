@@ -27,7 +27,7 @@ bool proxy_config_mac_get_auto_discover(void) {
         return false;
 
     // Get whether or not auto discovery is enabled
-    if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoDiscoveryEnable) == true)
+    if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoDiscoveryEnable))
         auto_discover = true;
 
     CFRelease(proxy_settings);
@@ -42,7 +42,7 @@ char *proxy_config_mac_get_auto_config_url(void) {
         return NULL;
 
     // Check to see if auto-config url is enabled
-    if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoConfigEnable) == true) {
+    if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoConfigEnable)) {
         // Get the auto-config url
         CFStringRef auto_config_url = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);
         if (auto_config_url) {
@@ -92,7 +92,7 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
     if (!proxy_settings)
         return NULL;
 
-    if (get_cf_dictionary_bool(proxy_settings, enable_index) == true) {
+    if (get_cf_dictionary_bool(proxy_settings, enable_index)) {
         // Get the proxy url associated with the scheme
         CFStringRef host = CFDictionaryGetValue(proxy_settings, host_index);
         if (host) {
