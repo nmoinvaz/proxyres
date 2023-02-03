@@ -60,7 +60,7 @@ char *proxy_config_get_proxy(const char *scheme) {
 
 char *proxy_config_get_bypass_list(void) {
     if (g_proxy_config.bypass_list)
-        return *g_proxy_config.bypass_list ? strdup(g_proxy_config.bypass_list) : NULL;
+        return strdup(g_proxy_config.bypass_list);
     if (!g_proxy_config.proxy_config_i)
         return NULL;
     return g_proxy_config.proxy_config_i->get_bypass_list();

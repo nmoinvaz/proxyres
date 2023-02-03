@@ -118,9 +118,6 @@ Override the user's configured proxy bypass list.
 |-|-|:-|
 |const char *|bypass_list|Comma-separated list of proxy bypass expressions.|
 
-Pass `NULL` to use the proxy bypass list configured on the user's system (default behavior).
-Pass the empty string `""` to avoid bypassing the proxy.
-
 **Example**
 ```c
 proxy_config_set_bypass_list_override("complex.com,welldone.com");
