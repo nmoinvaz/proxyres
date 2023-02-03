@@ -94,7 +94,7 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
     char *host = g_proxy_config_gnome3.g_settings_get_string(settings, "host");
     if (host && *host) {
         // Allocate space for host:port
-        int32_t max_proxy = strlen(host) + 32;
+        size_t max_proxy = strlen(host) + 32;
         proxy = (char *)malloc(max_proxy);
         if (proxy) {
             uint32_t port = g_proxy_config_gnome3.g_settings_get_int(settings, "port");
@@ -119,7 +119,7 @@ char *proxy_config_gnome3_get_bypass_list(void) {
 
     char **hosts = g_proxy_config_gnome3.g_settings_get_strv(settings, "ignore-hosts");
     if (hosts) {
-        int32_t max_value = 0;
+        size_t max_value = 0;
 
         // Enumerate the list to get the size of the bypass list
         for (int32_t i = 0; hosts[i] && *(hosts[i]); i++)
@@ -131,7 +131,7 @@ char *proxy_config_gnome3_get_bypass_list(void) {
             if (bypass_list) {
                 // Enumerate hosts and copy them to the bypass list
                 for (int32_t i = 0; hosts[i]; i++) {
-                    int32_t bypass_list_len = strlen(bypass_list);
+                    size_t bypass_list_len = strlen(bypass_list);
                     snprintf(bypass_list + bypass_list_len, max_value - bypass_list_len, "%s,", hosts[i]);
                 }
 

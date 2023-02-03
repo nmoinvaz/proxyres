@@ -49,8 +49,8 @@ char *proxy_config_kde_get_proxy(const char *scheme) {
         return NULL;
 
     // Construct key name to search for in config
-    int32_t scheme_len = strlen(scheme);
-    int32_t max_key = scheme_len + 8;
+    size_t scheme_len = strlen(scheme);
+    size_t max_key = scheme_len + 8;
     char *key = (char *)calloc(max_key, sizeof(char));
     if (!key)
         return NULL;
@@ -58,7 +58,7 @@ char *proxy_config_kde_get_proxy(const char *scheme) {
     // Check if scheme is actually a url
     char *host = strchr(scheme, ':');
     if (host) {
-        scheme_len = (int32_t)(host - scheme);
+        scheme_len = (host - scheme);
         strncat(key, scheme, scheme_len);
     } else {
         strncat(key, scheme, max_key - 1);

@@ -58,7 +58,7 @@ char *proxy_config_env_get_proxy(const char *scheme) {
         return NULL;
 
     // Construct name of environment variable based on proxy scheme
-    int32_t name_len = strlen(scheme) + 8;
+    size_t name_len = strlen(scheme) + 8;
     char *name = (char *)malloc(name_len);
     snprintf(name, name_len, "%s_proxy", scheme);
 

@@ -193,7 +193,7 @@ char *get_url_host(const char *url) {
         host_end = (char *)host_start + strlen(host_start);
 
     // Allocate a copy the host
-    int32_t host_len = (int32_t)(host_end - host_start) + 1;
+    size_t host_len = (host_end - host_start) + 1;
     char *host = (char *)calloc(host_len, sizeof(char));
     if (!host)
         return strdup(url);

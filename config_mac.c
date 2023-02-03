@@ -62,7 +62,7 @@ char *proxy_config_mac_get_auto_config_url(void) {
 
 char *proxy_config_mac_get_proxy(const char *scheme) {
     char *proxy = NULL;
-    int32_t max_proxy = 0;
+    size_t max_proxy = 0;
 
     // Determine the indexes to retrieve from the system proxy settings to get the value
     // for the proxy list we want
@@ -127,8 +127,8 @@ char *proxy_config_mac_get_bypass_list(void) {
     char *bypass_list = NULL;
     int32_t bypass_list_len = 0;
     int32_t bypass_list_count = 0;
-    int32_t max_bypass_list = 0;
     int32_t exception_count = 0;
+    size_t max_bypass_list = 0;
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)

@@ -83,7 +83,7 @@ char *proxy_config_gnome2_get_proxy(const char *scheme) {
     host = g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default, host_key, NULL);
     if (host && *host) {
         // Allocate space for host:port
-        int32_t max_proxy = strlen(host) + 32;
+        size_t max_proxy = strlen(host) + 32;
         proxy = (char *)malloc(max_proxy);
         if (proxy) {
             port = g_proxy_config_gnome2.gconf_engine_get_int(g_proxy_config_gnome2.gconf_default, port_key, NULL);
@@ -100,7 +100,7 @@ char *proxy_config_gnome2_get_proxy(const char *scheme) {
 
 typedef struct g_slist_for_each_bypass_s {
     char *value;
-    int32_t max_value;
+    size_t max_value;
 } g_slist_for_each_bypass_s;
 
 static void gs_list_for_each_func(gpointer data, gpointer user_data) {
@@ -116,7 +116,7 @@ static void gs_list_for_each_func(gpointer data, gpointer user_data) {
         bypass->max_value += strlen(rule) + 2;
     } else {
         // Append the rule to the string
-        int32_t bypass_len = strlen(bypass->value);
+        size_t bypass_len = strlen(bypass->value);
         snprintf(bypass->value + bypass_len, bypass->max_value - bypass_len, "%s,", rule);
     }
 }
