@@ -45,8 +45,7 @@ struct get_url_from_host_param {
     const char *expected;
 
     friend std::ostream &operator<<(std::ostream &os, const get_url_from_host_param &param) {
-        return os << "scheme: " << param.scheme << std::endl
-                  << "host: " << param.host;
+        return os << "scheme: " << param.scheme << std::endl << "host: " << param.host;
     }
 };
 
@@ -96,16 +95,16 @@ struct convert_proxy_list_to_uri_list_param {
 };
 
 constexpr convert_proxy_list_to_uri_list_param convert_proxy_list_to_uri_list_tests[] = {
-    {"DIRECT", NULL, "direct://"},
-    {"PROXY 127.0.0.1:80", NULL, "http://127.0.0.1:80"},
-    {"PROXY 127.0.0.1:8080", NULL, "http://127.0.0.1:8080"},
-    {"PROXY 127.0.0.1:443", NULL, "https://127.0.0.1:443"},
+    {"DIRECT", nullptr, "direct://"},
+    {"PROXY 127.0.0.1:80", nullptr, "http://127.0.0.1:80"},
+    {"PROXY 127.0.0.1:8080", nullptr, "http://127.0.0.1:8080"},
+    {"PROXY 127.0.0.1:443", nullptr, "https://127.0.0.1:443"},
     {"PROXY myproxy0.com:90", "http", "http://myproxy0.com:90"},
     {"PROXY myproxy1.com:90", "https", "https://myproxy1.com:90"},
-    {"HTTP myproxy1.com:80;SOCKS myproxy2.com:1080", NULL, "http://myproxy1.com:80,socks://myproxy2.com:1080"},
-    {"HTTP myproxy3.com:80;SOCKS myproxy4.com:1080;DIRECT", NULL,
+    {"HTTP myproxy1.com:80;SOCKS myproxy2.com:1080", nullptr, "http://myproxy1.com:80,socks://myproxy2.com:1080"},
+    {"HTTP myproxy3.com:80;SOCKS myproxy4.com:1080;DIRECT", nullptr,
      "http://myproxy3.com:80,socks://myproxy4.com:1080,direct://"},
-    {"PROXY proxy1.example.com:80; PROXY proxy2.example.com:8080", NULL,
+    {"PROXY proxy1.example.com:80; PROXY proxy2.example.com:8080", nullptr,
      "http://proxy1.example.com:80,http://proxy2.example.com:8080"},
 };
 
