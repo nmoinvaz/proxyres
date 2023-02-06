@@ -435,9 +435,14 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
     char *host = get_url_host(url);
     if (!host)
         return true;
+
+    // Strip and parse port from host
     char *port = strchr(host, ':');
-    if (port)
+    int32_t host_port = 0;
+    if (port) {
         *port = 0;
+        host_port = atoi(port + 1);
+    }
 
     // Check for localhost address
     if (strcmp(host, "127.0.0.1") == 0 || strcasecmp(host, "localhost") == 0)
@@ -481,9 +486,34 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
         // Copy rule to temporary buffer
         strncat(bypass_rule, rule_start, rule_len);
 
+        // Strip and parse port from bypass rule
+        port = strchr(bypass_rule, ':');
+        int32_t bypass_rule_port = 0;
+        if (port) {
+            *port = 0;
+            bypass_rule_port = atoi(port + 1);
+        }
+
         // If the rule matches hostname of url then bypass proxy
-        if (str_wildcard_match(host, bypass_rule, true))
+        if (str_wildcard_match(host, bypass_rule, true)) {
             should_bypass = true;
+
+            // Check bypass rule port
+            if (bypass_rule_port) {
+                if (!host_port) {
+                    // Infer default host port from url scheme
+                    char *scheme = get_url_scheme(url, "http");
+                    if (scheme) {
+                        host_port = get_scheme_default_port(scheme);
+                        free(scheme);
+                    }
+                }
+
+                // If the host port doesn't match the bypass rule port then don't bypass
+                if (bypass_rule_port != host_port)
+                    should_bypass = false;
+            }
+        }
 
         // If the rule is <local> then allow all simple hostnames to bypass proxy
         if (is_simple && strcasecmp(bypass_rule, "<local>") == 0)
