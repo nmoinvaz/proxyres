@@ -162,6 +162,16 @@ constexpr should_bypass_list_param should_bypass_list_tests[] = {
     {"http://my.google.com/", ".google.com", true},
     // Don't bypass if subdomain not supplied
     {"http://google.com/", ".google.com", false},
+    // Don't bypass due to different ports even inferred
+    {"http://microsoft.com/", "*.com:443", false},
+    // Bypass due to matching inferred ports
+    {"https://microsoft.com/", "*.com:443", true},
+    {"https://microsoft.com/", "microsoft.com:443", true},
+    {"http://microsoft.com/", "microsoft.com:80", true},
+    // Bypass due to matching domain with any port
+    {"http://microsoft.com:88/", "microsoft.com", true},
+    // Bypass due to matching domain with explicit port
+    {"http://microsoft.com:88/", "microsoft.com:88", true},
 };
 
 class util_should_bypass : public ::testing::TestWithParam<should_bypass_list_param> {};
