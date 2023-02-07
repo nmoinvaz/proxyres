@@ -172,6 +172,18 @@ constexpr should_bypass_list_param should_bypass_list_tests[] = {
     {"http://microsoft.com:88/", "microsoft.com", true},
     // Bypass due to matching domain with explicit port
     {"http://microsoft.com:88/", "microsoft.com:88", true},
+    // Bypass due to matching ip without cidr
+    {"http://192.168.0.1/", "192.168.0.1", true},
+    // Don't bypass due to different ip
+    {"http://192.168.1.1/", "192.168.0.1", false},
+    // Bypass due to ip with matching cidr range
+    {"http://192.167.2.1/", "192.168.0.1/8", true},
+    {"http://192.168.2.1/", "192.168.0.1/16", true},
+    {"http://192.168.0.1/", "192.168.0.1/24", true},
+    // Don't bypass due to ip without matching cidr range
+    {"http://192.167.0.0/", "192.168.0.1/16", false},
+    {"http://192.168.1.0/", "192.168.0.1/24", false},
+    {"http://192.168.0.0/", "192.168.0.1/32", false},
 };
 
 class util_should_bypass : public ::testing::TestWithParam<should_bypass_list_param> {};

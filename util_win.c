@@ -182,3 +182,28 @@ char *convert_winhttp_proxy_list_to_uri_list(const char *proxy_list) {
 
     return uri_list;
 }
+
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+// Backwards compatible inet_pton for Windows XP
+int32_t inet_pton(int32_t af, const char *src, void *dst) {
+    struct sockaddr_storage sock_storage;
+    int32_t size = sizeof(sockaddr_storage);
+    char src_copy[INET6_ADDRSTRLEN + 1];
+
+    memset(&sock_storage, 0, sizeof(sock_storage));
+    strncpy(src_copy, src, INET6_ADDRSTRLEN + 1);
+    src_copy[INET6_ADDRSTRLEN] = 0;
+
+    if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&sock_storage, &size) == 0) {
+        switch (af) {
+        case AF_INET:
+            *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+            return 1;
+        case AF_INET6:
+            *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+            return 1;
+        }
+    }
+    return 0;
+}
+#endif

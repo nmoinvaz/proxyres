@@ -7,11 +7,20 @@
 #include <ctype.h>
 
 #ifdef _WIN32
+#  include <ws2tcpip.h>
+#else
+#  include <arpa/inet.h>
+#endif
+
+#ifdef _WIN32
 #  define strcasecmp  _stricmp
 #  define strncasecmp _strnicmp
 #endif
 
 #include "util.h"
+#ifdef _WIN32
+#  include "util_win.h"
+#endif
 
 // Replace one character in the string with another
 int32_t str_change_chr(char *str, char from, char to) {
@@ -419,6 +428,49 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default
     return uri_list;
 }
 
+// Check if the ip address matches the cidr notation range
+static bool is_ip_in_cidr_range(const char *ip, const char *cidr) {
+    if (!ip || !cidr)
+        return false;
+
+    // Convert ip from text to binary
+    struct in_addr ip_addr;
+    if (!inet_pton(AF_INET, ip, &ip_addr))
+        return false;
+
+    // Parse cidr notation
+    char *cidr_ip = strdup(cidr);
+    char *cidr_prefix = strchr(cidr_ip, '/');
+    if (!cidr_prefix) {
+        free(cidr_ip);
+        return false;
+    }
+    *cidr_prefix = 0;
+    cidr_prefix++;
+
+    // Parse cidr prefix
+    int32_t prefix = atoi(cidr_prefix);
+    if (prefix < 0 || prefix > 32) {
+        free(cidr_ip);
+        return false;
+    }
+
+    // Convert cidr ip from text to binary
+    struct in_addr cidr_addr;
+    if (!inet_pton(AF_INET, cidr_ip, &cidr_addr)) {
+        free(cidr_ip);
+        return false;
+    }
+    free(cidr_ip);
+
+    // Check if ip address is in cidr range
+    uint32_t ip_int = ntohl(ip_addr.s_addr);
+    uint32_t cidr_int = ntohl(cidr_addr.s_addr);
+    uint32_t mask = prefix >= 32 ? 0xFFFFFFFFu : ~(0xFFFFFFFFu >> prefix);
+
+    return (ip_int & mask) == (cidr_int & mask);
+}
+
 bool should_bypass_proxy(const char *url, const char *bypass_list) {
     char bypass_rule[HOST_MAX] = {0};
     bool is_local = false;
@@ -494,8 +546,12 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
             bypass_rule_port = atoi(port + 1);
         }
 
+        // If the rule is an ip that matches cidr range then bypass proxy
+        if (is_ip_in_cidr_range(host, bypass_rule)) {
+            should_bypass = true;
+        }
         // If the rule matches hostname of url then bypass proxy
-        if (str_wildcard_match(host, bypass_rule, true)) {
+        else if (str_wildcard_match(host, bypass_rule, true)) {
             should_bypass = true;
 
             // Check bypass rule port
