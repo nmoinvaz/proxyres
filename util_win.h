@@ -16,6 +16,10 @@ char *get_winhttp_proxy_by_scheme(const char *scheme, const char *proxy_list);
 // Convert WinHTTP proxy list to uri list.
 char *convert_winhttp_proxy_list_to_uri_list(const char *proxy_list);
 
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+int32_t inet_pton(int32_t af, const char *src, void *dst);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
