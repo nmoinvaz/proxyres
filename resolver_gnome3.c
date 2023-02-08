@@ -102,7 +102,7 @@ static bool proxy_resolver_gnome3_get_proxies(proxy_resolver_gnome3_s *proxy_res
         return false;
     }
 
-    for (int32_t i = 0; proxies[i] && i < proxy_count; i++) {
+    for (guint i = 0; proxies[i] && i < proxy_count; i++) {
         // Copy string since it is already in the format "scheme://host:port"
         strncat(proxy_resolver->list, proxies[i], max_list - list_len - 1);
         list_len += strlen(proxies[i]);
