@@ -65,7 +65,7 @@ char *proxy_config_kde_get_proxy(const char *scheme) {
     }
 
     // Scheme should be all lowercase
-    for (int32_t i = 0; i < scheme_len; i++)
+    for (size_t i = 0; i < scheme_len; i++)
         key[i] = tolower(key[i]);
 
     // Append "Proxy" to the end of the key
