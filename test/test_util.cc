@@ -137,15 +137,20 @@ constexpr should_bypass_list_param should_bypass_list_tests[] = {
     // Bypass due to localhost hostname
     {"http://localhost/", "", true},
     {"http://localhost/", nullptr, true},
-    // Bypass due to localhost ip
+    // Bypass due to localhost ipv4 address
     {"http://127.0.0.1/", "", true},
     {"http://127.0.0.1/", nullptr, true},
+    // Bypass due to localhost ipv6 address
+    {"http://[::1]/", "", true},
+    {"http://[::1]/", nullptr, true},
     // Bypass due to <local> on simple hostnames
     {"http://apple/", "<local>", true},
     // Don't bypass due to <local> only applying to simple hostnames
     {"http://apple.com/", "<local>", false},
     // Don't bypass due to <-loopback> on localhost ip
+    {"http://localhost/", "<-loopback>", false},
     {"http://127.0.0.1/", "<-loopback>", false},
+    {"http://[::1]/", "<-loopback>", false},
     // Don't bypass due to <-loopback> not applying to non-localhost address
     {"http://120.0.0.1/", "<-loopback>", false},
     // Don't bypass due to no bypass list specified
@@ -172,18 +177,25 @@ constexpr should_bypass_list_param should_bypass_list_tests[] = {
     {"http://microsoft.com:88/", "microsoft.com", true},
     // Bypass due to matching domain with explicit port
     {"http://microsoft.com:88/", "microsoft.com:88", true},
-    // Bypass due to matching ip without cidr
+    // Bypass due to matching literal ip
     {"http://192.168.0.1/", "192.168.0.1", true},
+    {"http://192.168.0.1/", "192.168.0.1:80", true},
+    {"http://[::ffff:c0a8:1]/", "[::ffff:c0a8:1]", true},
+    {"http://[::ffff:c0a8:1]/", "[::ffff:c0a8:1]:80", true},
     // Don't bypass due to different ip
     {"http://192.168.1.1/", "192.168.0.1", false},
     // Bypass due to ip with matching cidr range
     {"http://192.167.2.1/", "192.168.0.1/8", true},
     {"http://192.168.2.1/", "192.168.0.1/16", true},
     {"http://192.168.0.1/", "192.168.0.1/24", true},
+    {"http://[::ffff:c0a8:1]/", "::ffff:c0a0:1/108", true},
+    {"http://[::ffff:c0a8:0]/", "::ffff:c0a8:1/127", true},
     // Don't bypass due to ip without matching cidr range
     {"http://192.167.0.0/", "192.168.0.1/16", false},
     {"http://192.168.1.0/", "192.168.0.1/24", false},
     {"http://192.168.0.0/", "192.168.0.1/32", false},
+    {"http://[::ffff:c0a8:2]/", "::ffff:c0a8:1/127", false},
+    {"http://[::ffff:c0a8:0]/", "::ffff:c0a8:1/128", false},
 };
 
 class util_should_bypass : public ::testing::TestWithParam<should_bypass_list_param> {};

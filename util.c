@@ -302,12 +302,58 @@ char *get_url_from_host(const char *scheme, const char *host) {
 // Get port from host
 int32_t get_host_port(const char *host, size_t host_len, int32_t default_port) {
     int32_t port = default_port;
-    const char *port_start = str_find_len_char(host, host_len, ':');
+    // Find port if it exists
+    const char *port_start =
+        *host == '[' ? str_find_len_str(host, host_len, "]:") : str_find_len_char(host, host_len, ':');
     if (port_start) {
         port_start++;
         port = strtoul(port_start, NULL, 0);
     }
     return port;
+}
+
+// Strip and parse port from host
+int32_t strip_host_port(char *host, size_t host_len, int32_t default_port) {
+    int32_t port = default_port;
+    // Find port if it exists
+    const char *port_start =
+        *host == '[' ? str_find_len_str(host, host_len, "]:") : str_find_len_char(host, host_len, ':');
+    if (port_start) {
+        // Skip end bracket if host is ipv6 address
+        if (*host == '[')
+            port_start++;
+
+        // Remove port from host
+        host[port_start - host] = 0;
+        port_start++;
+        port = strtoul(port_start, NULL, 0);
+    }
+    return port;
+}
+
+// Strip ipv6 brackets from host
+bool strip_host_ipv6_brackets(char *host) {
+    if (!host)
+        return false;
+
+    // Check for ipv6 brackets
+    size_t host_len = strlen(host);
+    if (host_len > 2 && *host == '[') {
+        // Remove start bracket
+        memmove(host, host + 1, host_len - 1);
+        host[host_len - 1] = 0;
+
+        // Copy anything after end bracket
+        char *end_bracket = strchr(host, ']');
+        if (end_bracket) {
+            size_t end_len = strlen(end_bracket);
+            memmove(end_bracket, end_bracket + 1, end_len);
+            end_bracket[end_len - 1] = 0;
+        }
+        return true;
+    }
+
+    return false;
 }
 
 // Use scheme based on port specified
@@ -428,8 +474,8 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default
     return uri_list;
 }
 
-// Check if the ip address matches the cidr notation range
-static bool is_ip_in_cidr_range(const char *ip, const char *cidr) {
+// Check if the ipv4 address matches the cidr notation range
+static bool is_ipv4_in_cidr_range(const char *ip, const char *cidr) {
     if (!ip || !cidr)
         return false;
 
@@ -471,6 +517,62 @@ static bool is_ip_in_cidr_range(const char *ip, const char *cidr) {
     return (ip_int & mask) == (cidr_int & mask);
 }
 
+// Check if the ipv6 address matches the cidr notation range
+static bool is_ipv6_in_cidr_range(const char *ip, const char *cidr) {
+    if (!ip || !cidr)
+        return false;
+
+    // Convert ip from text to binary
+    struct in6_addr ip_addr;
+    if (!inet_pton(AF_INET6, ip, &ip_addr))
+        return false;
+
+    // Parse cidr notation
+    char *cidr_ip = strdup(cidr);
+    char *cidr_prefix = strchr(cidr_ip, '/');
+    if (!cidr_prefix) {
+        free(cidr_ip);
+        return false;
+    }
+    *cidr_prefix = 0;
+    cidr_prefix++;
+
+    // Parse cidr prefix
+    int32_t prefix = atoi(cidr_prefix);
+    if (prefix < 0 || prefix > 128) {
+        free(cidr_ip);
+        return false;
+    }
+
+    // Convert cidr ip from text to binary
+    struct in6_addr cidr_addr;
+    if (!inet_pton(AF_INET6, cidr_ip, &cidr_addr)) {
+        free(cidr_ip);
+        return false;
+    }
+    free(cidr_ip);
+
+    // Check if ip address is in cidr range
+    uint8_t *ip_data = (uint8_t *)&ip_addr.s6_addr;
+    uint8_t *cidr_data = (uint8_t *)&cidr_addr.s6_addr;
+
+    // Compare leading bytes of address
+    int32_t check_bytes = prefix / 8;
+    if (check_bytes) {
+        if (memcmp(ip_data, cidr_data, check_bytes))
+            return false;
+    }
+
+    // Check remaining bits of address
+    int32_t check_bits = prefix & 0x07;
+    if (!check_bits)
+        return true;
+
+    uint8_t mask = (0xff << (8 - check_bits));
+    return ((ip_data[check_bytes] ^ cidr_data[check_bytes]) & mask) == 0;
+}
+
+// Evaluates whether or not the proxy should be bypassed for a given url
 bool should_bypass_proxy(const char *url, const char *bypass_list) {
     char bypass_rule[HOST_MAX] = {0};
     bool is_local = false;
@@ -489,15 +591,10 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
         return true;
 
     // Strip and parse port from host
-    char *port = strchr(host, ':');
-    int32_t host_port = 0;
-    if (port) {
-        *port = 0;
-        host_port = atoi(port + 1);
-    }
+    int32_t host_port = strip_host_port(host, strlen(host), 0);
 
     // Check for localhost address
-    if (strcmp(host, "127.0.0.1") == 0 || strcasecmp(host, "localhost") == 0)
+    if (!strcmp(host, "127.0.0.1") || !strcmp(host, "[::1]") || !strcasecmp(host, "localhost"))
         is_local = true;
 
     // By default don't allow localhost urls to go through proxy
@@ -538,36 +635,39 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
         // Copy rule to temporary buffer
         strncat(bypass_rule, rule_start, rule_len);
 
-        // Strip and parse port from bypass rule
-        port = strchr(bypass_rule, ':');
-        int32_t bypass_rule_port = 0;
-        if (port) {
-            *port = 0;
-            bypass_rule_port = atoi(port + 1);
-        }
+        // Check if the rule is in cidr notation
+        bool is_cidr = strchr(bypass_rule, '/') != 0;
+        if (is_cidr) {
+            strip_host_ipv6_brackets(host);
 
-        // If the rule is an ip that matches cidr range then bypass proxy
-        if (is_ip_in_cidr_range(host, bypass_rule)) {
-            should_bypass = true;
-        }
-        // If the rule matches hostname of url then bypass proxy
-        else if (str_wildcard_match(host, bypass_rule, true)) {
-            should_bypass = true;
+            // If the rule is an ip that matches cidr range then bypass proxy
+            if (is_ipv4_in_cidr_range(host, bypass_rule))
+                should_bypass = true;
+            else if (is_ipv6_in_cidr_range(host, bypass_rule))
+                should_bypass = true;
+        } else {
+            // Strip and parse port from bypass rule
+            int32_t bypass_rule_port = strip_host_port(bypass_rule, strlen(bypass_rule), 0);
 
-            // Check bypass rule port
-            if (bypass_rule_port) {
-                if (!host_port) {
-                    // Infer default host port from url scheme
-                    char *scheme = get_url_scheme(url, "http");
-                    if (scheme) {
-                        host_port = get_scheme_default_port(scheme);
-                        free(scheme);
+            // If the rule matches hostname of url then bypass proxy
+            if (str_wildcard_match(host, bypass_rule, true)) {
+                should_bypass = true;
+
+                // Check bypass rule port
+                if (bypass_rule_port) {
+                    if (!host_port) {
+                        // Infer default host port from url scheme
+                        char *scheme = get_url_scheme(url, "http");
+                        if (scheme) {
+                            host_port = get_scheme_default_port(scheme);
+                            free(scheme);
+                        }
                     }
-                }
 
-                // If the host port doesn't match the bypass rule port then don't bypass
-                if (bypass_rule_port != host_port)
-                    should_bypass = false;
+                    // If the host port doesn't match the bypass rule port then don't bypass
+                    if (bypass_rule_port != host_port)
+                        should_bypass = false;
+                }
             }
         }
 

@@ -50,6 +50,12 @@ char *get_url_from_host(const char *scheme, const char *host);
 // Get port from host
 int32_t get_host_port(const char *host, size_t host_len, int32_t default_port);
 
+// Strip and parse port from host
+int32_t strip_host_port(char *host, size_t host_len, int32_t default_port);
+
+// Strip ipv6 brackets from host
+bool strip_host_ipv6_brackets(char *host);
+
 // Use scheme based on port specified
 const char *get_port_scheme(int32_t port, const char *default_scheme);
 
