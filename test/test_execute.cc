@@ -77,7 +77,7 @@ static char *expected_my_ip(void) {
     EXPECT_EQ(error, 0);
     if (!address)
         return NULL;
-    
+
     size_t max_expected = strlen(address) + 16;
     char *expected = (char *)calloc(max_expected, sizeof(char));
     if (!expected)
@@ -101,7 +101,7 @@ static char *expected_my_ip_ex(void) {
     char *expected = (char *)calloc(max_expected, sizeof(char));
     if (!expected)
         return NULL;
-    
+
     // Enumerate each address and append expected proxy to string
     char *addressesp = addresses;
     while (addressesp) {
@@ -149,4 +149,3 @@ TEST_P(execute, get_proxies_for_url) {
         proxy_execute_delete(&proxy_execute);
     }
 }
-
