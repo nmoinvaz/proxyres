@@ -7,20 +7,12 @@
 #include <ctype.h>
 
 #ifdef _WIN32
-#  include <ws2tcpip.h>
-#else
-#  include <arpa/inet.h>
-#endif
-
-#ifdef _WIN32
 #  define strcasecmp  _stricmp
 #  define strncasecmp _strnicmp
 #endif
 
+#include "net_util.h"
 #include "util.h"
-#ifdef _WIN32
-#  include "util_win.h"
-#endif
 
 // Replace one character in the string with another
 int32_t str_change_chr(char *str, char from, char to) {
@@ -472,104 +464,6 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default
     } while (config_end < proxy_list_end);
 
     return uri_list;
-}
-
-// Check if the ipv4 address matches the cidr notation range
-static bool is_ipv4_in_cidr_range(const char *ip, const char *cidr) {
-    if (!ip || !cidr)
-        return false;
-
-    // Convert ip from text to binary
-    struct in_addr ip_addr;
-    if (!inet_pton(AF_INET, ip, &ip_addr))
-        return false;
-
-    // Parse cidr notation
-    char *cidr_ip = strdup(cidr);
-    char *cidr_prefix = strchr(cidr_ip, '/');
-    if (!cidr_prefix) {
-        free(cidr_ip);
-        return false;
-    }
-    *cidr_prefix = 0;
-    cidr_prefix++;
-
-    // Parse cidr prefix
-    int32_t prefix = atoi(cidr_prefix);
-    if (prefix < 0 || prefix > 32) {
-        free(cidr_ip);
-        return false;
-    }
-
-    // Convert cidr ip from text to binary
-    struct in_addr cidr_addr;
-    if (!inet_pton(AF_INET, cidr_ip, &cidr_addr)) {
-        free(cidr_ip);
-        return false;
-    }
-    free(cidr_ip);
-
-    // Check if ip address is in cidr range
-    uint32_t ip_int = ntohl(ip_addr.s_addr);
-    uint32_t cidr_int = ntohl(cidr_addr.s_addr);
-    uint32_t mask = prefix >= 32 ? 0xFFFFFFFFu : ~(0xFFFFFFFFu >> prefix);
-
-    return (ip_int & mask) == (cidr_int & mask);
-}
-
-// Check if the ipv6 address matches the cidr notation range
-static bool is_ipv6_in_cidr_range(const char *ip, const char *cidr) {
-    if (!ip || !cidr)
-        return false;
-
-    // Convert ip from text to binary
-    struct in6_addr ip_addr;
-    if (!inet_pton(AF_INET6, ip, &ip_addr))
-        return false;
-
-    // Parse cidr notation
-    char *cidr_ip = strdup(cidr);
-    char *cidr_prefix = strchr(cidr_ip, '/');
-    if (!cidr_prefix) {
-        free(cidr_ip);
-        return false;
-    }
-    *cidr_prefix = 0;
-    cidr_prefix++;
-
-    // Parse cidr prefix
-    int32_t prefix = atoi(cidr_prefix);
-    if (prefix < 0 || prefix > 128) {
-        free(cidr_ip);
-        return false;
-    }
-
-    // Convert cidr ip from text to binary
-    struct in6_addr cidr_addr;
-    if (!inet_pton(AF_INET6, cidr_ip, &cidr_addr)) {
-        free(cidr_ip);
-        return false;
-    }
-    free(cidr_ip);
-
-    // Check if ip address is in cidr range
-    uint8_t *ip_data = (uint8_t *)&ip_addr.s6_addr;
-    uint8_t *cidr_data = (uint8_t *)&cidr_addr.s6_addr;
-
-    // Compare leading bytes of address
-    int32_t check_bytes = prefix / 8;
-    if (check_bytes) {
-        if (memcmp(ip_data, cidr_data, check_bytes))
-            return false;
-    }
-
-    // Check remaining bits of address
-    int32_t check_bits = prefix & 0x07;
-    if (!check_bits)
-        return true;
-
-    uint8_t mask = (0xff << (8 - check_bits));
-    return ((ip_data[check_bytes] ^ cidr_data[check_bytes]) & mask) == 0;
 }
 
 // Evaluates whether or not the proxy should be bypassed for a given url

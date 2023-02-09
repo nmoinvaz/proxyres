@@ -9,6 +9,7 @@
 #  include <winsock2.h>
 #  include <ws2tcpip.h>
 #else
+#  include <arpa/inet.h>
 #  include <sys/types.h>
 #  include <sys/socket.h>
 #  include <netdb.h>
@@ -131,4 +132,127 @@ char *dns_resolve(const char *host, int32_t *error) {
 // Resolve a host name to its addresses
 char *dns_resolve_ex(const char *host, int32_t *error) {
     return dns_resolve_filter(host, AF_UNSPEC, UINT8_MAX, error);
+}
+
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+// Backwards compatible inet_pton for Windows XP
+int32_t inet_pton(int32_t af, const char *src, void *dst) {
+    struct sockaddr_storage sock_storage;
+    int32_t size = sizeof(sockaddr_storage);
+    char src_copy[INET6_ADDRSTRLEN + 1];
+
+    memset(&sock_storage, 0, sizeof(sock_storage));
+    strncpy(src_copy, src, INET6_ADDRSTRLEN + 1);
+    src_copy[INET6_ADDRSTRLEN] = 0;
+
+    if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&sock_storage, &size) == 0) {
+        switch (af) {
+        case AF_INET:
+            *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+            return 1;
+        case AF_INET6:
+            *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+            return 1;
+        }
+    }
+    return 0;
+}
+#endif
+
+// Check if the ipv4 address matches the cidr notation range
+bool is_ipv4_in_cidr_range(const char *ip, const char *cidr) {
+    if (!ip || !cidr)
+        return false;
+
+    // Convert ip from text to binary
+    struct in_addr ip_addr;
+    if (!inet_pton(AF_INET, ip, &ip_addr))
+        return false;
+
+    // Parse cidr notation
+    char *cidr_ip = strdup(cidr);
+    char *cidr_prefix = strchr(cidr_ip, '/');
+    if (!cidr_prefix) {
+        free(cidr_ip);
+        return false;
+    }
+    *cidr_prefix = 0;
+    cidr_prefix++;
+
+    // Parse cidr prefix
+    int32_t prefix = atoi(cidr_prefix);
+    if (prefix < 0 || prefix > 32) {
+        free(cidr_ip);
+        return false;
+    }
+
+    // Convert cidr ip from text to binary
+    struct in_addr cidr_addr;
+    if (!inet_pton(AF_INET, cidr_ip, &cidr_addr)) {
+        free(cidr_ip);
+        return false;
+    }
+    free(cidr_ip);
+
+    // Check if ip address is in cidr range
+    uint32_t ip_int = ntohl(ip_addr.s_addr);
+    uint32_t cidr_int = ntohl(cidr_addr.s_addr);
+    uint32_t mask = prefix >= 32 ? 0xFFFFFFFFu : ~(0xFFFFFFFFu >> prefix);
+
+    return (ip_int & mask) == (cidr_int & mask);
+}
+
+// Check if the ipv6 address matches the cidr notation range
+bool is_ipv6_in_cidr_range(const char *ip, const char *cidr) {
+    if (!ip || !cidr)
+        return false;
+
+    // Convert ip from text to binary
+    struct in6_addr ip_addr;
+    if (!inet_pton(AF_INET6, ip, &ip_addr))
+        return false;
+
+    // Parse cidr notation
+    char *cidr_ip = strdup(cidr);
+    char *cidr_prefix = strchr(cidr_ip, '/');
+    if (!cidr_prefix) {
+        free(cidr_ip);
+        return false;
+    }
+    *cidr_prefix = 0;
+    cidr_prefix++;
+
+    // Parse cidr prefix
+    int32_t prefix = atoi(cidr_prefix);
+    if (prefix < 0 || prefix > 128) {
+        free(cidr_ip);
+        return false;
+    }
+
+    // Convert cidr ip from text to binary
+    struct in6_addr cidr_addr;
+    if (!inet_pton(AF_INET6, cidr_ip, &cidr_addr)) {
+        free(cidr_ip);
+        return false;
+    }
+    free(cidr_ip);
+
+    // Check if ip address is in cidr range
+    uint8_t *ip_data = (uint8_t *)&ip_addr.s6_addr;
+    uint8_t *cidr_data = (uint8_t *)&cidr_addr.s6_addr;
+
+    // Compare leading bytes of address
+    int32_t check_bytes = prefix / 8;
+    if (check_bytes) {
+        if (memcmp(ip_data, cidr_data, check_bytes))
+            return false;
+    }
+
+    // Check remaining bits of address
+    int32_t check_bits = prefix & 0x07;
+    if (!check_bits)
+        return true;
+
+    uint8_t mask = (0xff << (8 - check_bits));
+    return ((ip_data[check_bytes] ^ cidr_data[check_bytes]) & mask) == 0;
 }

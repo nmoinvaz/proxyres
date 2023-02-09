@@ -30,6 +30,8 @@ list(APPEND PROXYRES_SRCS
     event.h
     log.h
     mutex.h
+    net_util.h
+    net_util.c
     proxyres.c
     resolver_i.h
     resolver.c
@@ -44,8 +46,6 @@ if(PROXYRES_EXECUTE)
         mozilla_js.h
         net_adapter.h
         net_adapter.c
-        net_util.h
-        net_util.c
         resolver_posix.h
         resolver_posix.c
         wpad_dhcp.h
