@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include "dns.h"
+#include "net_util.h"
 
 TEST(dns, resolve_local) {
     int32_t error = 0;

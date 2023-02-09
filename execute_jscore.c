@@ -8,12 +8,12 @@
 
 #include <JavaScriptCore/JavaScript.h>
 
-#include "dns.h"
 #include "execute.h"
 #include "execute_i.h"
 #include "execute_jscore.h"
 #include "log.h"
 #include "mozilla_js.h"
+#include "net_util.h"
 #include "util.h"
 
 typedef struct g_proxy_execute_jscore_s {
