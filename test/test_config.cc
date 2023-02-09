@@ -31,9 +31,9 @@ TEST(config, override_bypass_list) {
     free(bypass_list);
 }
 
-TEST(config, override_bypass_list_with_empt_list) {
+TEST(config, override_bypass_list_with_empty_list) {
     proxy_config_set_bypass_list_override("");
     char *bypass_list = proxy_config_get_bypass_list();
-    EXPECT_EQ(bypass_list, nullptr);
+    EXPECT_STREQ(bypass_list, "");
     free(bypass_list);  // In case the condition above is not met
 }
