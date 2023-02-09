@@ -38,14 +38,14 @@ list(APPEND PROXYRES_SRCS
     util.c)
 if(PROXYRES_EXECUTE)
     list(APPEND PROXYRES_SRCS
-        dns.h
-        dns.c
         execute_i.h
         execute.c
         fetch.h
         mozilla_js.h
         net_adapter.h
         net_adapter.c
+        net_util.h
+        net_util.c
         resolver_posix.h
         resolver_posix.c
         wpad_dhcp.h

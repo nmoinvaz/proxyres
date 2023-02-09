@@ -17,9 +17,9 @@
 #  include <unistd.h>
 #endif
 
-#include "dns.h"
 #include "fetch.h"
 #include "log.h"
+#include "net_util.h"
 #include "util.h"
 
 #ifdef _WIN32

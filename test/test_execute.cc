@@ -5,8 +5,8 @@
 
 #include <gtest/gtest.h>
 
-#include "dns.h"
 #include "execute.h"
+#include "net_util.h"
 #include "util.h"
 
 struct execute_param {
