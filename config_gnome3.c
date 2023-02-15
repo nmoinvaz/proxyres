@@ -32,17 +32,17 @@ typedef struct g_proxy_config_gnome3_s {
 
 g_proxy_config_gnome3_s g_proxy_config_gnome3;
 
-static bool proxy_config_gnome3_is_mode(char *mode) {
+static bool proxy_config_gnome3_is_mode(const char *mode) {
     bool equal = false;
 
     GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
         return false;
 
-    char *compare_mode = g_proxy_config_gnome3.g_settings_get_string(settings, "mode");
-    if (compare_mode) {
-        equal = strcmp(compare_mode, mode) == 0;
-        g_proxy_config_gnome3.g_free(compare_mode);
+    char *system_mode = g_proxy_config_gnome3.g_settings_get_string(settings, "mode");
+    if (system_mode) {
+        equal = strcmp(system_mode, mode) == 0;
+        g_proxy_config_gnome3.g_free(system_mode);
     }
     g_proxy_config_gnome3.g_object_unref(settings);
     return equal;
@@ -55,9 +55,11 @@ bool proxy_config_gnome3_get_auto_discover(void) {
 char *proxy_config_gnome3_get_auto_config_url(void) {
     char *auto_config_url = NULL;
 
+    if (!proxy_config_gnome3_is_mode("auto"))
+        return NULL;
     GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
-        return false;
+        return NULL;
     char *url = g_proxy_config_gnome3.g_settings_get_string(settings, "autoconfig-url");
     if (url) {
         if (*url)
@@ -82,6 +84,9 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
     char settings_path[128];
     char *proxy = NULL;
 
+    if (!proxy_config_gnome3_is_mode("manual"))
+        return NULL;
+
     if (proxy_config_gnome3_use_same_proxy())
         strncpy(settings_path, "org.gnome.system.proxy.http", sizeof(settings_path));
     else
@@ -89,7 +94,7 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
 
     GSettings *settings = g_proxy_config_gnome3.g_settings_new(settings_path);
     if (!settings)
-        return false;
+        return NULL;
 
     char *host = g_proxy_config_gnome3.g_settings_get_string(settings, "host");
     if (host && *host) {
@@ -112,6 +117,9 @@ char *proxy_config_gnome3_get_proxy(const char *scheme) {
 
 char *proxy_config_gnome3_get_bypass_list(void) {
     char *bypass_list = NULL;
+
+    if (!proxy_config_gnome3_is_mode("manual"))
+        return NULL;
 
     GSettings *settings = g_proxy_config_gnome3.g_settings_new("org.gnome.system.proxy");
     if (!settings)
