@@ -376,7 +376,9 @@ bool proxy_execute_jscore_global_init(void) {
     g_proxy_execute_jscore.module = dlopen(
         "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
 #else
-    g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
+    g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.1.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if (!g_proxy_execute_jscore.module)
+        g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_execute_jscore.module)
         g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-3.0.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (!g_proxy_execute_jscore.module)
