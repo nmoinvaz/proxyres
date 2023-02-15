@@ -34,22 +34,28 @@ typedef struct g_proxy_config_gnome2_s {
 
 g_proxy_config_gnome2_s g_proxy_config_gnome2;
 
-bool proxy_config_gnome2_get_auto_discover(void) {
-    char *mode = NULL;
-    bool auto_discover = false;
+static bool proxy_config_gnome2_is_mode(const char *mode) {
+    bool equal = false;
 
-    mode =
+    char *system_mode =
         g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default, "/system/proxy/mode", NULL);
-    if (mode) {
-        auto_discover = strcmp(mode, "auto");
-        g_proxy_config_gnome2.g_free(mode);
+    if (system_mode) {
+        equal = strcmp(system_mode, mode) == 0;
+        g_proxy_config_gnome2.g_free(system_mode);
     }
-    return auto_discover;
+    return equal;
+}
+
+bool proxy_config_gnome2_get_auto_discover(void) {
+    return proxy_config_gnome2_is_mode("auto");
 }
 
 char *proxy_config_gnome2_get_auto_config_url(void) {
     char *auto_config_url = NULL;
     char *url = NULL;
+
+    if (!proxy_config_gnome2_is_mode("auto"))
+        return NULL;
 
     url = g_proxy_config_gnome2.gconf_engine_get_string(g_proxy_config_gnome2.gconf_default,
                                                         "/system/proxy/autoconfig_url", NULL);
@@ -68,6 +74,9 @@ char *proxy_config_gnome2_get_proxy(const char *scheme) {
     char *host = NULL;
     uint32_t port = 0;
     char *proxy = NULL;
+
+    if (!proxy_config_gnome2_is_mode("manual"))
+        return NULL;
 
     if (strncasecmp(scheme, "https", 5) == 0) {
         strncpy(host_key, "/system/proxy/secure_host", sizeof(host_key));
@@ -125,6 +134,9 @@ char *proxy_config_gnome2_get_bypass_list(void) {
     GSList *hosts = NULL;
     g_slist_for_each_bypass_s enum_bypass = {0};
     char *bypass_list = NULL;
+
+    if (!proxy_config_gnome2_is_mode("manual"))
+        return NULL;
 
     hosts = g_proxy_config_gnome2.gconf_engine_get_list(g_proxy_config_gnome2.gconf_default,
                                                         "/system/http_proxy/ignore_hosts", GCONF_VALUE_STRING, NULL);
