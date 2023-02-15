@@ -11,13 +11,13 @@
 
 bool proxyres_global_init(void) {
     if (!proxy_config_global_init())
-        LOG_WARN("Failed to initialization proxy config\n");
+        LOG_WARN("Failed to initialize proxy config\n");
 #ifdef PROXYRES_EXECUTE
     if (!proxy_execute_global_init())
-        LOG_WARN("Failed to initialization proxy execute\n");
+        LOG_WARN("Failed to initialize proxy execute\n");
 #endif
     if (!proxy_resolver_global_init())
-        LOG_WARN("Failed to initialization proxy resolver\n");
+        LOG_WARN("Failed to initialize proxy resolver\n");
     return true;
 }
 
