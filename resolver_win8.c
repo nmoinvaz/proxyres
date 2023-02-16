@@ -257,7 +257,8 @@ win8_resolve:
 
     if (error != ERROR_IO_PENDING) {
         proxy_resolver->error = error;
-        LOG_ERROR("Unable to get proxy for url %s (%" PRId32 ")", url, proxy_resolver->error);
+        if (error != ERROR_WINHTTP_UNRECOGNIZED_SCHEME)
+            LOG_ERROR("Unable to get proxy for url %s (%" PRId32 ")", url, proxy_resolver->error);
         goto win8_done;
     }
 
