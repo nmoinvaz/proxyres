@@ -64,7 +64,9 @@ constexpr execute_param execute_tests[] = {{"your-pc", "HTTP plain"},
                                            {"http://127.0.0.1/", "PROXY localhost:30"},
                                            {"http://simple.com/", "PROXY no-such-proxy:80"},
                                            {"http://example2.com/", "DIRECT"},
-                                           {"http://microsoft.com/test", "PROXY microsoft.com:80"}};
+                                           {"http://microsoft.com/test", "PROXY microsoft.com:80"},
+                                           {"file:///c:/test", NULL},
+                                           {"file:////home/test", NULL}};
 
 class execute : public ::testing::TestWithParam<execute_param> {};
 
