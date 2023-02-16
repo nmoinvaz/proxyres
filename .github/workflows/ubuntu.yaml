@@ -87,18 +87,12 @@ jobs:
         gsettings get org.gnome.system.proxy.https port
         gsettings get org.gnome.system.proxy ignore-hosts
 
-    - name: Set proxy settings (gsettings)
+    - name: Set auto proxy settings (gsettings)
       run: |
-        gsettings set org.gnome.system.proxy autoconfig-url 'http://wpad/wpad2.dat'
+        gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/pac.js'
         gsettings set org.gnome.system.proxy mode 'auto'
-        gsettings set org.gnome.system.proxy.http host 'my.proxy1.com'
-        gsettings set org.gnome.system.proxy.http port 8001
-        gsettings set org.gnome.system.proxy.https host 'my.proxy2.com'
-        gsettings set org.gnome.system.proxy.https port 8002
-        gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8']"
-        gsettings set org.gnome.system.proxy use-same-proxy false
 
-    - name: Check proxy settings (gsettings)
+    - name: Check auto proxy settings (gsettings)
       shell: bash
       run: |
         out=$(./proxycli config auto_discover)
@@ -111,53 +105,18 @@ jobs:
         fi
         out=$(./proxycli config auto_config_url)
         echo "Auto config url: $out"
-        if [ "$out" = "http://wpad/wpad2.dat" ]; then
-          echo "Auto config url set successfully"
-        else
-          echo "Auto config url set failed"
-          exit 1
-        fi
-        out=$(./proxycli config proxy http)
-        echo "Proxy (http): $out"
-        if [ "$out" = "my.proxy1.com:8001" ]; then
-          echo "Proxy (http) set successfully"
-        else
-          echo "Proxy (http) set failed"
-          exit 1
-        fi
-        out=$(./proxycli config proxy https)
-        echo "Proxy (https): $out"
-        if [ "$out" = "my.proxy2.com:8002" ]; then
-          echo "Proxy (https) set successfully"
-        else
-          echo "Proxy (https) set failed"
-          exit 1
-        fi
-        out=$(./proxycli config bypass_list)
-        echo "Proxy bypass: $out"
-        if [ "$out" = "localhost,127.0.0.0/8" ]; then
-          echo "Proxy bypass set successfully"
-        else
-          echo "Proxy bypass set failed"
-          exit 1
-        fi
-      working-directory: build/test
-      env:
-        XDG_CURRENT_DESKTOP: GNOME
-
-    - name: Set proxy auto config setting (gsettings)
-      run: gsettings set org.gnome.system.proxy autoconfig-url 'http://127.0.0.1:8080/pac.js'
-
-    - name: Check proxy resolution (gsettings)
-      run: |
-        out=$(./proxycli config auto_config_url)
-        echo "Auto config url: $out"
         if [ "$out" = "http://127.0.0.1:8080/pac.js" ]; then
           echo "Auto config url set successfully"
         else
           echo "Auto config url set failed"
           exit 1
         fi
+      working-directory: build/test
+      env:
+        XDG_CURRENT_DESKTOP: GNOME
+
+    - name: Check auto proxy resolution (gsettings)
+      run: |
         out=$(./proxycli resolve https://google.com/)
         echo "Proxy for https://google.com/: $out"
         if [ "$out" = "direct://" ]; then
@@ -188,6 +147,47 @@ jobs:
           echo "Proxy for https://multi.com/ set successfully"
         else
           echo "Proxy for https://multi.com/ set failed"
+          exit 1
+        fi
+      working-directory: build/test
+      env:
+        XDG_CURRENT_DESKTOP: GNOME
+
+    - name: Set manual proxy settings (gsettings)
+      run: |
+        gsettings set org.gnome.system.proxy mode 'manual'
+        gsettings set org.gnome.system.proxy.http host 'my.proxy1.com'
+        gsettings set org.gnome.system.proxy.http port 8001
+        gsettings set org.gnome.system.proxy.https host 'my.proxy2.com'
+        gsettings set org.gnome.system.proxy.https port 8002
+        gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8']"
+        gsettings set org.gnome.system.proxy use-same-proxy false
+
+    - name: Check manual proxy settings (gsettings)
+      shell: bash
+      run: |
+        out=$(./proxycli config proxy http)
+        echo "Proxy (http): $out"
+        if [ "$out" = "my.proxy1.com:8001" ]; then
+          echo "Proxy (http) set successfully"
+        else
+          echo "Proxy (http) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config proxy https)
+        echo "Proxy (https): $out"
+        if [ "$out" = "my.proxy2.com:8002" ]; then
+          echo "Proxy (https) set successfully"
+        else
+          echo "Proxy (https) set failed"
+          exit 1
+        fi
+        out=$(./proxycli config bypass_list)
+        echo "Proxy bypass: $out"
+        if [ "$out" = "localhost,127.0.0.0/8" ]; then
+          echo "Proxy bypass set successfully"
+        else
+          echo "Proxy bypass set failed"
           exit 1
         fi
       working-directory: build/test
