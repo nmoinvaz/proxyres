@@ -205,6 +205,8 @@ bool proxy_config_gnome2_global_init(void) {
 
     // Get default config instance
     g_proxy_config_gnome2.gconf_default = g_proxy_config_gnome2.gconf_engine_get_default();
+    if (!g_proxy_config_gnome2.gconf_default)
+        goto gnome2_init_error;
     return true;
 
 gnome2_init_error:
