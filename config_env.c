@@ -60,6 +60,8 @@ char *proxy_config_env_get_proxy(const char *scheme) {
     // Construct name of environment variable based on proxy scheme
     size_t name_len = strlen(scheme) + 8;
     char *name = (char *)malloc(name_len);
+    if (!name)
+        return NULL;
     snprintf(name, name_len, "%s_proxy", scheme);
 
     // Don't check HTTP_PROXY due to CGI environment variable creation
