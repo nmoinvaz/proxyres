@@ -187,7 +187,7 @@ jobs:
       shell: bash
       if: always() && matrix.codecov
       run: |
-        python3 -u -m pip install --user gcovr --ignore-installed
+        python3 -u -m pip install --user gcovr
         python3 -m gcovr \
           --exclude-unreachable-branches \
           --gcov-ignore-parse-errors \
