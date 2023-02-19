@@ -67,8 +67,12 @@ jobs:
         sleep 15
       working-directory: test
 
+    # Run as sudo to be able to bind to DHCP client port, then reset
+    # permissions to code coverage files if necessary
     - name: Run tests
-      run: sudo ctest --verbose -C RelWithDebInfo
+      run: |
+        sudo ctest --verbose -C RelWithDebInfo
+        sudo chmod -R a+rw .
       working-directory: build
       env:
         WPAD: true
