@@ -191,7 +191,6 @@ jobs:
         python3 -m gcovr \
           --exclude-unreachable-branches \
           --gcov-ignore-parse-errors \
-          --gcov-executable "${{ matrix.gcov-exec || 'gcov' }}" \
           --root . \
           --xml \
           --output coverage.xml \
