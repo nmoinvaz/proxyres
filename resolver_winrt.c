@@ -130,7 +130,6 @@ async_complete_handler_release(WinRT_IAsyncOperationCompletedHandler_ProxyConfig
 
 HRESULT STDMETHODCALLTYPE async_complete_handler_query_interface(
     WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler, REFIID riid, void **ppv) {
-    async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
 
     if (IsEqualGUID(riid, CIID(IID_AsyncOperationCompletedHandler_ProxyConfiguration)) ||
         IsEqualGUID(riid, CIID(IID_IAgileObject)) || IsEqualGUID(riid, CIID(IID_IUnknown))) {
@@ -223,14 +222,14 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
 
 winrt_async_done:
 
-    this->proxy_resolver->error = result;
+    proxy_resolver->error = result;
 
     if (uri_list)
         WinRT_IVectorView_Uri_Release(uri_list);
     if (results)
         WinRT_IProxyConfiguration_Release(results);
 
-    event_set(this->proxy_resolver->complete);
+    event_set(proxy_resolver->complete);
     return S_OK;
 }
 
@@ -282,7 +281,6 @@ bool proxy_resolver_winrt_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winrt_s *proxy_resolver = (proxy_resolver_winrt_s *)ctx;
     WinRT_INetworkInformationStatics *network_info_statics = NULL;
     WinRT_IUriRuntimeClass *uri = NULL;
-    WinRT_IAsyncOperation_ProxyConfiguration *proxy_config_async = NULL;
     bool is_ok = false;
 
     // Get activation factory instance of NetworkInformationStatics
@@ -359,7 +357,6 @@ bool proxy_resolver_winrt_wait(void *ctx, int32_t timeout_ms) {
 }
 
 bool proxy_resolver_winrt_cancel(void *ctx) {
-    proxy_resolver_winrt_s *proxy_resolver = (proxy_resolver_winrt_s *)ctx;
     return false;
 }
 
