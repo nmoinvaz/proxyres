@@ -15,12 +15,20 @@
 // has a network dependency that causes it to be slow https://stackoverflow.com/questions/2151462/.
 
 bool proxy_config_win_get_auto_discover(void) {
-    INTERNET_PER_CONN_OPTIONW options[1] = {{INTERNET_PER_CONN_FLAGS, {0}}};
+    INTERNET_PER_CONN_OPTIONW options[1] = {{INTERNET_PER_CONN_FLAGS_UI, {0}}};
     INTERNET_PER_CONN_OPTION_LISTW option_list = {sizeof(INTERNET_PER_CONN_OPTION_LISTW), NULL, 1, 0, options};
     DWORD option_list_size = sizeof(option_list);
     bool auto_discover = false;
-    if (InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size))
-        auto_discover = options[0].Value.dwValue & PROXY_TYPE_AUTO_DETECT;
+
+    // INTERNET_PER_CONN_FLAGS hides auto-detection setting if it believes the network does not have WPAD. To get
+    // the actual value we need to query using INTERNET_PER_CONN_FLAGS_UI https://stackoverflow.com/questions/15565997
+
+    if (!InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size)) {
+        options[0].dwOption = INTERNET_PER_CONN_FLAGS;
+        if (!InternetQueryOptionW(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, &option_list_size))
+            return auto_discover;
+    }
+    auto_discover = options[0].Value.dwValue & PROXY_TYPE_AUTO_DETECT;
     return auto_discover;
 }
 
