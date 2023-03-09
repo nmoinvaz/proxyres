@@ -155,7 +155,7 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
         goto winrt_async_done;
     }
 
-    bool can_directly_connect = false;
+    boolean can_directly_connect = false;
     WinRT_IProxyConfiguration_GetCanConnectDirectly(results, &can_directly_connect);
     if (can_directly_connect) {
         proxy_resolver->list = strdup("direct://");
@@ -256,8 +256,8 @@ static WinRT_IUriRuntimeClass *create_uri_from_string(const char *url) {
     WinRT_IUriRuntimeClassFactory *uri_factory = NULL;
     WinRT_IUriRuntimeClass *uri = NULL;
 
-    HRESULT result =
-        get_activation_factory(RuntimeClass_Windows_Foundation_Uri, CIID(IID_IUriRuntimeClassFactory), &uri_factory);
+    HRESULT result = get_activation_factory(RuntimeClass_Windows_Foundation_Uri, CIID(IID_IUriRuntimeClassFactory),
+                                            (void **)&uri_factory);
     if (SUCCEEDED(result)) {
         wchar_t *url_wide = utf8_dup_to_wchar(url);
         if (!url_wide)
@@ -285,7 +285,7 @@ bool proxy_resolver_winrt_get_proxies_for_url(void *ctx, const char *url) {
 
     // Get activation factory instance of NetworkInformationStatics
     HRESULT result = get_activation_factory(RuntimeClass_Windows_Networking_Connectivity_NetworkInformation,
-                                            CIID(IID_INetworkInformationStatics), &network_info_statics);
+                                            CIID(IID_INetworkInformationStatics), (void **)&network_info_statics);
     if (SUCCEEDED(result)) {
         // Create UriRuntime instance from url string
         uri = create_uri_from_string(url);
