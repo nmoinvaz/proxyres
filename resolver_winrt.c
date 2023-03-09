@@ -151,7 +151,7 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
 
     HRESULT result = WinRT_IAsyncOperation_ProxyConfiguration_GetResults(this->async, &results);
     if (FAILED(result)) {
-        LOG_ERROR("Failed to get results from async operation (0x%x)", result);
+        LOG_ERROR("Failed to get results from async operation (0x%lx)", result);
         goto winrt_async_done;
     }
 
@@ -165,7 +165,7 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
     // Enumerate through proxy list
     result = WinRT_IProxyConfiguration_GetProxyUris(results, &uri_list);
     if (FAILED(result)) {
-        LOG_ERROR("Failed to get proxy list (0x%x)", result);
+        LOG_ERROR("Failed to get proxy list (0x%lx)", result);
         goto winrt_async_done;
     }
 
