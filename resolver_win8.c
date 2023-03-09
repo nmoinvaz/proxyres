@@ -61,7 +61,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
 
         // Failed to detect proxy auto configuration url so use DIRECT connection
         if (async_result->dwError == ERROR_WINHTTP_AUTODETECTION_FAILED) {
-            LOG_DEBUG("Proxy resolution returned code (%d)\n", async_result->dwError);
+            LOG_DEBUG("Proxy resolution returned code (%lu)\n", async_result->dwError);
             goto win8_async_done;
         }
 
