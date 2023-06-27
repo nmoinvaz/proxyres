@@ -120,7 +120,7 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
             // Append the proxy port to the proxy url
             int64_t port_number = 0;
             CFNumberGetValue(port, kCFNumberSInt64Type, &port_number);
-            int32_t proxy_len = strlen(proxy);
+            size_t proxy_len = strlen(proxy);
             snprintf(proxy + proxy_len, max_proxy - proxy_len, ":%" PRId64 "", port_number);
         }
     }
@@ -137,9 +137,9 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
 
 char *proxy_config_mac_get_bypass_list(void) {
     char *bypass_list = NULL;
-    int32_t bypass_list_len = 0;
-    int32_t bypass_list_count = 0;
-    int32_t exception_count = 0;
+    size_t bypass_list_len = 0;
+    size_t bypass_list_count = 0;
+    size_t exception_count = 0;
     size_t max_bypass_list = 0;
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
@@ -175,7 +175,7 @@ char *proxy_config_mac_get_bypass_list(void) {
     }
 
     // Enumerate exception array and copy to comma delimited string
-    for (int32_t i = 0; exceptions_list && i < exception_count; ++i) {
+    for (size_t i = 0; exceptions_list && i < exception_count; ++i) {
         CFStringRef exception = CFArrayGetValueAtIndex(exceptions_list, i);
         if (exception) {
             const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);

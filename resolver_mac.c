@@ -26,7 +26,7 @@ g_proxy_resolver_mac_s g_proxy_resolver_mac;
 
 typedef struct proxy_resolver_mac_s {
     // Last system error
-    int32_t error;
+    int64_t error;
     // Complete event
     void *complete;
     // Proxy list
@@ -40,14 +40,14 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
         proxy_resolver->error = CFErrorGetCode(error);
     } else {
         // Convert proxy array into PAC file return format
-        int32_t proxy_count = CFArrayGetCount(proxy_array);
-        int32_t max_list = proxy_count * MAX_PROXY_URL + 1;
-        int32_t list_len = 0;
+        size_t proxy_count = CFArrayGetCount(proxy_array);
+        size_t max_list = proxy_count * MAX_PROXY_URL + 1;
+        size_t list_len = 0;
 
         proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
 
         // Enumerate through each proxy in the array
-        for (int32_t i = 0; proxy_resolver->list && i < proxy_count; i++) {
+        for (size_t i = 0; proxy_resolver->list && i < proxy_count; i++) {
             CFDictionaryRef proxy = CFArrayGetValueAtIndex(proxy_array, i);
             CFStringRef proxy_type = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyTypeKey);
 
@@ -131,7 +131,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
         if (!url_ref) {
             proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "auto config url reference",
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId64 ")\n", "auto config url reference",
                       proxy_resolver->error);
             goto mac_done;
         }
@@ -139,7 +139,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
         if (!target_url_ref) {
             proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "target url reference",
+            LOG_ERROR("Unable to allocate memory for %s (%" PRId64 ")\n", "target url reference",
                       proxy_resolver->error);
             goto mac_done;
         }
@@ -150,7 +150,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
             url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
         if (!run_loop) {
             proxy_resolver->error = ELOOP;
-            LOG_ERROR("Failed to execute pac url (%" PRId32 ")\n", proxy_resolver->error);
+            LOG_ERROR("Failed to execute pac url (%" PRId64 ")\n", proxy_resolver->error);
             goto mac_done;
         }
 
@@ -200,7 +200,7 @@ const char *proxy_resolver_mac_get_list(void *ctx) {
 
 int32_t proxy_resolver_mac_get_error(void *ctx) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
-    return proxy_resolver->error;
+    return (int32_t)proxy_resolver->error;
 }
 
 bool proxy_resolver_mac_wait(void *ctx, int32_t timeout_ms) {
