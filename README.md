@@ -15,6 +15,7 @@ Cross-platform proxy resolution with support for Linux, macOS, & Windows.
     * Support for `WPAD` using `DHCP` and `DNS`.
     * Support for PAC file execution using system scripting libraries.
     * Support for downloading PAC scripts using HTTPS with [curl](https://github.com/curl/curl).
+* Optional caching of proxy resolution results per host.
 * Example command line utility.
 
 ## Supported Platforms
