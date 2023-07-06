@@ -71,24 +71,38 @@ static void print_proxy_config(int32_t option_count, char *options[]) {
 }
 
 static bool resolve_proxies_for_url_async(int argc, char *argv[], bool verbose) {
-    bool is_ok = false;
+    bool is_ok = true;
+    bool sequential = false;
+    int32_t start = 0;
+
+    // Check to see if we should process requests sequentially
+    if (strcmp(argv[start], "--sequential") == 0) {
+        sequential = true;
+        start++;
+    }
 
     void **proxy_resolver = (void **)calloc(argc, sizeof(void *));
     if (!proxy_resolver)
         return false;
 
-    for (int32_t i = 0; i < argc; i++) {
+    for (int32_t i = start; i < argc; i++) {
         // Create each proxy resolver instance
         proxy_resolver[i] = proxy_resolver_create();
         if (!proxy_resolver[i])
             return false;
 
-        // Start asynchronous request for proxy resolution
-        proxy_resolver_get_proxies_for_url(proxy_resolver[i], argv[i]);
+        if (!sequential) {
+            // Start asynchronous request for proxy resolution
+            proxy_resolver_get_proxies_for_url(proxy_resolver[i], argv[i]);
+        }
     }
 
-    is_ok = true;
-    for (int32_t i = 0; i < argc; i++) {
+    for (int32_t i = start; i < argc; i++) {
+        if (sequential) {
+            // Start asynchronous request for proxy resolution
+            proxy_resolver_get_proxies_for_url(proxy_resolver[i], argv[i]);
+        }
+
         if (verbose)
             printf("Resolving proxy for %s\n", argv[i]);
 
@@ -180,11 +194,11 @@ execute_pac_cleanup:
 static int print_help(void) {
     printf("proxyres [--help] [--verbose] cmd cmd_args\n");
     printf(" commands:\n");
-    printf("  config                  - dumps all proxy configuration values\n");
+    printf("  config                          - dumps all proxy configuration values\n");
 #ifdef PROXYRES_EXECUTE
-    printf("  execute [file] [urls..] - executes pac file with script\n");
+    printf("  execute [file] [urls..]         - executes pac file with script\n");
 #endif
-    printf("  resolve [url..]         - resolves proxy for urls\n");
+    printf("  resolve [--sequential] [url..]  - resolves proxy for urls\n");
     return 1;
 }
 
