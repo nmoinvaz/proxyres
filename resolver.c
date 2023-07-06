@@ -48,7 +48,7 @@ typedef struct proxy_resolver_s {
     // Async job
     char *url;
     // Next proxy pointer
-    char *listp;
+    const char *listp;
     // Use cache
     bool use_cache;
     // Cached proxy list
@@ -107,11 +107,10 @@ char *proxy_resolver_get_next_proxy(void *ctx) {
     // Get the next proxy to connect through
     char *proxy = str_sep_dup(&proxy_resolver->listp, ",");
     if (!proxy) {
-        if (proxy_resolver->use_cache && proxy_resolver->cached_list) {
-            proxy_resolver->listp = (char *)proxy_resolver->cached_list;
-        } else {
-            proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
-        }
+        if (proxy_resolver->use_cache && proxy_resolver->cached_list)
+            proxy_resolver->listp = proxy_resolver->cached_list;
+        else
+            proxy_resolver->listp = g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
     }
     return proxy;
 }
@@ -129,12 +128,12 @@ bool proxy_resolver_wait(void *ctx, int32_t timeout_ms) {
         return false;
 
     if (proxy_resolver->use_cache && proxy_resolver->cached_list) {
-        proxy_resolver->listp = (char *)proxy_resolver->cached_list;
+        proxy_resolver->listp = proxy_resolver->cached_list;
         return true;
     }
 
     if (g_proxy_resolver.proxy_resolver_i->wait(proxy_resolver->base, timeout_ms)) {
-        proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+        proxy_resolver->listp = g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
 
         // Store result in cache if it doesn't exist
         if (proxy_resolver->use_cache)
