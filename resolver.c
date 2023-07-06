@@ -94,7 +94,7 @@ const char *proxy_resolver_get_list(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
-    return (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    return g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
 }
 
 char *proxy_resolver_get_next_proxy(void *ctx) {
@@ -167,7 +167,6 @@ void *proxy_resolver_create(void) {
         free(proxy_resolver);
         return NULL;
     }
-    proxy_resolver->use_cache = true;
     return proxy_resolver;
 }
 

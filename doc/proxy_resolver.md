@@ -122,8 +122,7 @@ Cancel any pending proxy resolution. Not supported on all platforms or with all 
 
 ### proxy_resolver_set_use_cache
 
-Sets whether or not to cache resolution results. Cache uses url with path and query stripping as key. By default,
-the proxy resolver class caches results.
+Sets whether or not to cache resolution results. Cache uses url with path and query stripping as key.
 
 **Arguments**
 |Type|Name|Description|

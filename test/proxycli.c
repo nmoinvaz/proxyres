@@ -73,11 +73,17 @@ static void print_proxy_config(int32_t option_count, char *options[]) {
 static bool resolve_proxies_for_url_async(int argc, char *argv[], bool verbose) {
     bool is_ok = true;
     bool sequential = false;
+    bool use_cache = false;
     int32_t start = 0;
 
     // Check to see if we should process requests sequentially
     if (strcmp(argv[start], "--sequential") == 0) {
         sequential = true;
+        start++;
+    }
+    // Check to see if we should use a proxy resolution cache
+    if (strcmp(argv[start], "--use_cache") == 0) {
+        use_cache = true;
         start++;
     }
 
@@ -90,6 +96,7 @@ static bool resolve_proxies_for_url_async(int argc, char *argv[], bool verbose) 
         proxy_resolver[i] = proxy_resolver_create();
         if (!proxy_resolver[i])
             return false;
+        proxy_resolver_set_use_cache(proxy_resolver[i], use_cache);
 
         if (!sequential) {
             // Start asynchronous request for proxy resolution
@@ -198,7 +205,8 @@ static int print_help(void) {
 #ifdef PROXYRES_EXECUTE
     printf("  execute [file] [urls..]         - executes pac file with script\n");
 #endif
-    printf("  resolve [--sequential] [url..]  - resolves proxy for urls\n");
+    printf("  resolve [--sequential] [--use_cache] [urls..]\n");
+    printf("                                  - resolves proxy for urls\n");
     return 1;
 }
 
