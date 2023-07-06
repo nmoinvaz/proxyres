@@ -84,6 +84,37 @@ TEST_P(util_url_from_host, get) {
     }
 }
 
+struct get_url_without_path_param {
+    const char *string;
+    const char *expected;
+
+    friend std::ostream &operator<<(std::ostream &os, const get_url_without_path_param &param) {
+        return os << "string: " << param.string;
+    }
+};
+
+constexpr get_url_without_path_param get_urlwithout_path_tests[] = {{"https://google.com/test", "https://google.com"},
+                                                                    {"https://google.com/?hi", "https://google.com"},
+                                                                    {"https://google.com?hi", "https://google.com"},
+                                                                    {"https://google.com", "https://google.com"},
+                                                                    {"http://google.com", "http://google.com"},
+                                                                    {"google.com", "google.com"},
+                                                                    {"google.com/", "google.com"}};
+
+class util_url_without_path : public ::testing::TestWithParam<get_url_without_path_param> {};
+
+INSTANTIATE_TEST_SUITE_P(util, util_url_without_path, testing::ValuesIn(get_urlwithout_path_tests));
+
+TEST_P(util_url_without_path, get) {
+    const auto &param = GetParam();
+    char *root_url = get_url_without_path_or_query(param.string);
+    EXPECT_NE(root_url, nullptr);
+    if (root_url) {
+        EXPECT_STREQ(root_url, param.expected);
+        free(root_url);
+    }
+}
+
 struct convert_proxy_list_to_uri_list_param {
     const char *proxy_list;
     const char *fallback_scheme;
