@@ -105,7 +105,7 @@ static char *expected_my_ip_ex(void) {
         return NULL;
 
     // Enumerate each address and append expected proxy to string
-    char *addressesp = addresses;
+    const char *addressesp = addresses;
     while (addressesp) {
         char *address = str_sep_dup(&addressesp, ";");
         size_t expected_len = strlen(expected);

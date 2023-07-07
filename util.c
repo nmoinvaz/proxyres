@@ -100,12 +100,12 @@ const char *str_find_len_case_str(const char *str, size_t str_len, const char *f
 }
 
 // Extract and duplicate token from string
-char *str_sep_dup(char **strp, const char *delim) {
+char *str_sep_dup(const char **strp, const char *delim) {
     if (!strp)
         return NULL;
 
     // Pointer to current token
-    char *token = *strp;
+    const char *token = *strp;
     if (!token)
         return NULL;
 

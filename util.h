@@ -30,7 +30,7 @@ const char *str_find_len_str(const char *str, size_t str_len, const char *find);
 const char *str_find_len_case_str(const char *str, size_t str_len, const char *find);
 
 // Extract and duplicate token from string
-char *str_sep_dup(char **strp, const char *delim);
+char *str_sep_dup(const char **strp, const char *delim);
 
 // Compare a string using wildcard pattern
 bool str_wildcard_match(const char *str, const char *pattern, bool ignore_case);

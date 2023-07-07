@@ -209,7 +209,7 @@ TEST_P(util_should_bypass, list) {
 
 TEST(util, str_sep_dup) {
     const char *tokens = "hi;bye";
-    char **tokenp = (char **)&tokens;
+    const char **tokenp = &tokens;
 
     char *first_token = str_sep_dup(tokenp, ";");
     EXPECT_NE(first_token, nullptr);
