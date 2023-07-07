@@ -87,7 +87,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         goto winxp_done;
     }
 
-    if (proxy_config_get_auto_discover()) {
+    if (!proxy_config_get_auto_discover()) {
         // Don't do automatic proxy detection
         goto winxp_done;
     }
