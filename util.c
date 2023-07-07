@@ -292,21 +292,21 @@ char *get_url_from_host(const char *scheme, const char *host) {
 }
 
 // Get port from host
-int32_t get_host_port(const char *host, size_t host_len, int32_t default_port) {
-    int32_t port = default_port;
+uint16_t get_host_port(const char *host, size_t host_len, uint16_t default_port) {
+    uint16_t port = default_port;
     // Find port if it exists
     const char *port_start =
         *host == '[' ? str_find_len_str(host, host_len, "]:") : str_find_len_char(host, host_len, ':');
     if (port_start) {
         port_start++;
-        port = strtoul(port_start, NULL, 0);
+        port = (uint16_t)strtoul(port_start, NULL, 0);
     }
     return port;
 }
 
 // Strip and parse port from host
-int32_t strip_host_port(char *host, size_t host_len, int32_t default_port) {
-    int32_t port = default_port;
+uint16_t strip_host_port(char *host, size_t host_len, uint16_t default_port) {
+    uint16_t port = default_port;
     // Find port if it exists
     const char *port_start =
         *host == '[' ? str_find_len_str(host, host_len, "]:") : str_find_len_char(host, host_len, ':');
@@ -318,7 +318,7 @@ int32_t strip_host_port(char *host, size_t host_len, int32_t default_port) {
         // Remove port from host
         host[port_start - host] = 0;
         port_start++;
-        port = strtoul(port_start, NULL, 0);
+        port = (uint16_t)strtoul(port_start, NULL, 0);
     }
     return port;
 }
@@ -349,7 +349,7 @@ bool strip_host_ipv6_brackets(char *host) {
 }
 
 // Use scheme based on port specified
-const char *get_port_scheme(int32_t port, const char *default_scheme) {
+const char *get_port_scheme(uint16_t port, const char *default_scheme) {
     switch (port) {
     case 80:
         return "http";
@@ -364,7 +364,7 @@ const char *get_port_scheme(int32_t port, const char *default_scheme) {
 }
 
 // Get default port for a scheme
-int32_t get_scheme_default_port(const char *scheme) {
+uint16_t get_scheme_default_port(const char *scheme) {
     // Use scheme based on port specified
     if (!strcasecmp(scheme, "http"))
         return 80;
@@ -374,7 +374,7 @@ int32_t get_scheme_default_port(const char *scheme) {
         return 1080;
     if (!strcasecmp(scheme, "ftp"))
         return 21;
-    return -1;
+    return 0;
 }
 
 // Convert proxy list returned by FindProxyForURL to a list of uris separated by commas.
@@ -437,7 +437,7 @@ char *convert_proxy_list_to_uri_list(const char *proxy_list, const char *default
         // Determine scheme for type PROXY
         if (!scheme) {
             // Parse port from host
-            int32_t port = get_host_port(host_start, host_len, 80);
+            const uint16_t port = get_host_port(host_start, host_len, 80);
 
             // Use scheme based on port
             scheme = get_port_scheme(port, "http");
@@ -485,7 +485,7 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
         return true;
 
     // Strip and parse port from host
-    int32_t host_port = strip_host_port(host, strlen(host), 0);
+    uint16_t host_port = strip_host_port(host, strlen(host), 0);
 
     // Check for localhost address
     if (!strcmp(host, "127.0.0.1") || !strcmp(host, "[::1]") || !strcasecmp(host, "localhost"))
@@ -541,7 +541,7 @@ bool should_bypass_proxy(const char *url, const char *bypass_list) {
                 should_bypass = true;
         } else {
             // Strip and parse port from bypass rule
-            int32_t bypass_rule_port = strip_host_port(bypass_rule, strlen(bypass_rule), 0);
+            const uint16_t bypass_rule_port = strip_host_port(bypass_rule, strlen(bypass_rule), 0);
 
             // If the rule matches hostname of url then bypass proxy
             if (str_wildcard_match(host, bypass_rule, true)) {
