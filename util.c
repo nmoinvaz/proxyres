@@ -246,6 +246,34 @@ char *get_url_scheme(const char *url, const char *default_scheme) {
     return NULL;
 }
 
+// Get the url without the path or query components
+char *get_url_without_path_or_query(const char *url) {
+    // Find the start of the host after the scheme
+    const char *host_start = strstr(url, "://");
+    if (host_start)
+        host_start += 3;
+    else
+        host_start = url;
+
+    // Find the end of the host
+    const char *host_end = strstr(host_start, "/");
+    if (!host_end) {
+        // Find start of query if no path
+        host_end = strstr(host_start, "?");
+        if (!host_end)
+            host_end = (char *)host_start + strlen(host_start);
+    }
+
+    // Allocate new url and copy only needed part
+    size_t root_url_len = (host_end - url);
+    char *root_url = (char *)calloc(root_url_len + 1, sizeof(char));
+    if (!root_url)
+        return NULL;
+
+    memcpy(root_url, url, root_url_len);
+    return root_url;
+}
+
 // Create url from host with port
 char *get_url_from_host(const char *scheme, const char *host) {
     // Create buffer to store and return url

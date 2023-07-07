@@ -28,6 +28,9 @@ bool proxy_resolver_wait(void *ctx, int32_t timeout_ms);
 // Cancel any pending proxy resolution.
 bool proxy_resolver_cancel(void *ctx);
 
+// Sets whether or not to use the cache for proxy resolution.
+void proxy_resolver_set_use_cache(void *ctx, bool use_cache);
+
 // Create a proxy resolver instance.
 void *proxy_resolver_create(void);
 

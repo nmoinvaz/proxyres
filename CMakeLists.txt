@@ -35,6 +35,8 @@ list(APPEND PROXYRES_SRCS
     proxyres.c
     resolver_i.h
     resolver.c
+    resolver_cache.h
+    resolver_cache.c
     threadpool.h
     util.h
     util.c)

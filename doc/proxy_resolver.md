@@ -28,6 +28,7 @@ When there is no built-in proxy resolution library on the system, we use our own
 - [proxy\_resolver\_get\_error](#proxy_resolver_get_error)
 - [proxy\_resolver\_wait](#proxy_resolver_wait)
 - [proxy\_resolver\_cancel](#proxy_resolver_cancel)
+- [proxy\_resolver\_set\_use\_cache](#proxy_resolver_set_use_cache)
 - [proxy\_resolver\_create](#proxy_resolver_create)
 - [proxy\_resolver\_delete](#proxy_resolver_delete)
 - [proxy\_resolver\_global\_init](#proxy_resolver_global_init)
@@ -118,6 +119,17 @@ Cancel any pending proxy resolution. Not supported on all platforms or with all 
 |Type|Description|
 |-|:-|
 |bool|`true` if successful, `false` otherwise.|
+
+### proxy_resolver_set_use_cache
+
+Sets whether or not to cache resolution results. Cache uses url with path and query stripping as key. By default,
+the proxy resolver class caches results.
+
+**Arguments**
+|Type|Name|Description|
+|-|-|:-|
+|void *|ctx|Proxy resolver instance.|
+|bool|use_cache|Whether or not to use cache.|
 
 ### proxy_resolver_create
 

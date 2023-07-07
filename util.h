@@ -44,6 +44,9 @@ const char *get_url_path(const char *url);
 // Get the scheme for a given url
 char *get_url_scheme(const char *url, const char *default_scheme);
 
+// Get the url without the path or query components
+char *get_url_without_path_or_query(const char *url);
+
 // Create url from host with port
 char *get_url_from_host(const char *scheme, const char *host);
 

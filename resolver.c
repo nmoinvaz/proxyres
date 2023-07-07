@@ -13,6 +13,7 @@
 #include "config.h"
 #include "log.h"
 #include "resolver.h"
+#include "resolver_cache.h"
 #include "resolver_i.h"
 #include "resolver_posix.h"
 #if defined(__APPLE__)
@@ -48,6 +49,10 @@ typedef struct proxy_resolver_s {
     char *url;
     // Next proxy pointer
     char *listp;
+    // Use cache
+    bool use_cache;
+    // Cached proxy list
+    const char *cached_list;
 } proxy_resolver_s;
 
 static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
@@ -63,6 +68,16 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
         return false;
 
     proxy_resolver->listp = NULL;
+
+    if (proxy_resolver->use_cache) {
+        free(proxy_resolver->url);
+        proxy_resolver->url = strdup(url);
+
+        // Find a match in the cache
+        proxy_resolver->cached_list = proxy_resolver_cache_match(url);
+        if (proxy_resolver->cached_list)
+            return true;
+    }
 
     // Call get_proxies_for_url directly since the underlying interface is asynchronous
     if (g_proxy_resolver.proxy_resolver_i->is_async())
@@ -91,8 +106,13 @@ char *proxy_resolver_get_next_proxy(void *ctx) {
 
     // Get the next proxy to connect through
     char *proxy = str_sep_dup(&proxy_resolver->listp, ",");
-    if (!proxy)
-        proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    if (!proxy) {
+        if (proxy_resolver->use_cache && proxy_resolver->cached_list) {
+            proxy_resolver->listp = (char *)proxy_resolver->cached_list;
+        } else {
+            proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+        }
+    }
     return proxy;
 }
 
@@ -107,8 +127,19 @@ bool proxy_resolver_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
+
+    if (proxy_resolver->use_cache && proxy_resolver->cached_list) {
+        proxy_resolver->listp = (char *)proxy_resolver->cached_list;
+        return true;
+    }
+
     if (g_proxy_resolver.proxy_resolver_i->wait(proxy_resolver->base, timeout_ms)) {
         proxy_resolver->listp = (char *)g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+
+        // Store result in cache if it doesn't exist
+        if (proxy_resolver->use_cache)
+            proxy_resolver_cache_add(proxy_resolver->url, proxy_resolver->listp);
+
         return true;
     }
     return false;
@@ -119,6 +150,11 @@ bool proxy_resolver_cancel(void *ctx) {
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
     return g_proxy_resolver.proxy_resolver_i->cancel(proxy_resolver->base);
+}
+
+void proxy_resolver_set_use_cache(void *ctx, bool use_cache) {
+    proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
+    proxy_resolver->use_cache = use_cache;
 }
 
 void *proxy_resolver_create(void) {
@@ -132,6 +168,7 @@ void *proxy_resolver_create(void) {
         free(proxy_resolver);
         return NULL;
     }
+    proxy_resolver->use_cache = true;
     return proxy_resolver;
 }
 
@@ -193,6 +230,8 @@ bool proxy_resolver_global_init(void) {
         return false;
     }
 
+    proxy_resolver_cache_init();
+
     // No need to create thread pool since underlying implementation is already asynchronous
     if (g_proxy_resolver.proxy_resolver_i->is_async()) {
         g_proxy_resolver.ref_count++;
@@ -231,6 +270,8 @@ bool proxy_resolver_global_cleanup(void) {
 
     if (g_proxy_resolver.proxy_resolver_i)
         g_proxy_resolver.proxy_resolver_i->global_cleanup();
+
+    proxy_resolver_cache_cleanup();
 
     memset(&g_proxy_resolver, 0, sizeof(g_proxy_resolver));
 
