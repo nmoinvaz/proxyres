@@ -276,13 +276,6 @@ static WinRT_IUriRuntimeClass *create_uri_from_string(const char *url) {
     return uri;
 }
 
-bool proxy_resolver_winrt_get_proxies_for_url(void *ctx, const char *url) {
-    UNUSED(ctx);
-    UNUSED(url);
-    // All proxy resolution must go through ProxyConfiguration async operation
-    return false;
-}
-
 bool proxy_resolver_winrt_discover_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winrt_s *proxy_resolver = (proxy_resolver_winrt_s *)ctx;
     WinRT_INetworkInformationStatics *network_info_statics = NULL;
@@ -404,16 +397,17 @@ bool proxy_resolver_winrt_global_cleanup(void) {
 }
 
 proxy_resolver_i_s *proxy_resolver_winrt_get_interface(void) {
-    static proxy_resolver_i_s proxy_resolver_winrt_i = {proxy_resolver_winrt_get_proxies_for_url,
-                                                        proxy_resolver_winrt_discover_proxies_for_url,
-                                                        proxy_resolver_winrt_get_list,
-                                                        proxy_resolver_winrt_get_error,
-                                                        proxy_resolver_winrt_wait,
-                                                        proxy_resolver_winrt_cancel,
-                                                        proxy_resolver_winrt_create,
-                                                        proxy_resolver_winrt_delete,
-                                                        true /* discover_proxies_for_url is handled asynchronous */,
-                                                        proxy_resolver_winrt_global_init,
-                                                        proxy_resolver_winrt_global_cleanup};
+    static proxy_resolver_i_s proxy_resolver_winrt_i = {
+        proxy_resolver_winrt_discover_proxies_for_url,
+        proxy_resolver_winrt_get_list,
+        proxy_resolver_winrt_get_error,
+        proxy_resolver_winrt_wait,
+        proxy_resolver_winrt_cancel,
+        proxy_resolver_winrt_create,
+        proxy_resolver_winrt_delete,
+        true /* discover_proxies_for_url is handled asynchronously */,
+        true /* discover_proxies_for_url takes into account system config */,
+        proxy_resolver_winrt_global_init,
+        proxy_resolver_winrt_global_cleanup};
     return &proxy_resolver_winrt_i;
 }

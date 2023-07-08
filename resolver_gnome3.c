@@ -49,13 +49,6 @@ typedef struct proxy_resolver_gnome3_s {
     char *list;
 } proxy_resolver_gnome3_s;
 
-bool proxy_resolver_gnome3_get_proxies_for_url(void *ctx, const char *url) {
-    UNUSED(ctx);
-    UNUSED(url);
-    // All proxy resolution must go through gnome3 resolver
-    return false;
-}
-
 static void proxy_resolver_gnome3_delete_resolver(proxy_resolver_gnome3_s *proxy_resolver) {
     if (proxy_resolver->cancellable) {
         g_proxy_resolver_gnome3.g_object_unref(proxy_resolver->cancellable);
@@ -269,7 +262,6 @@ bool proxy_resolver_gnome3_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_gnome3_i = {
-        proxy_resolver_gnome3_get_proxies_for_url,
         proxy_resolver_gnome3_discover_proxies_for_url,
         proxy_resolver_gnome3_get_list,
         proxy_resolver_gnome3_get_error,
@@ -278,6 +270,7 @@ proxy_resolver_i_s *proxy_resolver_gnome3_get_interface(void) {
         proxy_resolver_gnome3_create,
         proxy_resolver_gnome3_delete,
         false /* discover_proxies_for_url should be spooled to another thread */,
+        true /* discover_proxies_for_url takes into account system config */,
         proxy_resolver_gnome3_global_init,
         proxy_resolver_gnome3_global_cleanup};
     return &proxy_resolver_gnome3_i;

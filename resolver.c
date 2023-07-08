@@ -46,6 +46,8 @@ typedef struct proxy_resolver_s {
     void *base;
     // Async job
     char *url;
+    // Proxy list from system config
+    char *list;
     // Next proxy pointer
     const char *listp;
 } proxy_resolver_s;
@@ -57,19 +59,73 @@ static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
     g_proxy_resolver.proxy_resolver_i->discover_proxies_for_url(proxy_resolver->base, proxy_resolver->url);
 }
 
+static bool proxy_resolver_get_proxies_for_url_from_system_config(void *ctx, const char *url) {
+    proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
+    char *auto_config_url = NULL;
+    char *proxy = NULL;
+    char *scheme = NULL;
+
+    // Skip if auto-config url evaluation is required for proxy resolution
+    auto_config_url = proxy_config_get_auto_config_url();
+    if (auto_config_url)
+        goto config_done;
+
+    // Use scheme associated with the URL when determining proxy
+    scheme = get_url_scheme(url, "http");
+    if (!scheme) {
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme");
+        goto config_done;
+    }
+
+    // Check to see if manually configured proxy is specified in system config
+    proxy = proxy_config_get_proxy(scheme);
+    if (proxy) {
+        // Check to see if we need to bypass the proxy for the url
+        char *bypass_list = proxy_config_get_bypass_list();
+        bool should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
+            proxy_resolver->list = get_url_from_host(url, proxy);
+        }
+        free(bypass_list);
+    } else if (!proxy_config_get_auto_discover()) {
+        // Use DIRECT connection since proxy auto-discovery is not necessary
+        proxy_resolver->list = strdup("direct://");
+    }
+
+config_done:
+
+    free(scheme);
+    free(proxy);
+    free(auto_config_url);
+
+    return proxy_resolver->list != NULL;
+}
+
 bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
 
     proxy_resolver->listp = NULL;
+    free(proxy_resolver->list);
+    proxy_resolver->list = NULL;
 
-    // Use system proxy configuration if no auto-discovery mechanism is necessary
-    if (g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(proxy_resolver->base, url))
-        return true;
+    // Check if discover already takes into account system configuration
+    if (!g_proxy_resolver.proxy_resolver_i->discover_uses_system_config) {
+        // Check if auto-discovery is necessary
+        if (proxy_resolver_get_proxies_for_url_from_system_config(ctx, url)) {
+            // Use system proxy configuration if no auto-discovery mechanism is necessary
+            return true;
+        }
+    }
 
     // Automatically discover proxy configuration asynchronously if supported, otherwise spool to thread pool
-    if (g_proxy_resolver.proxy_resolver_i->is_discover_async)
+    if (g_proxy_resolver.proxy_resolver_i->discover_is_async)
         return g_proxy_resolver.proxy_resolver_i->discover_proxies_for_url(proxy_resolver->base, url);
 
     free(proxy_resolver->url);
@@ -83,6 +139,8 @@ const char *proxy_resolver_get_list(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
+    if (proxy_resolver->list)
+        return proxy_resolver->list;
     return g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
 }
 
@@ -95,8 +153,12 @@ char *proxy_resolver_get_next_proxy(void *ctx) {
 
     // Get the next proxy to connect through
     char *proxy = str_sep_dup(&proxy_resolver->listp, ",");
-    if (!proxy)
-        proxy_resolver->listp = g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    if (!proxy) {
+        if (proxy_resolver->list)
+            proxy_resolver->listp = proxy_resolver->list;
+        else
+            proxy_resolver->listp = g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
+    }
     return proxy;
 }
 
@@ -111,6 +173,10 @@ bool proxy_resolver_wait(void *ctx, int32_t timeout_ms) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
+    if (proxy_resolver->list) {
+        proxy_resolver->listp = proxy_resolver->list;
+        return true;
+    }
     if (g_proxy_resolver.proxy_resolver_i->wait(proxy_resolver->base, timeout_ms)) {
         proxy_resolver->listp = g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
         return true;
@@ -122,6 +188,8 @@ bool proxy_resolver_cancel(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
         return false;
+    if (proxy_resolver->list)
+        return true;
     return g_proxy_resolver.proxy_resolver_i->cancel(proxy_resolver->base);
 }
 
@@ -145,9 +213,9 @@ bool proxy_resolver_delete(void **ctx) {
     if (!ctx || !*ctx)
         return false;
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)*ctx;
-    if (proxy_resolver->url)
-        free(proxy_resolver->url);
-    g_proxy_resolver.proxy_resolver_i->delete(&proxy_resolver->base);
+    free(proxy_resolver->url);
+    free(proxy_resolver->list);
+    g_proxy_resolver.proxy_resolver_i->delete (&proxy_resolver->base);
     free(proxy_resolver);
     *ctx = NULL;
     return true;
