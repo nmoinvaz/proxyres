@@ -48,6 +48,56 @@ typedef struct proxy_resolver_win8_s {
     char *list;
 } proxy_resolver_win8_s;
 
+bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
+    proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
+    char *auto_config_url = NULL;
+    char *proxy = NULL;
+    char *scheme = NULL;
+
+    // Skip if requires auto config url evaluation for proxy resolution
+    auto_config_url = proxy_config_get_auto_config_url();
+    if (auto_config_url)
+        goto win8_done;
+
+    // Use scheme associated with the URL when determining proxy
+    scheme = get_url_scheme(url, "http");
+    if (!scheme) {
+        proxy_resolver->error = ERROR_OUTOFMEMORY;
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme", proxy_resolver->error);
+        goto win8_done;
+    }
+
+    // Check to see if manually configured proxy is specified in system settings
+    proxy = proxy_config_get_proxy(scheme);
+    if (proxy) {
+        // Check to see if we need to bypass the proxy for the url
+        char *bypass_list = proxy_config_get_bypass_list();
+        bool should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
+            proxy_resolver->list = get_url_from_host(url, proxy);
+        }
+        free(bypass_list);
+    } else if (!proxy_config_get_auto_discover()) {
+        // Use DIRECT connection since no proxy auto-discovery is necessary
+        proxy_resolver->list = strdup("direct://");
+    }
+
+win8_done:
+    if (proxy_resolver->list)
+        event_set(proxy_resolver->complete);
+
+    free(scheme);
+    free(proxy);
+    free(auto_config_url);
+
+    return proxy_resolver->list != NULL;
+}
+
 void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DWORD_PTR Context, DWORD InternetStatus,
                                                           LPVOID StatusInformation, DWORD StatusInformationLength) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)Context;
@@ -62,6 +112,7 @@ void CALLBACK proxy_resolver_win8_winhttp_status_callback(HINTERNET Internet, DW
         // Failed to detect proxy auto configuration url so use DIRECT connection
         if (async_result->dwError == ERROR_WINHTTP_AUTODETECTION_FAILED) {
             LOG_DEBUG("Proxy resolution returned code (%lu)\n", async_result->dwError);
+            proxy_resolver->list = strdup("direct://");
             goto win8_async_done;
         }
 
@@ -156,22 +207,19 @@ win8_async_done:
     event_set(proxy_resolver->complete);
 }
 
-bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
+bool proxy_resolver_win8_discover_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
     wchar_t *url_wide = NULL;
     wchar_t *auto_config_url_wide = NULL;
-    char *proxy = NULL;
-    char *bypass_list = NULL;
-    char *scheme = NULL;
+    char *auto_config_url = NULL;
     bool is_ok = false;
     int32_t error = 0;
 
-    // Set proxy options for calls to WinHttpGetProxyForUrl
-    const char *auto_config_url = proxy_config_get_auto_config_url();
+    auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
-        // Use auto configuration script
+        // Use auto configuration script specified in system settings
         auto_config_url_wide = utf8_dup_to_wchar(auto_config_url);
         if (!auto_config_url_wide) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
@@ -181,44 +229,11 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
         options.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
         options.lpszAutoConfigUrl = auto_config_url_wide;
-        goto win8_resolve;
+    } else {
+        // Use WPAD to automatically retrieve proxy auto-configuration and evaluate it
+        options.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+        options.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
     }
-
-    // Use scheme associated with the URL when determining proxy
-    scheme = get_url_scheme(url, "http");
-    if (!scheme) {
-        proxy_resolver->error = ERROR_OUTOFMEMORY;
-        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme", proxy_resolver->error);
-        goto win8_done;
-    }
-
-    if ((proxy = proxy_config_get_proxy(scheme)) != NULL) {
-        // Check to see if we need to bypass the proxy for the url
-        bool should_bypass = false;
-        bypass_list = proxy_config_get_bypass_list();
-        should_bypass = should_bypass_proxy(url, bypass_list);
-        if (should_bypass) {
-            // Bypass the proxy for the url
-            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
-            proxy_resolver->list = strdup("direct://");
-        } else {
-            // Use proxy from settings
-            proxy_resolver->list = get_url_from_host(url, proxy);
-        }
-        goto win8_done;
-    }
-
-    if (!proxy_config_get_auto_discover()) {
-        // Don't do automatic proxy detection
-        proxy_resolver->list = strdup("direct://");
-        goto win8_done;
-    }
-
-    // Use WPAD to automatically retrieve proxy auto-configuration and evaluate it
-    options.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
-    options.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
-
-win8_resolve:
 
     g_proxy_resolver_win8.winhttp_create_proxy_resolver(g_proxy_resolver_win8.session, &proxy_resolver->resolver);
     if (!proxy_resolver->resolver) {
@@ -273,11 +288,9 @@ win8_done:
 
 win8_cleanup:
 
-    free(scheme);
-    free(bypass_list);
-    free(proxy);
     free(url_wide);
     free(auto_config_url_wide);
+    free(auto_config_url);
 
     // Free proxy info
     if (proxy_info.lpszProxy)
@@ -343,7 +356,8 @@ bool proxy_resolver_win8_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_win8_is_async(void) {
+bool proxy_resolver_win8_is_discover_async(void) {
+    // discover_proxies_for_url is handled asynchronous
     return true;
 }
 
@@ -398,13 +412,14 @@ bool proxy_resolver_win8_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_win8_i = {proxy_resolver_win8_get_proxies_for_url,
+                                                       proxy_resolver_win8_discover_proxies_for_url,
                                                        proxy_resolver_win8_get_list,
                                                        proxy_resolver_win8_get_error,
                                                        proxy_resolver_win8_wait,
                                                        proxy_resolver_win8_cancel,
                                                        proxy_resolver_win8_create,
                                                        proxy_resolver_win8_delete,
-                                                       proxy_resolver_win8_is_async,
+                                                       proxy_resolver_win8_is_discover_async,
                                                        proxy_resolver_win8_global_init,
                                                        proxy_resolver_win8_global_cleanup};
     return &proxy_resolver_win8_i;

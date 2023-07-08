@@ -33,6 +33,47 @@ typedef struct proxy_resolver_mac_s {
     char *list;
 } proxy_resolver_mac_s;
 
+bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
+    proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
+    char *auto_config_url = NULL;
+    char *proxy = NULL;
+
+    // Skip if requires auto config url evaluation for proxy resolution
+    auto_config_url = proxy_config_get_auto_config_url();
+    if (auto_config_url)
+        goto mac_done;
+
+    // Check to see if manually configured proxy is specified in system settings
+    proxy = proxy_config_get_proxy(url);
+    if (proxy) {
+        // Check to see if we need to bypass the proxy for the url
+        char *bypass_list = proxy_config_get_bypass_list();
+        bool should_bypass = should_bypass_proxy(url, bypass_list);
+        if (should_bypass) {
+            // Bypass the proxy for the url
+            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
+            proxy_resolver->list = strdup("direct://");
+        } else {
+            // Use proxy from settings
+            proxy_resolver->list = get_url_from_host(url, proxy);
+        }
+        free(bypass_list);
+    } else {
+        // Use DIRECT connection since no proxy auto-discovery is necessary
+        proxy_resolver->list = strdup("direct://");
+    }
+
+mac_done:
+
+    if (proxy_resolver->list)
+        event_set(proxy_resolver->complete);
+
+    free(proxy);
+    free(auto_config_url);
+
+    return proxy_resolver->list != NULL;
+}
+
 static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArrayRef proxy_array, CFErrorRef error) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)client;
     if (error) {
@@ -111,7 +152,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
     return;
 }
 
-bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
+bool proxy_resolver_mac_discover_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
@@ -123,64 +164,51 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     if (!proxy_resolver || !url)
         return false;
 
-    // Prioritize proxy auto config url over manually configured proxy
     auto_config_url = proxy_config_get_auto_config_url();
-    if (auto_config_url) {
-        url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)auto_config_url, strlen(auto_config_url),
-                                       kCFStringEncodingUTF8, NULL);
-
-        if (!url_ref) {
-            proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to allocate memory for %s (%" PRId64 ")\n", "auto config url reference",
-                      proxy_resolver->error);
-            goto mac_done;
-        }
-
-        target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
-        if (!target_url_ref) {
-            proxy_resolver->error = ENOMEM;
-            LOG_ERROR("Unable to allocate memory for %s (%" PRId64 ")\n", "target url reference",
-                      proxy_resolver->error);
-            goto mac_done;
-        }
-
-        CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
-
-        CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
-            url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
-        if (!run_loop) {
-            proxy_resolver->error = ELOOP;
-            LOG_ERROR("Failed to execute pac url (%" PRId64 ")\n", proxy_resolver->error);
-            goto mac_done;
-        }
-
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
-        CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
-        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
-        CFRunLoopSourceInvalidate(run_loop);
-        CFRelease(run_loop);
-    } else if ((proxy = proxy_config_get_proxy(url)) != NULL) {
-        // Check to see if we need to bypass the proxy for the url
-        bool should_bypass = false;
-        bypass_list = proxy_config_get_bypass_list();
-        should_bypass = should_bypass_proxy(url, bypass_list);
-        if (should_bypass) {
-            // Bypass the proxy for the url
-            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
-            proxy_resolver->list = strdup("direct://");
-        } else {
-            // Use proxy from settings
-            proxy_resolver->list = get_url_from_host(url, proxy);
-        }
+    if (!auto_config_url) {
+        proxy_resolver->error = EINVAL;
+        LOG_ERROR("Auto configuration url not specified", proxy_resolver->error);
+        goto mac_done;
     }
+
+    url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)auto_config_url, strlen(auto_config_url), kCFStringEncodingUTF8,
+                                   NULL);
+
+    if (!url_ref) {
+        proxy_resolver->error = ENOMEM;
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId64 ")\n", "auto config url reference",
+                  proxy_resolver->error);
+        goto mac_done;
+    }
+
+    target_url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)url, strlen(url), kCFStringEncodingUTF8, NULL);
+    if (!target_url_ref) {
+        proxy_resolver->error = ENOMEM;
+        LOG_ERROR("Unable to allocate memory for %s (%" PRId64 ")\n", "target url reference", proxy_resolver->error);
+        goto mac_done;
+    }
+
+    CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
+
+    CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
+        url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
+    if (!run_loop) {
+        proxy_resolver->error = ELOOP;
+        LOG_ERROR("Failed to execute pac url (%" PRId64 ")\n", proxy_resolver->error);
+        goto mac_done;
+    }
+
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
+    CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
+    CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
+    CFRunLoopSourceInvalidate(run_loop);
+    CFRelease(run_loop);
 
 mac_done:
 
     is_ok = proxy_resolver->error == 0;
     event_set(proxy_resolver->complete);
 
-    free(bypass_list);
-    free(proxy);
     free(auto_config_url);
 
     if (url_ref)
@@ -190,7 +218,6 @@ mac_done:
 
     return is_ok;
 }
-
 const char *proxy_resolver_mac_get_list(void *ctx) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     if (!proxy_resolver)
@@ -210,7 +237,8 @@ bool proxy_resolver_mac_wait(void *ctx, int32_t timeout_ms) {
     return event_wait(proxy_resolver->complete, timeout_ms);
 }
 
-bool proxy_resolver_mac_is_async(void) {
+bool proxy_resolver_mac_is_discover_async(void) {
+    // discover_proxies_for_url should be spooled to another thread
     return false;
 }
 
@@ -254,13 +282,14 @@ bool proxy_resolver_mac_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_mac_i = {proxy_resolver_mac_get_proxies_for_url,
+                                                      proxy_resolver_mac_discover_proxies_for_url,
                                                       proxy_resolver_mac_get_list,
                                                       proxy_resolver_mac_get_error,
                                                       proxy_resolver_mac_wait,
                                                       proxy_resolver_mac_cancel,
                                                       proxy_resolver_mac_create,
                                                       proxy_resolver_mac_delete,
-                                                      proxy_resolver_mac_is_async,
+                                                      proxy_resolver_mac_is_discover_async,
                                                       proxy_resolver_mac_global_init,
                                                       proxy_resolver_mac_global_cleanup};
     return &proxy_resolver_mac_i;
