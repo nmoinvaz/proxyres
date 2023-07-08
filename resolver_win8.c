@@ -157,7 +157,7 @@ win8_async_done:
     event_set(proxy_resolver->complete);
 }
 
-bool proxy_resolver_win8_discover_proxies_for_url(void *ctx, const char *url) {
+bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_win8_s *proxy_resolver = (proxy_resolver_win8_s *)ctx;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
@@ -357,15 +357,15 @@ bool proxy_resolver_win8_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_win8_i = {
-        proxy_resolver_win8_discover_proxies_for_url,
+        proxy_resolver_win8_get_proxies_for_url,
         proxy_resolver_win8_get_list,
         proxy_resolver_win8_get_error,
         proxy_resolver_win8_wait,
         proxy_resolver_win8_cancel,
         proxy_resolver_win8_create,
         proxy_resolver_win8_delete,
-        true /* discover_proxies_for_url is handled asynchronously */,
-        false /* discover_proxies_for_url does not take into account system config */,
+        true /* get_proxies_for_url is handled asynchronously */,
+        false /* get_proxies_for_url does not take into account system config */,
         proxy_resolver_win8_global_init,
         proxy_resolver_win8_global_cleanup};
     return &proxy_resolver_win8_i;

@@ -112,7 +112,7 @@ static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t
     return script;
 }
 
-bool proxy_resolver_posix_discover_proxies_for_url(void *ctx, const char *url) {
+bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
     char *auto_config_url = NULL;
     char *proxy = NULL;
@@ -289,15 +289,15 @@ bool proxy_resolver_posix_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_posix_i = {
-        proxy_resolver_posix_discover_proxies_for_url,
+        proxy_resolver_posix_get_proxies_for_url,
         proxy_resolver_posix_get_list,
         proxy_resolver_posix_get_error,
         proxy_resolver_posix_wait,
         proxy_resolver_posix_cancel,
         proxy_resolver_posix_create,
         proxy_resolver_posix_delete,
-        false /* discover_proxies_for_url should be spooled to another thread */,
-        true /* discover_proxies_for_url does not take into account system config */,
+        false /* get_proxies_for_url should be spooled to another thread */,
+        true /* get_proxies_for_url does not take into account system config */,
         proxy_resolver_posix_global_init,
         proxy_resolver_posix_global_cleanup};
     return &proxy_resolver_posix_i;

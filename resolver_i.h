@@ -1,7 +1,7 @@
 #pragma once
 
 typedef struct proxy_resolver_i_s {
-    bool (*discover_proxies_for_url)(void *ctx, const char *url);
+    bool (*get_proxies_for_url)(void *ctx, const char *url);
 
     const char *(*get_list)(void *ctx);
     int32_t (*get_error)(void *ctx);
@@ -11,8 +11,8 @@ typedef struct proxy_resolver_i_s {
     void *(*create)(void);
     bool (*delete)(void **ctx);
 
-    bool discover_is_async;
-    bool discover_uses_system_config;
+    bool is_async;
+    bool uses_system_config;
 
     bool (*global_init)(void);
     bool (*global_cleanup)(void);

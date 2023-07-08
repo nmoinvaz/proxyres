@@ -56,7 +56,7 @@ static void proxy_resolver_get_proxies_for_url_threadpool(void *arg) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)arg;
     if (!proxy_resolver)
         return;
-    g_proxy_resolver.proxy_resolver_i->discover_proxies_for_url(proxy_resolver->base, proxy_resolver->url);
+    g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(proxy_resolver->base, proxy_resolver->url);
 }
 
 static bool proxy_resolver_get_proxies_for_url_from_system_config(void *ctx, const char *url) {
@@ -73,7 +73,7 @@ static bool proxy_resolver_get_proxies_for_url_from_system_config(void *ctx, con
     // Use scheme associated with the URL when determining proxy
     scheme = get_url_scheme(url, "http");
     if (!scheme) {
-        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme");
+        LOG_ERROR("Unable to allocate memory for scheme\n");
         goto config_done;
     }
 
@@ -115,8 +115,8 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
     free(proxy_resolver->list);
     proxy_resolver->list = NULL;
 
-    // Check if discover already takes into account system configuration
-    if (!g_proxy_resolver.proxy_resolver_i->discover_uses_system_config) {
+    // Check if OS resolver already takes into account system configuration
+    if (!g_proxy_resolver.proxy_resolver_i->uses_system_config) {
         // Check if auto-discovery is necessary
         if (proxy_resolver_get_proxies_for_url_from_system_config(ctx, url)) {
             // Use system proxy configuration if no auto-discovery mechanism is necessary
@@ -124,9 +124,9 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
         }
     }
 
-    // Automatically discover proxy configuration asynchronously if supported, otherwise spool to thread pool
-    if (g_proxy_resolver.proxy_resolver_i->discover_is_async)
-        return g_proxy_resolver.proxy_resolver_i->discover_proxies_for_url(proxy_resolver->base, url);
+    // Discover proxy auto-config asynchronously if supported, otherwise spool to thread pool
+    if (g_proxy_resolver.proxy_resolver_i->is_async)
+        return g_proxy_resolver.proxy_resolver_i->get_proxies_for_url(proxy_resolver->base, url);
 
     free(proxy_resolver->url);
     proxy_resolver->url = strdup(url);
@@ -266,7 +266,7 @@ bool proxy_resolver_global_init(void) {
     }
 
     // No need to create thread pool since underlying implementation is already asynchronous
-    if (g_proxy_resolver.proxy_resolver_i->is_discover_async) {
+    if (g_proxy_resolver.proxy_resolver_i->is_async) {
         g_proxy_resolver.ref_count++;
         return true;
     }
