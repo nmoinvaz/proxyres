@@ -111,7 +111,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
     return;
 }
 
-bool proxy_resolver_mac_discover_proxies_for_url(void *ctx, const char *url) {
+bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)ctx;
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
@@ -236,15 +236,15 @@ bool proxy_resolver_mac_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_mac_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_mac_i = {
-        proxy_resolver_mac_discover_proxies_for_url,
+        proxy_resolver_mac_get_proxies_for_url,
         proxy_resolver_mac_get_list,
         proxy_resolver_mac_get_error,
         proxy_resolver_mac_wait,
         proxy_resolver_mac_cancel,
         proxy_resolver_mac_create,
         proxy_resolver_mac_delete,
-        false /* discover_proxies_for_url should be spooled to another thread */,
-        true /* discover_proxies_for_url does not take into account system config */,
+        false /* get_proxies_for_url should be spooled to another thread */,
+        true /* get_proxies_for_url does not take into account system config */,
         proxy_resolver_mac_global_init,
         proxy_resolver_mac_global_cleanup};
     return &proxy_resolver_mac_i;

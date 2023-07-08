@@ -36,7 +36,7 @@ typedef struct proxy_resolver_winxp_s {
     char *list;
 } proxy_resolver_winxp_s;
 
-bool proxy_resolver_winxp_discover_proxies_for_url(void *ctx, const char *url) {
+bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_winxp_s *proxy_resolver = (proxy_resolver_winxp_s *)ctx;
     WINHTTP_AUTOPROXY_OPTIONS options = {0};
     WINHTTP_PROXY_INFO proxy_info = {0};
@@ -227,15 +227,15 @@ bool proxy_resolver_winxp_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_winxp_i = {
-        proxy_resolver_winxp_discover_proxies_for_url,
+        proxy_resolver_winxp_get_proxies_for_url,
         proxy_resolver_winxp_get_list,
         proxy_resolver_winxp_get_error,
         proxy_resolver_winxp_wait,
         proxy_resolver_winxp_cancel,
         proxy_resolver_winxp_create,
         proxy_resolver_winxp_delete,
-        false /* discover_proxies_for_url should be spooled to another thread */,
-        false /* discover_proxies_for_url does not take into account system config */,
+        false /* get_proxies_for_url should be spooled to another thread */,
+        false /* get_proxies_for_url does not take into account system config */,
         proxy_resolver_winxp_global_init,
         proxy_resolver_winxp_global_cleanup};
     return &proxy_resolver_winxp_i;

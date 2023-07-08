@@ -1,6 +1,6 @@
 #pragma once
 
-bool proxy_resolver_win8_discover_proxies_for_url(void *ctx, const char *url);
+bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url);
 const char *proxy_resolver_win8_get_list(void *ctx);
 int32_t proxy_resolver_win8_get_error(void *ctx);
 bool proxy_resolver_win8_wait(void *ctx, int32_t timeout_ms);
