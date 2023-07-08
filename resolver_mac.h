@@ -1,6 +1,5 @@
 #pragma once
 
-bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url);
 bool proxy_resolver_mac_discover_proxies_for_url(void *ctx, const char *url);
 const char *proxy_resolver_mac_get_list(void *ctx);
 int32_t proxy_resolver_mac_get_error(void *ctx);

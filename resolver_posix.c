@@ -47,56 +47,6 @@ typedef struct proxy_resolver_posix_s {
     char *list;
 } proxy_resolver_posix_s;
 
-bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
-    proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
-    char *auto_config_url = NULL;
-    char *proxy = NULL;
-    char *scheme = NULL;
-
-    // Skip if requires auto config url evaluation for proxy resolution
-    auto_config_url = proxy_config_get_auto_config_url();
-    if (auto_config_url)
-        goto posix_done;
-
-    // Use scheme associated with the URL when determining proxy
-    scheme = get_url_scheme(url, "http");
-    if (!scheme) {
-        proxy_resolver->error = ENOMEM;
-        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "scheme", proxy_resolver->error);
-        goto posix_done;
-    }
-
-    // Check to see if manually configured proxy is specified in system settings
-    proxy = proxy_config_get_proxy(scheme);
-    if (proxy) {
-        // Check to see if we need to bypass the proxy for the url
-        char *bypass_list = proxy_config_get_bypass_list();
-        bool should_bypass = should_bypass_proxy(url, bypass_list);
-        if (should_bypass) {
-            // Bypass the proxy for the url
-            LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
-            proxy_resolver->list = strdup("direct://");
-        } else {
-            // Use proxy from settings
-            proxy_resolver->list = get_url_from_host(url, proxy);
-        }
-        free(bypass_list);
-    } else if (!proxy_config_get_auto_discover()) {
-        // Use DIRECT connection since no proxy auto-discovery is necessary
-        proxy_resolver->list = strdup("direct://");
-    }
-
-posix_done:
-    if (proxy_resolver->list)
-        event_set(proxy_resolver->complete);
-
-    free(scheme);
-    free(proxy);
-    free(auto_config_url);
-
-    return proxy_resolver->list != NULL;
-};
-
 static char *proxy_resolver_posix_wpad_discover(void) {
     char *auto_config_url = NULL;
     char *script = NULL;
@@ -339,7 +289,6 @@ bool proxy_resolver_posix_global_cleanup(void) {
 
 proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
     static proxy_resolver_i_s proxy_resolver_posix_i = {
-        proxy_resolver_posix_get_proxies_for_url,
         proxy_resolver_posix_discover_proxies_for_url,
         proxy_resolver_posix_get_list,
         proxy_resolver_posix_get_error,
@@ -348,6 +297,7 @@ proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
         proxy_resolver_posix_create,
         proxy_resolver_posix_delete,
         false /* discover_proxies_for_url should be spooled to another thread */,
+        true /* discover_proxies_for_url does not take into account system config */,
         proxy_resolver_posix_global_init,
         proxy_resolver_posix_global_cleanup};
     return &proxy_resolver_posix_i;
