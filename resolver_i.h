@@ -2,6 +2,7 @@
 
 typedef struct proxy_resolver_i_s {
     bool (*get_proxies_for_url)(void *ctx, const char *url);
+    bool (*discover_proxies_for_url)(void *ctx, const char *url);
 
     const char *(*get_list)(void *ctx);
     int32_t (*get_error)(void *ctx);
@@ -11,7 +12,7 @@ typedef struct proxy_resolver_i_s {
     void *(*create)(void);
     bool (*delete)(void **ctx);
 
-    bool (*is_async)(void);
+    bool (*is_discover_async)(void);
 
     bool (*global_init)(void);
     bool (*global_cleanup)(void);

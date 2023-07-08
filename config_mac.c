@@ -26,7 +26,7 @@ bool proxy_config_mac_get_auto_discover(void) {
     if (!proxy_settings)
         return false;
 
-    // Get whether or not auto discovery is enabled
+    // Get whether or not auto-discovery is enabled
     if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoDiscoveryEnable))
         auto_discover = true;
 
