@@ -297,7 +297,7 @@ proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
         proxy_resolver_posix_create,
         proxy_resolver_posix_delete,
         false /* get_proxies_for_url should be spooled to another thread */,
-        true /* get_proxies_for_url does not take into account system config */,
+        false /* get_proxies_for_url does not take into account system config */,
         proxy_resolver_posix_global_init,
         proxy_resolver_posix_global_cleanup};
     return &proxy_resolver_posix_i;

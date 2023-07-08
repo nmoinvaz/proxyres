@@ -169,7 +169,7 @@ bool proxy_resolver_win8_get_proxies_for_url(void *ctx, const char *url) {
 
     auto_config_url = proxy_config_get_auto_config_url();
     if (auto_config_url) {
-        // Use auto configuration script specified in system settings
+        // Use auto configuration script specified by system
         auto_config_url_wide = utf8_dup_to_wchar(auto_config_url);
         if (!auto_config_url_wide) {
             proxy_resolver->error = ERROR_OUTOFMEMORY;
