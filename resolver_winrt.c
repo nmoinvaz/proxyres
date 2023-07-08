@@ -395,11 +395,6 @@ bool proxy_resolver_winrt_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_winrt_is_discover_async(void) {
-    // discover_proxies_for_url is handled asynchronous
-    return true;
-}
-
 bool proxy_resolver_winrt_global_init(void) {
     return true;
 }
@@ -417,7 +412,7 @@ proxy_resolver_i_s *proxy_resolver_winrt_get_interface(void) {
                                                         proxy_resolver_winrt_cancel,
                                                         proxy_resolver_winrt_create,
                                                         proxy_resolver_winrt_delete,
-                                                        proxy_resolver_winrt_is_discover_async,
+                                                        true /* discover_proxies_for_url is handled asynchronous */,
                                                         proxy_resolver_winrt_global_init,
                                                         proxy_resolver_winrt_global_cleanup};
     return &proxy_resolver_winrt_i;

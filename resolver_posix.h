@@ -10,8 +10,6 @@ bool proxy_resolver_posix_cancel(void *ctx);
 void *proxy_resolver_posix_create(void);
 bool proxy_resolver_posix_delete(void **ctx);
 
-bool proxy_resolver_posix_is_discover_async(void);
-
 bool proxy_resolver_posix_global_init(void);
 bool proxy_resolver_posix_init_ex(void *threadpool);
 bool proxy_resolver_posix_global_cleanup(void);

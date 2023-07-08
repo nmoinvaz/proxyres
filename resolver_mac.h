@@ -10,8 +10,6 @@ bool proxy_resolver_mac_cancel(void *ctx);
 void *proxy_resolver_mac_create(void);
 bool proxy_resolver_mac_delete(void **ctx);
 
-bool proxy_resolver_mac_is_discover_async(void);
-
 bool proxy_resolver_mac_global_init(void);
 bool proxy_resolver_mac_global_cleanup(void);
 

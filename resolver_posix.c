@@ -288,11 +288,6 @@ bool proxy_resolver_posix_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_posix_is_discover_async(void) {
-    // discover_proxies_for_url should be spooled to another thread
-    return false;
-}
-
 static void proxy_resolver_posix_wpad_startup(void *arg) {
     UNUSED(arg);
 
@@ -343,16 +338,17 @@ bool proxy_resolver_posix_global_cleanup(void) {
 }
 
 proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
-    static proxy_resolver_i_s proxy_resolver_posix_i = {proxy_resolver_posix_get_proxies_for_url,
-                                                        proxy_resolver_posix_discover_proxies_for_url,
-                                                        proxy_resolver_posix_get_list,
-                                                        proxy_resolver_posix_get_error,
-                                                        proxy_resolver_posix_wait,
-                                                        proxy_resolver_posix_cancel,
-                                                        proxy_resolver_posix_create,
-                                                        proxy_resolver_posix_delete,
-                                                        proxy_resolver_posix_is_discover_async,
-                                                        proxy_resolver_posix_global_init,
-                                                        proxy_resolver_posix_global_cleanup};
+    static proxy_resolver_i_s proxy_resolver_posix_i = {
+        proxy_resolver_posix_get_proxies_for_url,
+        proxy_resolver_posix_discover_proxies_for_url,
+        proxy_resolver_posix_get_list,
+        proxy_resolver_posix_get_error,
+        proxy_resolver_posix_wait,
+        proxy_resolver_posix_cancel,
+        proxy_resolver_posix_create,
+        proxy_resolver_posix_delete,
+        false /* discover_proxies_for_url should be spooled to another thread */,
+        proxy_resolver_posix_global_init,
+        proxy_resolver_posix_global_cleanup};
     return &proxy_resolver_posix_i;
 }

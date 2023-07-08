@@ -258,11 +258,6 @@ bool proxy_resolver_winxp_delete(void **ctx) {
     return true;
 }
 
-bool proxy_resolver_winxp_is_discover_async(void) {
-    // discover_proxies_for_url should be spooled to another thread
-    return false;
-}
-
 bool proxy_resolver_winxp_global_init(void) {
     g_proxy_resolver_winxp.session =
         WinHttpOpen(L"cproxyres", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
@@ -281,16 +276,17 @@ bool proxy_resolver_winxp_global_cleanup(void) {
 }
 
 proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
-    static proxy_resolver_i_s proxy_resolver_winxp_i = {proxy_resolver_winxp_get_proxies_for_url,
-                                                        proxy_resolver_winxp_discover_proxies_for_url,
-                                                        proxy_resolver_winxp_get_list,
-                                                        proxy_resolver_winxp_get_error,
-                                                        proxy_resolver_winxp_wait,
-                                                        proxy_resolver_winxp_cancel,
-                                                        proxy_resolver_winxp_create,
-                                                        proxy_resolver_winxp_delete,
-                                                        proxy_resolver_winxp_is_discover_async,
-                                                        proxy_resolver_winxp_global_init,
-                                                        proxy_resolver_winxp_global_cleanup};
+    static proxy_resolver_i_s proxy_resolver_winxp_i = {
+        proxy_resolver_winxp_get_proxies_for_url,
+        proxy_resolver_winxp_discover_proxies_for_url,
+        proxy_resolver_winxp_get_list,
+        proxy_resolver_winxp_get_error,
+        proxy_resolver_winxp_wait,
+        proxy_resolver_winxp_cancel,
+        proxy_resolver_winxp_create,
+        proxy_resolver_winxp_delete,
+        false /* discover_proxies_for_url should be spooled to another thread */,
+        proxy_resolver_winxp_global_init,
+        proxy_resolver_winxp_global_cleanup};
     return &proxy_resolver_winxp_i;
 }

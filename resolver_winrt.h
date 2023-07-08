@@ -10,8 +10,6 @@ bool proxy_resolver_winrt_cancel(void *ctx);
 void *proxy_resolver_winrt_create(void);
 bool proxy_resolver_winrt_delete(void **ctx);
 
-bool proxy_resolver_winrt_is_discover_async(void);
-
 bool proxy_resolver_winrt_global_init(void);
 bool proxy_resolver_winrt_global_cleanup(void);
 
