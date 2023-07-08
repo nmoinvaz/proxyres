@@ -69,7 +69,7 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
         return true;
 
     // Automatically discover proxy configuration asynchronously if supported, otherwise spool to thread pool
-    if (g_proxy_resolver.proxy_resolver_i->is_discover_async())
+    if (g_proxy_resolver.proxy_resolver_i->is_discover_async)
         return g_proxy_resolver.proxy_resolver_i->discover_proxies_for_url(proxy_resolver->base, url);
 
     free(proxy_resolver->url);
@@ -198,7 +198,7 @@ bool proxy_resolver_global_init(void) {
     }
 
     // No need to create thread pool since underlying implementation is already asynchronous
-    if (g_proxy_resolver.proxy_resolver_i->is_discover_async()) {
+    if (g_proxy_resolver.proxy_resolver_i->is_discover_async) {
         g_proxy_resolver.ref_count++;
         return true;
     }
