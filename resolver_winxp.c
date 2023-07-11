@@ -113,7 +113,7 @@ bool proxy_resolver_winxp_get_proxies_for_url(void *ctx, const char *url) {
         if (proxy_info.lpszProxyBypass)
             bypass_list = wchar_dup_to_utf8(proxy_info.lpszProxyBypass);
         if (bypass_list) {
-            // Check to see if we need to bypass the proxy for the url
+            // Check if we need to bypass the proxy for the url
             bool should_bypass = should_bypass_proxy(url, bypass_list);
             if (should_bypass) {
                 // Bypass the proxy for the url
@@ -234,8 +234,8 @@ proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
         proxy_resolver_winxp_cancel,
         proxy_resolver_winxp_create,
         proxy_resolver_winxp_delete,
-        false /* get_proxies_for_url should be spooled to another thread */,
-        false /* get_proxies_for_url does not take into account system config */,
+        false,  // get_proxies_for_url should be spooled to another thread
+        false,  // get_proxies_for_url does not take into account system config
         proxy_resolver_winxp_global_init,
         proxy_resolver_winxp_global_cleanup};
     return &proxy_resolver_winxp_i;

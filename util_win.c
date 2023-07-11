@@ -77,7 +77,7 @@ char *get_winhttp_proxy_by_scheme(const char *scheme, const char *proxy_list) {
                 host_start++;
         }
 
-        // Check to see if the scheme in the proxy config matches the url scheme
+        // Check if the scheme in the proxy config matches the url scheme
         if (real_scheme_len == config_scheme_len && _strnicmp(real_scheme, config_scheme, config_scheme_len) == 0) {
             if (!config_end)
                 config_end = host_start + strlen(host_start);

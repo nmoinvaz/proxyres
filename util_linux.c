@@ -87,7 +87,7 @@ char *get_config_value(const char *config, const char *section, const char *key)
             }
         }
 
-        // Check to see if we are in the right section
+        // Check if we are in the right section
         if (line_len > 2 && line_start[0] == '[' && line_end[-1] == ']')
             in_section = strncmp(line_start + 1, section, line_len - 2) == 0;
 

@@ -404,8 +404,8 @@ proxy_resolver_i_s *proxy_resolver_winrt_get_interface(void) {
                                                         proxy_resolver_winrt_cancel,
                                                         proxy_resolver_winrt_create,
                                                         proxy_resolver_winrt_delete,
-                                                        true /* get_proxies_for_url is handled asynchronously */,
-                                                        true /* get_proxies_for_url takes into account system config */,
+                                                        true,  // get_proxies_for_url is handled asynchronously
+                                                        true,  // get_proxies_for_url takes into account system config
                                                         proxy_resolver_winrt_global_init,
                                                         proxy_resolver_winrt_global_cleanup};
     return &proxy_resolver_winrt_i;

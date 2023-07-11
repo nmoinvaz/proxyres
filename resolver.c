@@ -77,10 +77,10 @@ static bool proxy_resolver_get_proxies_for_url_from_system_config(void *ctx, con
         goto config_done;
     }
 
-    // Check to see if manually configured proxy is specified in system config
+    // Check if manually configured proxy is specified in system config
     proxy = proxy_config_get_proxy(scheme);
     if (proxy) {
-        // Check to see if we need to bypass the proxy for the url
+        // Check if we need to bypass the proxy for the url
         char *bypass_list = proxy_config_get_bypass_list();
         bool should_bypass = should_bypass_proxy(url, bypass_list);
         if (should_bypass) {
