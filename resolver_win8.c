@@ -364,8 +364,8 @@ proxy_resolver_i_s *proxy_resolver_win8_get_interface(void) {
         proxy_resolver_win8_cancel,
         proxy_resolver_win8_create,
         proxy_resolver_win8_delete,
-        true /* get_proxies_for_url is handled asynchronously */,
-        false /* get_proxies_for_url does not take into account system config */,
+        true,   // get_proxies_for_url is handled asynchronously
+        false,  // get_proxies_for_url does not take into account system config
         proxy_resolver_win8_global_init,
         proxy_resolver_win8_global_cleanup};
     return &proxy_resolver_win8_i;

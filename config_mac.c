@@ -41,7 +41,7 @@ char *proxy_config_mac_get_auto_config_url(void) {
     if (!proxy_settings)
         return NULL;
 
-    // Check to see if auto-config url is enabled
+    // Check if auto-config url is enabled
     if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoConfigEnable)) {
         // Get the auto-config url
         CFStringRef auto_config_url = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);

@@ -117,7 +117,7 @@ bool proxy_config_kde_global_init(void) {
         break;
     }
 
-    // Check to see if config file exists
+    // Check if config file exists
     if (access(config_path, F_OK) == -1)
         return false;
 
