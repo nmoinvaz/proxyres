@@ -88,8 +88,13 @@ static bool proxy_resolver_get_proxies_for_url_from_system_config(void *ctx, con
             LOG_INFO("Bypassing proxy for %s (%s)\n", url, bypass_list ? bypass_list : "null");
             proxy_resolver->list = strdup("direct://");
         } else {
+            // Construct proxy list url using scheme associated with proxy's port if available,
+            // otherwise continue to use scheme associated with the url.
+            const int32_t proxy_port = get_host_port(proxy, strlen(proxy), 0);
+            const char *proxy_scheme = proxy_port ? get_port_scheme(proxy_port, scheme) : scheme;
+
             // Use proxy from settings
-            proxy_resolver->list = get_url_from_host(url, proxy);
+            proxy_resolver->list = get_url_from_host(proxy_scheme, proxy);
         }
         free(bypass_list);
     } else if (!proxy_config_get_auto_discover()) {
