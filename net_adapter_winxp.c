@@ -122,7 +122,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
             break;
         }
 
-        if (callback(user_data, &adapter))
+        if (!callback(user_data, &adapter))
             break;
     }
 
