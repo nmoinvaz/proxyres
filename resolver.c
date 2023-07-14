@@ -14,11 +14,13 @@
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
-#include "resolver_posix.h"
 #if defined(__APPLE__)
 #  include "resolver_mac.h"
 #elif defined(__linux__)
 #  include "resolver_gnome3.h"
+#  ifdef PROXYRES_EXECUTE
+#    include "resolver_posix.h"
+#  endif
 #elif defined(_WIN32)
 #  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
 #    include "resolver_winxp.h"
@@ -249,6 +251,10 @@ bool proxy_resolver_global_init(void) {
         /* Does not work for manually specified proxy auto-config urls
         if (proxy_resolver_gnome3_global_init())
             g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
+#  ifdef PROXYRES_EXECUTE
+    if (!g_proxy_resolver.proxy_resolver_i)
+        g_proxy_resolver.proxy_resolver_i = proxy_resolver_posix_get_interface();
+#  endif
 #elif defined(_WIN32)
 #  if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     if (proxy_resolver_win8_global_init())
@@ -259,10 +265,6 @@ bool proxy_resolver_global_init(void) {
     if (proxy_resolver_winrt_global_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_winrt_get_interface();
 #  endif
-#endif
-#ifdef PROXYRES_EXECUTE
-    if (!g_proxy_resolver.proxy_resolver_i)
-        g_proxy_resolver.proxy_resolver_i = proxy_resolver_posix_get_interface();
 #endif
 
     if (!g_proxy_resolver.proxy_resolver_i) {
@@ -284,7 +286,7 @@ bool proxy_resolver_global_init(void) {
         return false;
     }
 
-#ifdef PROXYRES_EXECUTE
+#if defined(__linux__) && defined(PROXYRES_EXECUTE)
     // Pass threadpool to posix resolver to immediately start wpad discovery
     if (g_proxy_resolver.proxy_resolver_i == proxy_resolver_posix_get_interface()) {
         if (!proxy_resolver_posix_init_ex(g_proxy_resolver.threadpool)) {
