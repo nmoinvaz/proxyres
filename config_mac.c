@@ -4,6 +4,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <CFNetwork/CFNetwork.h>
+#include <TargetConditionals.h>
 
 #include "config.h"
 #include "config_i.h"
@@ -20,8 +21,8 @@ static bool get_cf_dictionary_bool(CFDictionaryRef dictionary, CFStringRef key) 
 }
 
 bool proxy_config_mac_get_auto_discover(void) {
+#if !TARGET_OS_IPHONE
     bool auto_discover = false;
-
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
         return false;
@@ -32,6 +33,9 @@ bool proxy_config_mac_get_auto_discover(void) {
 
     CFRelease(proxy_settings);
     return auto_discover;
+#else
+    return false;
+#endif
 }
 
 char *proxy_config_mac_get_auto_config_url(void) {
@@ -76,6 +80,7 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
     CFStringRef host_index = kCFNetworkProxiesHTTPProxy;
     CFStringRef port_index = kCFNetworkProxiesHTTPPort;
 
+#if !TARGET_OS_IPHONE
     if (strncasecmp(scheme, "https", 5) == 0) {
         enable_index = kCFNetworkProxiesHTTPSEnable;
         host_index = kCFNetworkProxiesHTTPSProxy;
@@ -93,6 +98,7 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
         host_index = kCFNetworkProxiesRTSPProxy;
         port_index = kCFNetworkProxiesRTSPPort;
     }
+#endif
 
     CFDictionaryRef proxy_settings = CFNetworkCopySystemProxySettings();
     if (!proxy_settings)
@@ -147,16 +153,21 @@ char *proxy_config_mac_get_bypass_list(void) {
         return NULL;
 
     // Get whether to exclude simple hostnames
-    bool exclude_simple_hostnames = get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesExcludeSimpleHostnames);
+    bool exclude_simple_hostnames = false;
+#if !TARGET_OS_IPHONE
+    exclude_simple_hostnames = get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesExcludeSimpleHostnames);
     if (exclude_simple_hostnames)
         bypass_list_count++;
-
+#endif
     // Get exception list
-    CFArrayRef exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
+    CFArrayRef exceptions_list = NULL;
+#if !TARGET_OS_IPHONE
+    exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
     if (exceptions_list) {
         exception_count = CFArrayGetCount(exceptions_list);
         bypass_list_count += exception_count;
     }
+#endif
 
     if (!bypass_list_count)
         goto bypass_list_error;

@@ -7,7 +7,11 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <net/if.h>
-#include <net/if_arp.h>
+#ifdef HAVE_NET_IF_ARP_H
+#  include <net/if_arp.h>
+#else
+#  define ARPHRD_ETHER 1  // Ethernet hardware format
+#endif
 #include <net/if_dl.h>
 #include <sys/sysctl.h>
 
