@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+include(CheckIncludeFile)
+
 option(PROXYRES_CURL "Enable support for downloading PAC scripts using curl." OFF)
 option(PROXYRES_EXECUTE "Enable support for PAC script execution." ON)
 
@@ -186,6 +188,13 @@ target_include_directories(proxyres PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/proxyres)
 target_include_directories(proxyres PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
+if(NOT WIN32)
+    check_include_file("net/if_arp.h" HAVE_NET_IF_ARP_H)
+    if(HAVE_NET_IF_ARP_H)
+        target_compile_definitions(proxyres PRIVATE HAVE_NET_IF_ARP_H)
+    endif()
+endif()
 
 if(PROXYRES_CURL AND (PROXYRES_EXECUTE OR PROXYRES_BUILD_CLI))
     if(NOT TARGET CURL::libcurl)
