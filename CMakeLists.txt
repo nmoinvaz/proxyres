@@ -245,7 +245,9 @@ if(PROXYRES_CURL AND (PROXYRES_EXECUTE OR PROXYRES_BUILD_CLI))
             add_subdirectory(${curl_SOURCE_DIR} ${curl_BINARY_DIR} EXCLUDE_FROM_ALL)
         endif()
 
-        add_library(CURL::libcurl ALIAS libcurl)
+        if(NOT TARGET CURL::libcurl)
+            add_library(CURL::libcurl ALIAS libcurl)
+        endif()
     endif()
 endif()
 
