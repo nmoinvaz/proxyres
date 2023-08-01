@@ -169,13 +169,14 @@ static bool dhcp_send_inform(SOCKET sfd, uint32_t xid, net_adapter_s *adapter) {
     opts = dhcp_copy_option(opts, &opt_end);
 
     // Broadcast DHCP request
-    ssize_t request_len = (ssize_t)(opts - (uint8_t *)&request);
-    ssize_t sent = sendto(sfd, (const char *)&request, request_len, 0, (struct sockaddr *)&address, sizeof(address));
+    const ssize_t request_len = (ssize_t)(opts - (uint8_t *)&request);
+    const ssize_t sent =
+        sendto(sfd, (const char *)&request, request_len, 0, (struct sockaddr *)&address, sizeof(address));
     return sent == request_len;
 }
 
 static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
-    ssize_t response_len = recvfrom(sfd, (char *)reply, sizeof(dhcp_msg), 0, NULL, NULL);
+    const ssize_t response_len = recvfrom(sfd, (char *)reply, sizeof(dhcp_msg), 0, NULL, NULL);
 
     if (response_len <= (ssize_t)(sizeof(dhcp_msg) - DHCP_OPT_MIN_LENGTH)) {
         LOG_DEBUG("Unable to read DHCP reply (%d:%d)\n", response_len, socketerr);
