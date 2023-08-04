@@ -116,8 +116,6 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     CFURLRef target_url_ref = NULL;
     CFURLRef url_ref = NULL;
     char *auto_config_url = NULL;
-    char *proxy = NULL;
-    char *bypass_list = NULL;
     bool is_ok = false;
 
     if (!proxy_resolver || !url)
