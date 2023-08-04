@@ -124,7 +124,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     auto_config_url = proxy_config_get_auto_config_url();
     if (!auto_config_url) {
         proxy_resolver->error = EINVAL;
-        LOG_ERROR("Auto configuration url not specified", proxy_resolver->error);
+        LOG_ERROR("Auto configuration url not specified");
         goto mac_done;
     }
 
