@@ -171,7 +171,7 @@ jobs:
         fi
         out=$(./proxycli resolve https://simple.com/)
         echo "Proxy for https://simple.com/: $out"
-        if [ "$out" = "https://no-such-proxy:80" ]; then
+        if [ "$out" = "http://no-such-proxy:80" ]; then
           echo "Proxy for https://simple.com/ set successfully"
         else
           echo "Proxy for https://simple.com/ set failed"
@@ -179,7 +179,7 @@ jobs:
         fi
         out=$(./proxycli resolve https://multi-legacy.com/)
         echo "Proxy for https://multi-legacy.com/: $out"
-        if [ "$out" = "https://some-such-proxy:443,https://any-such-proxy:41" ]; then
+        if [ "$out" = "http://some-such-proxy:443,http://any-such-proxy:41" ]; then
           echo "Proxy for https://multi-legacy.com/ set successfully"
         else
           echo "Proxy for https://multi-legacy.com/ set failed"

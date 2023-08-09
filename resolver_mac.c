@@ -33,6 +33,22 @@ typedef struct proxy_resolver_mac_s {
     char *list;
 } proxy_resolver_mac_s;
 
+static const char *proxy_resolver_mac_get_proxy_scheme(CFStringRef proxy_type) {
+    const char *scheme = NULL;
+    if (CFEqual(proxy_type, kCFProxyTypeNone))
+        scheme = "direct://";
+    else if (CFEqual(proxy_type, kCFProxyTypeHTTP))
+        scheme = "http://";
+    else if (CFEqual(proxy_type, kCFProxyTypeHTTPS))
+        // "HTTPS Proxy" on macOS means "use CONNENCT verb for a https:// URL", the proxy still should be an HTTP proxy.
+        scheme = "http://";
+    else if (CFEqual(proxy_type, kCFProxyTypeSOCKS))
+        scheme = "socks://";
+    else if (CFEqual(proxy_type, kCFProxyTypeFTP))
+        scheme = "ftp://";
+    return scheme;
+}
+
 static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArrayRef proxy_array, CFErrorRef error) {
     proxy_resolver_mac_s *proxy_resolver = (proxy_resolver_mac_s *)client;
     if (error) {
@@ -40,71 +56,66 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
         proxy_resolver->error = CFErrorGetCode(error);
     } else {
         // Convert proxy array into PAC file return format
-        size_t proxy_count = CFArrayGetCount(proxy_array);
-        size_t max_list = proxy_count * MAX_PROXY_URL + 1;
+        const size_t proxy_count = CFArrayGetCount(proxy_array);
+        const size_t max_list = proxy_count * MAX_PROXY_URL + 1;
         size_t list_len = 0;
 
         proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
 
         // Enumerate through each proxy in the array
-        for (size_t i = 0; proxy_resolver->list && i < proxy_count; i++) {
+        for (size_t i = 0; proxy_resolver->list && i < proxy_count && list_len < max_list; i++) {
             CFDictionaryRef proxy = CFArrayGetValueAtIndex(proxy_array, i);
             CFStringRef proxy_type = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyTypeKey);
 
             // Copy type of connection
-            if (CFEqual(proxy_type, kCFProxyTypeNone)) {
-                strncat(proxy_resolver->list, "direct://", max_list - list_len - 1);
-                list_len += 9;
-            } else if (CFEqual(proxy_type, kCFProxyTypeHTTP)) {
-                strncat(proxy_resolver->list, "http://", max_list - list_len - 1);
-                list_len += 7;
-            } else if (CFEqual(proxy_type, kCFProxyTypeHTTPS)) {
-                strncat(proxy_resolver->list, "https://", max_list - list_len - 1);
-                list_len += 8;
-            } else if (CFEqual(proxy_type, kCFProxyTypeSOCKS)) {
-                strncat(proxy_resolver->list, "socks://", max_list - list_len - 1);
-                list_len += 8;
-            } else if (CFEqual(proxy_type, kCFProxyTypeFTP)) {
-                strncat(proxy_resolver->list, "ftp://", max_list - list_len - 1);
-                list_len += 6;
+            const char *scheme = proxy_resolver_mac_get_proxy_scheme(proxy_type);
+            if (scheme) {
+                strncpy(proxy_resolver->list + list_len, scheme, max_list - list_len);
+                list_len += strlen(scheme);
             } else {
                 LOG_WARN("Unknown proxy type encountered\n");
                 continue;
             }
 
-            if (!CFEqual(proxy_type, kCFProxyTypeNone)) {
+            if (!CFEqual(proxy_type, kCFProxyTypeNone) && list_len < max_list) {
                 // Copy proxy host
                 CFStringRef host = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyHostNameKey);
-                if (host) {
+                if (host && list_len < max_list) {
                     const char *host_utf8 = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
                     if (host_utf8) {
-                        strncat(proxy_resolver->list, host_utf8, max_list - list_len - 1);
+                        strncpy(proxy_resolver->list + list_len, host_utf8, max_list - list_len);
                         list_len += strlen(host_utf8);
-                    } else {
-                        CFStringGetCString(host, proxy_resolver->list + list_len, max_list - list_len,
-                                           kCFStringEncodingUTF8);
+                    } else if (CFStringGetCString(host, proxy_resolver->list + list_len, max_list - list_len,
+                                                  kCFStringEncodingUTF8)) {
                         list_len = strlen(proxy_resolver->list);
+                    } else {
+                        list_len = max_list;
                     }
                 }
                 // Copy proxy port
                 CFNumberRef port = (CFNumberRef)CFDictionaryGetValue(proxy, kCFProxyPortNumberKey);
-                if (port) {
-                    int64_t port_number = 0;
-                    CFNumberGetValue(port, kCFNumberSInt64Type, &port_number);
-                    snprintf(proxy_resolver->list + list_len, max_list - list_len, ":%" PRId64 "", port_number);
-                    list_len = strlen(proxy_resolver->list);
+                if (port && list_len < max_list) {
+                    int32_t port_number = 0;
+                    CFNumberGetValue(port, kCFNumberSInt32Type, &port_number);
+                    list_len +=
+                        snprintf(proxy_resolver->list + list_len, max_list - list_len, ":%" PRId32, port_number);
                 }
             }
 
-            if (i != proxy_count - 1) {
+            if (i != proxy_count - 1 && list_len < max_list) {
                 // Separate each proxy with a comma
-                strncat(proxy_resolver->list, ",", max_list - list_len - 1);
+                strncat(proxy_resolver->list, ",", max_list - list_len);
                 list_len++;
             }
         }
-
-        if (!proxy_resolver->list)
+        if (list_len >= max_list) {
+            proxy_resolver->error = ERANGE;
+            LOG_WARN("Proxy list limit exceeded\n");
+            free(proxy_resolver->list);
+            proxy_resolver->list = NULL;
+        } else if (!proxy_resolver->list) {
             proxy_resolver->error = ENOMEM;
+        }
     }
 
     CFRunLoopStop(CFRunLoopGetCurrent());
