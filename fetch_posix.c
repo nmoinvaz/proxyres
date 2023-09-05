@@ -78,7 +78,7 @@ char *fetch_get(const char *url, int32_t *error) {
 
     // Create communication socket
     sfd = socket(address_info->ai_family, address_info->ai_socktype, address_info->ai_protocol);
-    if (sfd == -1) {
+    if ((int)sfd == -1) {
         err = socketerr;
         LOG_ERROR("Unable to create socket (%" PRId32 ")\n", err);
         goto download_cleanup;
