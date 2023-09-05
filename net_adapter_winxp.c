@@ -31,7 +31,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
 
     error = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0, NULL, &buffer_size);
     if (error != ERROR_SUCCESS && error != ERROR_BUFFER_OVERFLOW) {
-        LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "adapter info", error);
+        LOG_ERROR("Unable to allocate memory for %s (%lu)\n", "adapter info", error);
         return false;
     }
 
@@ -42,7 +42,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     error = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0,
                                  (IP_ADAPTER_ADDRESSES *)buffer, &required_size);
     if (error != ERROR_SUCCESS) {
-        LOG_ERROR("Unable to get adapter info (%d / %d:%d)\n", error, buffer_size, required_size);
+        LOG_ERROR("Unable to get adapter info (%lu / %lu:%lu)\n", error, buffer_size, required_size);
         goto net_adapter_cleanup;
     }
 
@@ -67,7 +67,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         if (adapter_addresses->OperStatus == IfOperStatusUp)
             adapter.is_connected = true;
         if (adapter_addresses->Flags & IP_ADAPTER_DHCP_ENABLED && adapter_addresses->Dhcpv4Enabled &&
-            adapter_addresses->Dhcpv4Server.iSockaddrLength >= sizeof(adapter.dhcp))
+            adapter_addresses->Dhcpv4Server.iSockaddrLength >= (int32_t)sizeof(adapter.dhcp))
             adapter.is_dhcp_v4 = true;
 
         // Populate adapter name, guid, and description
