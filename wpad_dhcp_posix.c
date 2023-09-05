@@ -202,7 +202,7 @@ static bool dhcp_read_reply(SOCKET sfd, uint32_t request_xid, dhcp_msg *reply) {
 
 char *wpad_dhcp_adapter_posix(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t timeout_sec) {
     SOCKET sfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sfd == -1) {
+    if ((int)sfd == -1) {
         LOG_ERROR("Unable to create udp socket\n");
         return NULL;
     }
