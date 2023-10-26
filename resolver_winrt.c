@@ -197,7 +197,7 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
         HSTRING url_string = NULL;
         result = WinRT_IUriRuntimeClass_GetAbsoluteUri(uri, &url_string);
         if (SUCCEEDED(result)) {
-            wchar_t *url_wide = (wchar_t *)WindowsGetStringRawBuffer(url_string, NULL);
+            const wchar_t *url_wide = WindowsGetStringRawBuffer(url_string, NULL);
             if (url_wide) {
                 char *url_utf8 = wchar_dup_to_utf8(url_wide);
                 if (url_utf8) {
