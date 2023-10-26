@@ -2,15 +2,18 @@ if(PROXYRES_BUILD_CLI)
     set(PROXYCLI_SRCS proxycli.c)
 
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-        list(APPEND PROXYCLI_SRCS
+        set(PROXYCLI_ASSETS
             uwp/Square44x44Logo.png
             uwp/Square150x150Logo.png
             uwp/StoreLogo.png
-            uwp/Package.appxmanifest
-            uwp/Windows_TemporaryKey.pfx)
+            uwp/Package.appxmanifest)
+    
+        set_source_files_properties(${PROXYCLI_ASSETS} PROPERTIES 
+            VS_DEPLOYMENT_CONTENT 1
+            VS_DEPLOYMENT_LOCATION "Assets")
     endif()
 
-    add_executable(proxycli ${PROXYCLI_SRCS})
+    add_executable(proxycli ${PROXYCLI_SRCS} ${PROXYCLI_ASSETS})
     target_link_libraries(proxycli PRIVATE proxyres)
 
     if(TARGET CURL::libcurl)
