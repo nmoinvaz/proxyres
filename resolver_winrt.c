@@ -378,10 +378,11 @@ bool proxy_resolver_winrt_delete(void **ctx) {
     if (!proxy_resolver)
         return false;
     proxy_resolver_winrt_cancel(ctx);
-    if (proxy_resolver->complete_handler->async)
-        WinRT_IAsyncOperation_ProxyConfiguration_Release(proxy_resolver->complete_handler->async);
-    if (proxy_resolver->complete_handler)
+    if (proxy_resolver->complete_handler) {
+        if (proxy_resolver->complete_handler->async)
+            WinRT_IAsyncOperation_ProxyConfiguration_Release(proxy_resolver->complete_handler->async);
         free(proxy_resolver->complete_handler);
+    }
     event_delete(&proxy_resolver->complete);
     free(proxy_resolver->list);
     free(proxy_resolver);
