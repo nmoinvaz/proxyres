@@ -159,6 +159,6 @@ static const IActiveScriptSiteVtbl active_script_site_vtbl = {active_script_site
                                                               active_script_site_on_enter_script,
                                                               active_script_site_on_leave_script};
 
-IActiveScriptSiteVtbl *active_script_site_get_vtbl() {
+IActiveScriptSiteVtbl *active_script_site_get_vtbl(void) {
     return (IActiveScriptSiteVtbl *)&active_script_site_vtbl;
 }

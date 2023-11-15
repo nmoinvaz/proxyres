@@ -176,6 +176,6 @@ static const IDispatchVtbl script_dispatch_vtbl = {script_dispatch_query_interfa
                                                    script_dispatch_get_type_info,   script_dispatch_get_ids_of_names,
                                                    script_dispatch_invoke};
 
-IDispatchVtbl *script_dispatch_get_vtbl() {
+IDispatchVtbl *script_dispatch_get_vtbl(void) {
     return (IDispatchVtbl *)&script_dispatch_vtbl;
 }
