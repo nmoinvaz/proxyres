@@ -54,6 +54,11 @@ jobs:
     - name: Build project
       run: cmake --build build --config RelWithDebInfo
 
+    - name: Setup node version
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.18.0
+
     - name: Install test dependencies
       run: |
         corepack enable
