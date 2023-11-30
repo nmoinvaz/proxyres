@@ -131,10 +131,14 @@ bool proxy_config_global_init(void) {
 bool proxy_config_global_cleanup(void) {
     if (--g_proxy_config.ref_count > 0)
         return true;
+
     free(g_proxy_config.auto_config_url);
     free(g_proxy_config.proxy);
     free(g_proxy_config.bypass_list);
+
     if (g_proxy_config.proxy_config_i)
-        return g_proxy_config.proxy_config_i->global_cleanup();
+        g_proxy_config.proxy_config_i->global_cleanup();
+
+    memset(&g_proxy_config, 0, sizeof(g_proxy_config));
     return false;
 }
