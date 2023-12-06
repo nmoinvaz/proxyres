@@ -65,7 +65,7 @@ if(WIN32)
         mutex_win.c
         util_win.h
         util_win.c
-        net_adapter_winxp.c)
+        net_adapter_win.c)
     if(PROXYRES_EXECUTE)
         list(APPEND PROXYRES_SRCS
             wpad_dhcp_win.h
