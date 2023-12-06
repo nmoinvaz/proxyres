@@ -117,13 +117,13 @@ typedef struct async_complete_handler_s {
 ULONG STDMETHODCALLTYPE
 async_complete_handler_add_ref(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler) {
     async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
-    return ++this->ref_count;
+    return InterlockedIncrement(&this->ref_count);
 }
 
 ULONG STDMETHODCALLTYPE
 async_complete_handler_release(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler) {
     async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
-    if (--this->ref_count == 0)
+    if (InterlockedDecrement(&this->ref_count) <= 0)
         return 0;
     return this->ref_count;
 }
