@@ -102,7 +102,7 @@ typedef struct proxy_resolver_winrt_s {
 
 typedef struct async_complete_handler_s {
     // IAsyncOperationCompletedHandler<ProxyConfiguration> interface
-    WinRT_IAsyncOperationCompletedHandler_ProxyConfigurationVtbl *complete;
+    const WinRT_IAsyncOperationCompletedHandler_ProxyConfigurationVtbl *complete;
     // IAsyncOperation<ProxyConfiguration> instance
     WinRT_IAsyncOperation_ProxyConfiguration *async;
     // Reference count
@@ -123,8 +123,10 @@ async_complete_handler_add_ref(WinRT_IAsyncOperationCompletedHandler_ProxyConfig
 ULONG STDMETHODCALLTYPE
 async_complete_handler_release(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler) {
     async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
-    if (InterlockedDecrement(&this->ref_count) <= 0)
+    if (InterlockedDecrement(&this->ref_count) == 0) {
+        free(this);
         return 0;
+    }
     return this->ref_count;
 }
 
@@ -148,7 +150,15 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
     WinRT_IProxyConfiguration *results = NULL;
     WinRT_IVectorView_Uri *uri_list = NULL;
 
-    HRESULT result = WinRT_IAsyncOperation_ProxyConfiguration_GetResults(this->async, &results);
+    HRESULT result = S_OK;
+
+    if (!proxy_resolver) {
+        result = E_CHANGED_STATE;
+        LOG_WARN("Proxy resolver was detached from async operation (0x%lx)", result);
+        goto winrt_async_done;
+    }
+
+    result = WinRT_IAsyncOperation_ProxyConfiguration_GetResults(this->async, &results);
     if (FAILED(result)) {
         LOG_ERROR("Failed to get results from async operation (0x%lx)", result);
         goto winrt_async_done;
@@ -232,7 +242,7 @@ winrt_async_done:
     return S_OK;
 }
 
-static WinRT_IAsyncOperationCompletedHandler_ProxyConfigurationVtbl async_complete_handler_vtbl = {
+static const WinRT_IAsyncOperationCompletedHandler_ProxyConfigurationVtbl async_complete_handler_vtbl = {
     async_complete_handler_query_interface,
     async_complete_handler_add_ref,
     async_complete_handler_release,
@@ -379,9 +389,11 @@ bool proxy_resolver_winrt_delete(void **ctx) {
         return false;
     proxy_resolver_winrt_cancel(ctx);
     if (proxy_resolver->complete_handler) {
-        if (proxy_resolver->complete_handler->async)
-            WinRT_IAsyncOperation_ProxyConfiguration_Release(proxy_resolver->complete_handler->async);
-        free(proxy_resolver->complete_handler);
+        proxy_resolver->complete_handler->proxy_resolver = NULL;
+        if (proxy_resolver->complete_handler->async) {
+            async_complete_handler_release(
+                (WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *)proxy_resolver->complete_handler);
+        }
     }
     event_delete(&proxy_resolver->complete);
     free(proxy_resolver->list);
