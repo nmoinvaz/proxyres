@@ -287,8 +287,8 @@ bool proxy_resolver_posix_global_cleanup(void) {
     return true;
 }
 
-proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
-    static proxy_resolver_i_s proxy_resolver_posix_i = {
+const proxy_resolver_i_s *proxy_resolver_posix_get_interface(void) {
+    static const proxy_resolver_i_s proxy_resolver_posix_i = {
         proxy_resolver_posix_get_proxies_for_url,
         proxy_resolver_posix_get_list,
         proxy_resolver_posix_get_error,

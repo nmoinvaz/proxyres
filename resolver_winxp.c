@@ -225,8 +225,8 @@ bool proxy_resolver_winxp_global_cleanup(void) {
     return true;
 }
 
-proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
-    static proxy_resolver_i_s proxy_resolver_winxp_i = {
+const proxy_resolver_i_s *proxy_resolver_winxp_get_interface(void) {
+    static const proxy_resolver_i_s proxy_resolver_winxp_i = {
         proxy_resolver_winxp_get_proxies_for_url,
         proxy_resolver_winxp_get_list,
         proxy_resolver_winxp_get_error,
