@@ -12,4 +12,4 @@ bool proxy_resolver_mac_delete(void **ctx);
 bool proxy_resolver_mac_global_init(void);
 bool proxy_resolver_mac_global_cleanup(void);
 
-proxy_resolver_i_s *proxy_resolver_mac_get_interface(void);
+const proxy_resolver_i_s *proxy_resolver_mac_get_interface(void);

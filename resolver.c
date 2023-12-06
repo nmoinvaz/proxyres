@@ -36,7 +36,7 @@ typedef struct g_proxy_resolver_s {
     // Library reference count
     int32_t ref_count;
     // Proxy resolver interface
-    proxy_resolver_i_s *proxy_resolver_i;
+    const proxy_resolver_i_s *proxy_resolver_i;
     // Thread pool
     void *threadpool;
 } g_proxy_resolver_s;

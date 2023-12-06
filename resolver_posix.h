@@ -14,4 +14,4 @@ bool proxy_resolver_posix_global_init(void);
 bool proxy_resolver_posix_init_ex(void *threadpool);
 bool proxy_resolver_posix_global_cleanup(void);
 
-proxy_resolver_i_s *proxy_resolver_posix_get_interface(void);
+const proxy_resolver_i_s *proxy_resolver_posix_get_interface(void);
