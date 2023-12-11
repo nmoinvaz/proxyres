@@ -32,61 +32,61 @@ list(APPEND PROXYRES_SRCS
     event.h
     log.h
     mutex.h
-    net_util.h
     net_util.c
+    net_util.h
     proxyres.c
     resolver_i.h
     resolver.c
     threadpool.h
-    util.h
-    util.c)
+    util.c
+    util.h)
 if(PROXYRES_EXECUTE)
     list(APPEND PROXYRES_SRCS
         execute_i.h
         execute.c
         fetch.h
         mozilla_js.h
-        net_adapter.h
         net_adapter.c
-        resolver_posix.h
+        net_adapter.h
         resolver_posix.c
-        wpad_dhcp.h
-        wpad_dhcp.c
-        wpad_dhcp_posix.h
+        resolver_posix.h
         wpad_dhcp_posix.c
-        wpad_dns.h
-        wpad_dns.c)
+        wpad_dhcp_posix.h
+        wpad_dhcp.c
+        wpad_dhcp.h
+        wpad_dns.c
+        wpad_dns.h)
 endif()
 if(WIN32)
     list(APPEND PROXYRES_SRCS
-        config_win.h
         config_win.c
+        config_win.h
         event_win.c
         mutex_win.c
         net_adapter_win.c
-        util_win.h
-        util_win.c)
+        util_win.c
+        util_win.h)
     if(PROXYRES_EXECUTE)
         list(APPEND PROXYRES_SRCS
-            wpad_dhcp_win.h
-            wpad_dhcp_win.c)
+            wpad_dhcp_win.c
+            wpad_dhcp_win.h)
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
         list(APPEND PROXYRES_SRCS
-            resolver_winrt.h
-            resolver_winrt.c)
+            resolver_winrt.c
+            resolver_winrt.h)
     else()
         list(APPEND PROXYRES_SRCS
-            resolver_win8.h
             resolver_win8.c
-            resolver_winxp.h
-            resolver_winxp.c)
+            resolver_win8.h
+            resolver_winxp.c
+            resolver_winxp.h)
         if(PROXYRES_EXECUTE)
             list(APPEND PROXYRES_SRCS
                 execute_wsh_dispatch.h
                 execute_wsh_site.h
-                execute_wsh.h
-                execute_wsh.c)
+                execute_wsh.c
+                execute_wsh.h)
         endif()
     endif()
 
@@ -99,41 +99,41 @@ if(WIN32)
     endif()
 elseif(APPLE)
     list(APPEND PROXYRES_SRCS
-        config_mac.h
         config_mac.c
+        config_mac.h
         event_pthread.c
         mutex_pthread.c
-        resolver_mac.h
         resolver_mac.c
+        resolver_mac.h
         threadpool_pthread.c)
     if(PROXYRES_EXECUTE)
         list(APPEND PROXYRES_SRCS
-            execute_jscore.h
             execute_jscore.c
+            execute_jscore.h
             net_adapter_mac.c
-            wpad_dhcp_mac.h
-            wpad_dhcp_mac.c)
+            wpad_dhcp_mac.c
+            wpad_dhcp_mac.h)
     endif()
 elseif(UNIX)
     list(APPEND PROXYRES_SRCS
-        config_env.h
         config_env.c
-        config_gnome2.h
+        config_env.h
         config_gnome2.c
-        config_gnome3.h
+        config_gnome2.h
         config_gnome3.c
-        config_kde.h
+        config_gnome3.h
         config_kde.c
+        config_kde.h
         event_pthread.c
-        execute_jscore.h
         execute_jscore.c
+        execute_jscore.h
         mutex_pthread.c
         net_adapter_linux.c
-        resolver_gnome3.h
         resolver_gnome3.c
+        resolver_gnome3.h
         threadpool_pthread.c
-        util_linux.h
-        util_linux.c)
+        util_linux.c
+        util_linux.h)
 endif()
 
 if(WIN32)
