@@ -7,8 +7,8 @@ if(PROXYRES_BUILD_CLI)
             uwp/Square150x150Logo.png
             uwp/StoreLogo.png
             uwp/Package.appxmanifest)
-    
-        set_source_files_properties(${PROXYCLI_ASSETS} PROPERTIES 
+
+        set_source_files_properties(${PROXYCLI_ASSETS} PROPERTIES
             VS_DEPLOYMENT_CONTENT 1
             VS_DEPLOYMENT_LOCATION "Assets")
     endif()
@@ -85,6 +85,8 @@ if(PROXYRES_BUILD_TESTS)
     set(TEST_SRCS
         test_config.cc
         test_main.cc
+        test_net_util.cc
+        test_net_adapter.cc
         test_threadpool.cc
         test_util.cc)
     if(WIN32)
@@ -96,10 +98,8 @@ if(PROXYRES_BUILD_TESTS)
     endif()
     if(PROXYRES_EXECUTE)
         list(APPEND TEST_SRCS
-            test_dns.cc
             test_execute.cc
             test_fetch.cc
-            test_net_adapter.cc
             test_wpad.cc)
     endif()
 

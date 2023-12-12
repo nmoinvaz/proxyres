@@ -74,9 +74,7 @@ INSTANTIATE_TEST_SUITE_P(execute, execute, testing::ValuesIn(execute_tests));
 
 // Construct expected output for myip test case
 static char *expected_my_ip(void) {
-    int32_t error = 0;
-    char *address = dns_resolve(NULL, &error);
-    EXPECT_EQ(error, 0);
+    char *address = my_ip_address();
     if (!address)
         return NULL;
 
@@ -92,9 +90,7 @@ static char *expected_my_ip(void) {
 
 // Construct expected output for myipex test case
 static char *expected_my_ip_ex(void) {
-    int32_t error = 0;
-    char *addresses = dns_resolve_ex(NULL, &error);
-    EXPECT_EQ(error, 0);
+    char *addresses = my_ip_address_ex();
     if (!addresses)
         return NULL;
 
