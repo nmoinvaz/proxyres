@@ -5,6 +5,7 @@
 #include <inttypes.h>
 
 #include <winsock2.h>
+#include <ws2ipdef.h>
 #include <windows.h>
 #include <iptypes.h>
 #include <iphlpapi.h>
@@ -29,7 +30,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     if (!callback)
         return false;
 
-    error = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0, NULL, &buffer_size);
+    error = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0, NULL, &buffer_size);
     if (error != ERROR_SUCCESS && error != ERROR_BUFFER_OVERFLOW) {
         LOG_ERROR("Unable to allocate memory for %s (%lu)\n", "adapter info", error);
         return false;
@@ -39,7 +40,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     buffer = calloc(buffer_size, sizeof(uint8_t));
     required_size = buffer_size;
 
-    error = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0,
+    error = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0,
                                  (IP_ADAPTER_ADDRESSES *)buffer, &required_size);
     if (error != ERROR_SUCCESS) {
         LOG_ERROR("Unable to get adapter info (%lu / %lu:%lu)\n", error, buffer_size, required_size);
@@ -91,14 +92,26 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         // Populate adapter ip address
         unicast_address = adapter_addresses->FirstUnicastAddress;
         while (unicast_address) {
-            memcpy(adapter.ip, &unicast_address->Address.lpSockaddr->sa_data[2], sizeof(adapter.ip));
-            break;
+            if (unicast_address->Address.lpSockaddr->sa_family == AF_INET) {
+                memcpy(adapter.ip, &unicast_address->Address.lpSockaddr->sa_data[2], sizeof(adapter.ip));
+            } else if (unicast_address->Address.lpSockaddr->sa_family == AF_INET6) {
+                struct sockaddr_in6 *sockaddr_ipv6 = (struct sockaddr_in6 *)unicast_address->Address.lpSockaddr;
+                memcpy(adapter.ipv6, &sockaddr_ipv6->sin6_addr, sizeof(adapter.ipv6));
+                adapter.is_ipv6 = true;
+            }
+            unicast_address = unicast_address->Next;
         }
 
         // Populate adapter netmask
         prefix = adapter_addresses->FirstPrefix;
         while (prefix) {
-            memcpy(adapter.netmask, &prefix->Address.lpSockaddr->sa_data[2], sizeof(adapter.netmask));
+            if (prefix->Address.lpSockaddr->sa_family == AF_INET) {
+                memcpy(adapter.netmask, &prefix->Address.lpSockaddr->sa_data[2], sizeof(adapter.netmask));
+            } else if (prefix->Address.lpSockaddr->sa_family == AF_INET6) {
+                struct sockaddr_in6 *sockaddr_ipv6 = (struct sockaddr_in6 *)prefix->Address.lpSockaddr;
+                memcpy(adapter.netmaskv6, &sockaddr_ipv6->sin6_addr, sizeof(adapter.netmaskv6));
+                adapter.is_ipv6 = true;
+            }
             prefix = prefix->Next;
         }
 
