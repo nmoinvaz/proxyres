@@ -9,6 +9,7 @@ typedef struct net_adapter_s {
     char guid[256];
     char description[256];
     uint8_t ip[4];
+    uint8_t ipv6[16];
     uint8_t netmask[4];
     uint8_t gateway[4];
     uint8_t primary_dns[4];

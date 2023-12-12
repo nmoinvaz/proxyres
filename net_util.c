@@ -28,12 +28,10 @@ static char *dns_resolve_filter(const char *host, int32_t family, uint8_t max_ad
     size_t ai_string_len = 0;
     int32_t err = 0;
 
-    if (!host)
-        hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    err = getaddrinfo(host, "http", &hints, &address_info);
+    err = getaddrinfo(host, NULL, &hints, &address_info);
     if (err != 0)
         goto dns_resolve_error;
 
