@@ -73,7 +73,8 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
 
         strncat(adapter.name, ifa->ifa_name, sizeof(adapter.name) - 1);
 
-        memcpy(adapter.mac, LLADDR((struct sockaddr_dl *)(ifm + 1)), sizeof(adapter.mac));
+        adapter.mac_length = 6;
+        memcpy(adapter.mac, LLADDR((struct sockaddr_dl *)(ifm + 1)), adapter.mac_length);
         memcpy(adapter.ip, &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr, sizeof(adapter.ip));
         memcpy(adapter.gateway, &((struct sockaddr_in *)ifa->ifa_broadaddr)->sin_addr, sizeof(adapter.gateway));
         memcpy(adapter.netmask, &((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr, sizeof(adapter.netmask));
