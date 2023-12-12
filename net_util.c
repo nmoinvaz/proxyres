@@ -28,33 +28,12 @@ static char *dns_resolve_filter(const char *host, int32_t family, uint8_t max_ad
     size_t ai_string_len = 0;
     int32_t err = 0;
 
-    // If no host supplied, then use local machine name
-    if (!host) {
-        err = gethostname(name, sizeof(name));
-        if (err != 0)
-            goto dns_resolve_error;
-    } else {
-        // Otherwise copy the host provided
-        strncat(name, host, sizeof(name) - 1);
-    }
-
-    hints.ai_flags = AI_NUMERICHOST;
-    hints.ai_family = PF_UNSPEC;
+    if (!host)
+        hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
 
-    err = getaddrinfo(name, NULL, &hints, &address_info);
-    if (err != EAI_NONAME) {
-        if (err != 0)
-            goto dns_resolve_error;
-
-        // Name is already an IP address
-        freeaddrinfo(address_info);
-        return strdup(name);
-    }
-
-    hints.ai_flags = 0;
-    err = getaddrinfo(name, NULL, &hints, &address_info);
+    err = getaddrinfo(host, "http", &hints, &address_info);
     if (err != 0)
         goto dns_resolve_error;
 
@@ -87,11 +66,14 @@ static char *dns_resolve_filter(const char *host, int32_t family, uint8_t max_ad
             if (ai_string_len >= max_ai_string)
                 break;
 
-            // Copy address name into return string
+            // Copy address name into numeric host
             err = getnameinfo(address->ai_addr, (socklen_t)address->ai_addrlen, ai_string + ai_string_len,
                               (uint32_t)(max_ai_string - ai_string_len), NULL, 0, NI_NUMERICHOST);
-            if (err != 0)
-                goto dns_resolve_error;
+            if (err != 0) {
+                if (ai_string_len < max_ai_string)
+                    ai_string[ai_string_len] = 0;
+                continue;
+            }
 
             max_addrs--;
 
