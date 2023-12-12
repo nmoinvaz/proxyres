@@ -9,20 +9,19 @@
 
 TEST(net_util, my_ip_address) {
     char *address = my_ip_address();
-    EXPECT_TRUE(address != NULL);
+    EXPECT_NE(address, nullptr);
     if (address) {
-        EXPECT_TRUE(strstr(address, ".") != NULL);
-        EXPECT_TRUE(strstr(address, ";") == NULL);
-        EXPECT_TRUE(strstr(address, ":") == NULL);
+        EXPECT_NE(strchr(address, '.'), nullptr);
+        EXPECT_EQ(strpbrk(address, ";:"), nullptr);
         free(address);
     }
 }
 
 TEST(net_util, my_ip_address_ex) {
     char *addresses = my_ip_address_ex();
-    EXPECT_TRUE(addresses != NULL);
+    EXPECT_NE(addresses, nullptr);
     if (addresses) {
-        EXPECT_TRUE(strstr(addresses, ".") != NULL || strstr(addresses, ":") != NULL);
+        EXPECT_NE(strpbrk(addresses, ".:"), nullptr);
         free(addresses);
     }
 }
@@ -31,11 +30,10 @@ TEST(net_util, dns_resolve_google) {
     int32_t error = 0;
     char *ip = dns_resolve("google.com", &error);
     EXPECT_EQ(error, 0);
-    EXPECT_TRUE(ip != NULL);
+    EXPECT_NE(ip, nullptr);
     if (ip) {
-        EXPECT_TRUE(strstr(ip, ".") != NULL);
-        EXPECT_TRUE(strstr(ip, ";") == NULL);
-        EXPECT_TRUE(strstr(ip, ":") == NULL);
+        EXPECT_NE(strstr(ip, "."), nullptr);
+        EXPECT_EQ(strpbrk(ip, ";:"), nullptr);
         free(ip);
     }
 }
@@ -51,9 +49,9 @@ TEST(net_util, dns_ex_resolve_google) {
     int32_t error = 0;
     char *ips = dns_resolve_ex("google.com", &error);
     EXPECT_EQ(error, 0);
-    EXPECT_TRUE(ips != NULL);
+    EXPECT_NE(ips, nullptr);
     if (ips) {
-        EXPECT_TRUE(strstr(ips, ".") != NULL || strstr(ips, ":") != NULL);
+        EXPECT_NE(strpbrk(ips, ".:"), nullptr);
         free(ips);
     }
 }
