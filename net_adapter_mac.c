@@ -65,7 +65,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         // Ignore non-physical adapters
         if (ifm->ifm_flags & IFF_LOOPBACK)
             continue;
-        if ((ifm->ifm_data.ifi_type & ARPHRD_ETHER) == 0)
+        if ((ifm->ifm_data.ifi_type & ARPHRD_ETHER) == 0 && (ifm->ifm_data.ifi_type & ARPHRD_IEEE802) == 0)
             continue;
 
         if (ifm->ifm_flags & IFF_UP)
