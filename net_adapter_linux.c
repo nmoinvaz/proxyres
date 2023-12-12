@@ -32,8 +32,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
         return false;
 
     for (ifa = ifp; ifa; ifa = ifa->ifa_next) {
-        // Ignore non-IPv4 adapters
-        if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET)
+        if (!ifa->ifa_addr)
             continue;
         // Ignore non-physical adapters
         if (ifa->ifa_flags & IFF_LOOPBACK)
@@ -72,9 +71,15 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
             strncat(adapter.name, ifa->ifa_name, sizeof(adapter.name) - 1);
         }
 
-        memcpy(adapter.ip, &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr, sizeof(adapter.ip));
-        memcpy(adapter.gateway, &((struct sockaddr_in *)ifa->ifa_broadaddr)->sin_addr, sizeof(adapter.gateway));
-        memcpy(adapter.netmask, &((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr, sizeof(adapter.netmask));
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            memcpy(adapter.ip, &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr, sizeof(adapter.ip));
+            memcpy(adapter.gateway, &((struct sockaddr_in *)ifa->ifa_broadaddr)->sin_addr, sizeof(adapter.gateway));
+            memcpy(adapter.netmask, &((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr, sizeof(adapter.netmask));
+        } else if (ifa->ifa_addr->sa_family == AF_INET6) {
+            memcpy(adapter.ipv6, &((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr, sizeof(adapter.ipv6));
+            memcpy(adapter.netmaskv6, &((struct sockaddr_in6 *)ifa->ifa_netmask)->sin6_addr, sizeof(adapter.netmaskv6));
+            adapter.is_ipv6 = true;
+        }
 
         if (!callback(user_data, &adapter))
             break;

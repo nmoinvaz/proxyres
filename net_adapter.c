@@ -2,10 +2,24 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifdef _WIN32
+#  include <ws2tcpip.h>
+#else
+#  include <arpa/inet.h>
+#endif
+
 #include "net_adapter.h"
 
 static inline void print_ip(const char *name, uint8_t ip[4]) {
-    printf("  %s: %d.%d.%d.%d\n", name, ip[0], ip[1], ip[2], ip[3]);
+    char ip_str[INET_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET, ip, ip_str, sizeof(ip_str));
+    printf("  %s: %s\n", name, ip_str);
+}
+
+static inline void print_ipv6(const char *name, uint8_t ipv6[16]) {
+    char ipv6_str[INET6_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET6, ipv6, ipv6_str, sizeof(ipv6_str));
+    printf("  %s: %s\n", name, ipv6_str);
 }
 
 void net_adapter_print(net_adapter_s *adapter) {
@@ -20,6 +34,10 @@ void net_adapter_print(net_adapter_s *adapter) {
     print_ip("ip", adapter->ip);
     print_ip("netmask", adapter->netmask);
     print_ip("gateway", adapter->gateway);
+    if (adapter->is_ipv6) {
+        print_ipv6("ipv6", adapter->ipv6);
+        print_ipv6("netmaskv6", adapter->netmaskv6);
+    }
     print_ip("primary dns", adapter->primary_dns);
     print_ip("secondary dns", adapter->secondary_dns);
 
