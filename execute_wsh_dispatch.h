@@ -146,9 +146,9 @@ static HRESULT STDMETHODCALLTYPE script_dispatch_invoke(IDispatch *dispatch, DIS
         char *ip = NULL;
 
         if (disp_id == SCRIPT_DISPATCH_MY_IP_ADDRESS_EX_ID)
-            ip = dns_resolve_ex(NULL, NULL);
+            ip = my_ip_address_ex();
         else
-            ip = dns_resolve(NULL, NULL);
+            ip = my_ip_address();
 
         if (!ip)
             return E_FAIL;

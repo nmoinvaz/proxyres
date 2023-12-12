@@ -200,7 +200,7 @@ static JSValueRef proxy_execute_jscore_dns_resolve_ex(JSContextRef ctx, JSObject
 
 static JSValueRef proxy_execute_jscore_my_ip_address(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
                                                      size_t argc, const JSValueRef argv[], JSValueRef *exception) {
-    char *address = dns_resolve(NULL, NULL);
+    char *address = my_ip_address();
     if (!address)
         return NULL;
 
@@ -216,18 +216,18 @@ static JSValueRef proxy_execute_jscore_my_ip_address(JSContextRef ctx, JSObjectR
 
 static JSValueRef proxy_execute_jscore_my_ip_address_ex(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
                                                         size_t argc, const JSValueRef argv[], JSValueRef *exception) {
-    char *address = dns_resolve_ex(NULL, NULL);
-    if (!address)
+    char *addresses = my_ip_address_ex();
+    if (!addresses)
         return NULL;
 
-    JSStringRef address_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(address);
-    free(address);
-    if (!address_string)
+    JSStringRef addresses_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(addresses);
+    free(addresses);
+    if (!addresses_string)
         return NULL;
 
-    JSValueRef address_value = g_proxy_execute_jscore.JSValueMakeString(ctx, address_string);
-    g_proxy_execute_jscore.JSStringRelease(address_string);
-    return address_value;
+    JSValueRef addresses_value = g_proxy_execute_jscore.JSValueMakeString(ctx, addresses_string);
+    g_proxy_execute_jscore.JSStringRelease(addresses_string);
+    return addresses_value;
 }
 
 bool proxy_execute_register_function(void *ctx, JSGlobalContextRef global, const char *name,

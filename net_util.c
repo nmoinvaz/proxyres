@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef _WIN32
 #  include <winsock2.h>
@@ -16,104 +17,172 @@
 #  include <unistd.h>
 #endif
 
+#include "net_adapter.h"
 #include "util.h"
+
+typedef struct address_list {
+    int32_t family;
+    int32_t max_addrs;
+    char *string;
+    size_t string_len;
+    size_t max_string;
+} address_list;
+
+// Calculate the max length of the address string
+static bool my_ip_address_list_length(void *user_data, net_adapter_s *adapter) {
+    address_list *list = (address_list *)user_data;
+    // Use different length depending on the address type
+    list->max_string += ((list->family == AF_INET) ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN);
+    // Add room for semi-colon separators
+    list->max_string += 2;
+    return true;
+}
+
+// Copy each localhost address into a string buffer seperated by semi-colons
+static bool my_ip_address_list_populate(void *user_data, net_adapter_s *adapter) {
+    address_list *list = (address_list *)user_data;
+
+    if (!list->max_addrs || !adapter->is_connected || !*adapter->ip)
+        return true;
+
+#ifdef _WIN32
+    if (!adapter->is_dhcp_v4)
+        return true;
+#endif
+
+    if (list->family == AF_INET || list->family == AF_UNSPEC) {
+        char ip_str[INET_ADDRSTRLEN] = {0};
+        inet_ntop(AF_INET, adapter->ip, ip_str, sizeof(ip_str));
+        strncat(list->string + list->string_len, ip_str, list->max_string - list->string_len - 1);
+        list->string_len += strlen(ip_str);
+    }
+
+    if (adapter->is_ipv6 && (list->family == AF_INET6 || list->family == AF_UNSPEC)) {
+        // Append semi-colon separator
+        if (list->max_string - list->string_len > 1) {
+            list->string[list->string_len++] = ';';
+            list->string[list->string_len] = 0;
+        }
+
+        char ipv6_str[INET6_ADDRSTRLEN] = {0};
+        inet_ntop(AF_INET6, adapter->ipv6, ipv6_str, sizeof(ipv6_str));
+        strncat(list->string + list->string_len, ipv6_str, list->max_string - list->string_len - 1);
+        list->string_len += strlen(ipv6_str);
+    }
+
+    list->max_addrs--;
+
+    // Append semi-colon separator
+    if (list->max_addrs && list->max_string - list->string_len > 1) {
+        list->string[list->string_len++] = ';';
+        list->string[list->string_len] = 0;
+    }
+    return true;
+}
+
+// Enumerate network adapters and get localhost addresses with a filter
+static char *my_ip_address_filter(int32_t family, int32_t max_addrs) {
+    address_list list = {family, max_addrs, NULL, 0, 1};
+    int32_t err = 0;
+
+    if (!net_adapter_enum(&list, my_ip_address_list_length))
+        return NULL;
+
+    // Allocate buffer for the return string
+    list.string = (char *)calloc(1, list.max_string);
+    if (list.string) {
+        if (!net_adapter_enum(&list, my_ip_address_list_populate)) {
+            free(list.string);
+            list.string = NULL;
+        }
+    }
+
+    return list.string;
+}
+
+// Get local IPv4 address for localhost
+char *my_ip_address(void) {
+    return my_ip_address_filter(AF_INET, 1);
+}
+
+// Get local IPv6 and IPv6 addresses for localhost
+char *my_ip_address_ex(void) {
+    return my_ip_address_filter(AF_UNSPEC, UINT8_MAX);
+}
 
 // Resolve a host name to its addresses with a filter and custom separator
 static char *dns_resolve_filter(const char *host, int32_t family, uint8_t max_addrs, int32_t *error) {
-    char name[HOST_MAX] = {0};
+    address_list list = {family, max_addrs, NULL, 0, 1};
     struct addrinfo hints = {0};
     struct addrinfo *address_info = NULL;
     struct addrinfo *address = NULL;
-    char *ai_string = NULL;
-    size_t ai_string_len = 0;
     int32_t err = 0;
 
-    // If no host supplied, then use local machine name
     if (!host) {
-        err = gethostname(name, sizeof(name));
-        if (err != 0)
-            goto dns_resolve_error;
-    } else {
-        // Otherwise copy the host provided
-        strncat(name, host, sizeof(name) - 1);
+        if (error)
+            *error = EINVAL;
+        return NULL;
     }
 
-    hints.ai_flags = AI_NUMERICHOST;
-    hints.ai_family = PF_UNSPEC;
+    hints.ai_family = family;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
 
-    err = getaddrinfo(name, NULL, &hints, &address_info);
-    if (err != EAI_NONAME) {
-        if (err != 0)
-            goto dns_resolve_error;
-
-        // Name is already an IP address
-        freeaddrinfo(address_info);
-        return strdup(name);
-    }
-
-    hints.ai_flags = 0;
-    err = getaddrinfo(name, NULL, &hints, &address_info);
+    err = getaddrinfo(host, NULL, &hints, &address_info);
     if (err != 0)
         goto dns_resolve_error;
 
     // Calculate the length of the return string
-    size_t max_ai_string = 1;
     address = address_info;
     while (address) {
         // Use different length depending on the address type
-        if (address->ai_family == AF_INET)
-            max_ai_string += INET_ADDRSTRLEN;
-        else
-            max_ai_string += INET6_ADDRSTRLEN;
-
+        list.max_string += (address->ai_family == AF_INET) ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
         // Add room for semi-colon separator
-        max_ai_string++;
+        list.max_string++;
         address = address->ai_next;
     }
 
     // Allocate buffer for the return string
-    ai_string = (char *)calloc(1, max_ai_string);
-    if (!ai_string)
+    list.string = (char *)calloc(1, list.max_string);
+    if (!list.string)
         goto dns_resolve_error;
 
     // Enumerate each address
     address = address_info;
-    while (address && max_addrs) {
+    while (address && list.max_addrs) {
         // Only copy addresses that match the family filter
-        if (family == AF_UNSPEC || address->ai_family == family) {
+        if (list.family == AF_UNSPEC || address->ai_family == list.family) {
             // Ensure there is room to copy something into return string buffer
-            if (ai_string_len >= max_ai_string)
+            if (list.string_len >= list.max_string)
                 break;
 
-            // Copy address name into return string
-            err = getnameinfo(address->ai_addr, (socklen_t)address->ai_addrlen, ai_string + ai_string_len,
-                              (uint32_t)(max_ai_string - ai_string_len), NULL, 0, NI_NUMERICHOST);
-            if (err != 0)
-                goto dns_resolve_error;
+            // Convert address name into a numeric host string
+            err = getnameinfo(address->ai_addr, (socklen_t)address->ai_addrlen, list.string + list.string_len,
+                              (uint32_t)(list.max_string - list.string_len), NULL, 0, NI_NUMERICHOST);
+            if (err != 0) {
+                continue;
+            }
 
-            max_addrs--;
+            list.max_addrs--;
 
             // Append semi-colon separator
-            ai_string_len = strlen(ai_string);
-            if (max_addrs && address->ai_next && ai_string_len + 1 < max_ai_string) {
-                ai_string[ai_string_len++] = ';';
-                ai_string[ai_string_len] = 0;
+            list.string_len = strlen(list.string);
+            if (list.max_addrs && address->ai_next && list.string_len + 1 < list.max_string) {
+                list.string[list.string_len++] = ';';
+                list.string[list.string_len] = 0;
             }
         }
 
         address = address->ai_next;
     }
 
-    if (err != 0)
+    if (err != 0 && list.string_len == 0)
         goto dns_resolve_error;
 
-    return ai_string;
+    return list.string;
 
 dns_resolve_error:
 
-    free(ai_string);
+    free(list.string);
 
     if (address_info)
         freeaddrinfo(address_info);
