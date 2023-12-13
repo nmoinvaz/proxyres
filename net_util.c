@@ -83,7 +83,6 @@ static bool my_ip_address_list_populate(void *user_data, net_adapter_s *adapter)
 // Enumerate network adapters and get localhost addresses with a filter
 static char *my_ip_address_filter(int32_t family, int32_t max_addrs) {
     address_list list = {family, max_addrs, NULL, 0, 1};
-    int32_t err = 0;
 
     if (!net_adapter_enum(&list, my_ip_address_list_length))
         return NULL;
