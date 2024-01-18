@@ -15,6 +15,10 @@
 #include "resolver_mac.h"
 #include "util.h"
 
+#ifdef LEAK_SANITIZER
+#  include <sanitizer/lsan_interface.h>
+#endif
+
 #define PROXY_RESOLVER_RUN_LOOP    CFSTR("proxy_resolver_mac.run_loop")
 #define PROXY_RESOLVER_TIMEOUT_SEC 10
 
@@ -158,6 +162,15 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
 
     CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
 
+    CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
+        url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
+    if (!run_loop) {
+        proxy_resolver->error = ELOOP;
+        LOG_ERROR("Failed to execute pac url (%" PRId64 ")\n", proxy_resolver->error);
+        goto mac_done;
+    }
+
+#ifdef LEAK_SANITIZER
     // There is a known issue mentioned in Chromium source, that the run loop instance 
     // returned by CFNetworkExecuteProxyAutoConfigurationURL leaks.
 
@@ -166,13 +179,9 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     //  https://forums.developer.apple.com/forums/thread/724883
     //  https://stackoverflow.com/questions/53290871
 
-    CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
-        url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
-    if (!run_loop) {
-        proxy_resolver->error = ELOOP;
-        LOG_ERROR("Failed to execute pac url (%" PRId64 ")\n", proxy_resolver->error);
-        goto mac_done;
-    }
+    __lsan_ignore_object(run_loop);
+#endif
+
     CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
     CFRunLoopRunInMode(PROXY_RESOLVER_RUN_LOOP, PROXY_RESOLVER_TIMEOUT_SEC, false);
     CFRunLoopRemoveSource(CFRunLoopGetCurrent(), run_loop, PROXY_RESOLVER_RUN_LOOP);
