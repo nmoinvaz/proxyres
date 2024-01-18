@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -13,12 +14,13 @@
 #include "proxyres/resolver.h"
 
 #ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-#define O_BINARY _O_BINARY
+#  include <io.h>
+#  include <windows.h>
+#  define O_BINARY _O_BINARY
+#  define ssize_t  int
 #else
-#include <unistd.h>
-#define O_BINARY 0
+#  include <unistd.h>
+#  define O_BINARY 0
 #endif
 
 static void print_proxy_config(int32_t option_count, char *options[]) {
@@ -132,7 +134,7 @@ static bool execute_pac_script(const char *script_path, const char *url, bool ve
     }
 
     // Get length of PAC script
-    int32_t script_len = lseek(fd, 0, SEEK_END);
+    off_t script_len = lseek(fd, 0, SEEK_END);
     if (script_len < 0) {
         printf("Failed to get length of PAC script %s\n", script_path);
         goto execute_pac_cleanup;
@@ -147,9 +149,10 @@ static bool execute_pac_script(const char *script_path, const char *url, bool ve
 
     // Read PAC script from file
     lseek(fd, 0, SEEK_SET);
-    int32_t bytes_read = read(fd, script, script_len);
+    ssize_t bytes_read = read(fd, script, script_len);
     if (bytes_read != script_len) {
-        printf("Failed to read PAC script %s (%d != %d)\n", script_path, bytes_read, script_len);
+        printf("Failed to read PAC script %s (%" PRId64 " != %" PRId64 ")\n", script_path, (int64_t)bytes_read,
+               (int64_t)script_len);
         goto execute_pac_cleanup;
     }
 

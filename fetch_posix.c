@@ -18,6 +18,7 @@
 
 #ifdef _WIN32
 #  define socketerr WSAGetLastError()
+#  define ssize_t   int
 #else
 #  define socketerr   errno
 #  define SOCKET      int
@@ -35,7 +36,7 @@ char *fetch_get(const char *url, int32_t *error) {
     char *body = NULL;
     char *host = NULL;
     int32_t err = 0;
-    int32_t count = 0;
+    ssize_t count = 0;
 
     if (!url)
         return NULL;
