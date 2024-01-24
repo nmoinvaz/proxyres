@@ -114,6 +114,7 @@ static char *proxy_resolver_posix_fetch_pac(const char *auto_config_url, int32_t
 
 bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
     proxy_resolver_posix_s *proxy_resolver = (proxy_resolver_posix_s *)ctx;
+    void *proxy_execute = NULL;
     char *auto_config_url = NULL;
     char *proxy = NULL;
     char *script = NULL;
@@ -140,7 +141,7 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
             goto posix_done;
 
         // Execute blocking proxy auto config script for url
-        void *proxy_execute = proxy_execute_create();
+        proxy_execute = proxy_execute_create();
         if (!proxy_execute) {
             proxy_resolver->error = ENOMEM;
             LOG_ERROR("Unable to allocate memory for %s (%" PRId32 ")\n", "execute object", proxy_resolver->error);
@@ -167,8 +168,6 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
         // Convert return value from FindProxyForURL to uri list. We use the default
         // scheme corresponding to the protocol of the original request.
         proxy_resolver->list = convert_proxy_list_to_uri_list(list, scheme);
-
-        proxy_execute_delete(&proxy_execute);
     } else {
         // Use DIRECT connection since WPAD didn't result in a proxy auto-configuration url
         proxy_resolver->list = strdup("direct://");
@@ -176,6 +175,8 @@ bool proxy_resolver_posix_get_proxies_for_url(void *ctx, const char *url) {
 
 posix_done:
 
+    if (proxy_execute)
+        proxy_execute_delete(&proxy_execute);
     if (locked)
         mutex_unlock(g_proxy_resolver_posix.mutex);
 
