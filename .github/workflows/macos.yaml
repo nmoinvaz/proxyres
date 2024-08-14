@@ -201,8 +201,8 @@ jobs:
     - name: Generate coverage report
       if: always() && matrix.codecov
       run: |
-        python3 -u -m pip install --user gcovr
-        python3 -m gcovr \
+        brew install gcovr
+        gcovr \
           --exclude-unreachable-branches \
           --gcov-ignore-parse-errors \
           --root . \
