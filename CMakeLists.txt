@@ -138,13 +138,14 @@ endif()
 
 if(WIN32)
     add_compile_definitions(
-        _CRT_SECURE_NO_WARNINGS=1
-        _CRT_NONSTDC_NO_WARNINGS=1
-        _WINSOCK_DEPRECATED_NO_WARNINGS=1
-        COBJMACROS)
+        _CRT_SECURE_NO_WARNINGS
+        _CRT_NONSTDC_NO_WARNINGS
+        _WINSOCK_DEPRECATED_NO_WARNINGS
+        COBJMACROS
+        WIN32_LEAN_AND_MEAN)
 elseif(APPLE)
 elseif(UNIX)
-    add_compile_definitions(_GNU_SOURCE=1)
+    add_compile_definitions(_GNU_SOURCE)
 endif()
 
 add_compile_definitions($<IF:$<CONFIG:Debug>,_DEBUG,_NDEBUG>)
@@ -252,10 +253,10 @@ if(PROXYRES_CURL AND (PROXYRES_EXECUTE OR PROXYRES_BUILD_CLI))
 endif()
 
 if(PROXYRES_EXECUTE)
-    target_compile_definitions(proxyres PUBLIC PROXYRES_EXECUTE=1)
+    target_compile_definitions(proxyres PUBLIC PROXYRES_EXECUTE)
 
     if(TARGET CURL::libcurl)
-        target_compile_definitions(proxyres PUBLIC HAVE_CURL=1)
+        target_compile_definitions(proxyres PUBLIC HAVE_CURL)
         target_sources(proxyres PRIVATE fetch_curl.c)
         target_link_libraries(proxyres CURL::libcurl)
     else()

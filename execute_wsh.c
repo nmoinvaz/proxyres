@@ -6,6 +6,7 @@
 #include <initguid.h>
 #include <activscp.h>
 #include <activdbg.h>
+#include <cguid.h>
 
 #include "execute.h"
 #include "execute_i.h"
