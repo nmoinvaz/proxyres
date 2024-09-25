@@ -12,6 +12,7 @@
 #  include <ws2tcpip.h>
 #  include <windows.h>
 #else
+#  include <arpa/inet.h>
 #  include <sys/types.h>
 #  include <sys/socket.h>
 #  include <netdb.h>
