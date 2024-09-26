@@ -14,3 +14,9 @@ IndentWidth: 4
 PPIndentWidth: 2
 PointerAlignment: Right
 SortIncludes: Never
+---
+Language: JavaScript
+AllowShortCaseLabelsOnASingleLine: true
+ContinuationIndentWidth: 2
+IndentWidth: 2
+JavaScriptQuotes: Double
