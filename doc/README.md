@@ -38,7 +38,7 @@ git submodule add git@github.com:nmoinvaz/proxyres third-party/proxyres
 git submodule update --init
 ```
 
-Add thefollowing to your cmake:
+Add the following to your cmake:
 
 ```cmake
 add_subdirectory(third-party/proxyres proxyres EXCLUDE_FROM_ALL)
