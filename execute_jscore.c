@@ -5,6 +5,9 @@
 #include <string.h>
 
 #include <dlfcn.h>
+#ifndef __APPLE__
+#  include <link.h>
+#endif
 
 #include <JavaScriptCore/JavaScript.h>
 
@@ -376,13 +379,32 @@ bool proxy_execute_jscore_global_init(void) {
     g_proxy_execute_jscore.module = dlopen(
         "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
 #else
-    g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.1.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (!g_proxy_execute_jscore.module)
-        g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-4.0.so.18", RTLD_LAZY | RTLD_LOCAL);
-    if (!g_proxy_execute_jscore.module)
-        g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-3.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if (!g_proxy_execute_jscore.module)
-        g_proxy_execute_jscore.module = dlopen("libjavascriptcoregtk-1.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+    const char *library_names[] = {"libjavascriptcoregtk-4.1.so.0", "libjavascriptcoregtk-4.0.so.18",
+                                   "libjavascriptcoregtk-3.0.so.0", "libjavascriptcoregtk-1.0.so.0"};
+    const size_t library_names_size = sizeof(library_names) / sizeof(library_names[0]);
+
+    // Use existing JavaScriptCoreGTK if already loaded
+    struct link_map *map = NULL;
+    void *current_process = dlopen(0, RTLD_LAZY);
+    if (!current_process)
+        return false;
+    if (dlinfo(current_process, RTLD_DI_LINKMAP, &map) == 0) {
+        while (map && !g_proxy_execute_jscore.module) {
+            for (size_t i = 0; i < library_names_size; i++) {
+                if (strstr(map->l_name, library_names[i])) {
+                    g_proxy_execute_jscore.module = dlopen(map->l_name, RTLD_NOLOAD | RTLD_LAZY | RTLD_LOCAL);
+                    break;
+                }
+            }
+            map = map->l_next;
+        }
+    }
+    dlclose(current_process);
+
+    // Load the first available version of the JavaScriptCoreGTK
+    for (size_t i = 0; !g_proxy_execute_jscore.module && i < library_names_size; i++) {
+        g_proxy_execute_jscore.module = dlopen(library_names[i], RTLD_LAZY | RTLD_LOCAL);
+    }
 #endif
 
     if (!g_proxy_execute_jscore.module)
