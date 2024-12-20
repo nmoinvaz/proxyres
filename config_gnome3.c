@@ -6,7 +6,6 @@
 #include <dlfcn.h>
 #include <glib.h>
 #include <gio/gio.h>
-#include <gconf/gconf.h>
 
 #include "config.h"
 #include "config_i.h"
