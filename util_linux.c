@@ -16,9 +16,9 @@ int32_t get_desktop_env(void) {
         } else if (strcasestr(current_desktop, "kde")) {
             const char *session_version = getenv("KDE_SESSION_VERSION");
             if (session_version) {
-                if (*session_version == '5')
-                    return DESKTOP_ENV_KDE5;
-                return DESKTOP_ENV_KDE4;
+                if (*session_version > '0' && *session_version <= '4')
+                    return DESKTOP_ENV_KDE4;
+                return DESKTOP_ENV_KDE5;
             }
         }
     }
