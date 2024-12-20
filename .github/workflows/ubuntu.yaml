@@ -16,6 +16,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
+            packages: llvm-14 libjavascriptcoregtk-4.0-dev libgconf2-dev
             gcov-exec: llvm-cov-14 gcov
             codecov: ubuntu
 
@@ -24,6 +25,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
+            packages: llvm-14 libjavascriptcoregtk-4.0-dev libgconf2-dev
             gcov-exec: llvm-cov-14 gcov
             codecov: ubuntu
 
@@ -32,6 +34,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
+            packages: llvm-15 libjavascriptcoregtk-4.1-dev gsettings-desktop-schemas
             gcov-exec: llvm-cov-15 gcov
             codecov: ubuntu
 
@@ -40,6 +43,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON -D PROXYRES_CURL=ON
+            packages: llvm-15 libjavascriptcoregtk-4.1-dev gsettings-desktop-schemas
             gcov-exec: llvm-cov-15 gcov
             codecov: ubuntu_curl
 
@@ -47,17 +51,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y ninja-build libpsl-dev
-
-        major_version=$(lsb_release -rs | cut -d'.' -f1)
-        if [ "$major_version" -le "22" ]; then
-          sudo apt install -y libgconf2-dev
-        fi
-        if [ "$major_version" -ge "24" ]; then
-          sudo apt install -y llvm-15 libjavascriptcoregtk-4.1-dev gsettings-desktop-schemas
-        else
-          sudo apt install -y llvm-14 libjavascriptcoregtk-4.0-dev
-        fi
+        sudo apt install -y ninja-build libpsl-dev ${{ matrix.packages }}
 
     - name: Checkout repository
       uses: actions/checkout@v4
