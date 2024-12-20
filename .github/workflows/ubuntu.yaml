@@ -31,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y ninja-build
+        sudo apt install -y ninja-build libpsl-dev
 
         major_version=$(lsb_release -rs | cut -d'.' -f1)
         if [ "$major_version" -le "22" ]; then
