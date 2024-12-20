@@ -115,11 +115,14 @@ elseif(APPLE)
             wpad_dhcp_mac.h)
     endif()
 elseif(UNIX)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GConf gconf-2.0)
+    if (GConf_FOUND)
+        list(APPEND PROXYRES_SRCS config_gnome2.c config_gnome2.h)
+    endif()
     list(APPEND PROXYRES_SRCS
         config_env.c
         config_env.h
-        config_gnome2.c
-        config_gnome2.h
         config_gnome3.c
         config_gnome3.h
         config_kde.c
@@ -282,14 +285,14 @@ elseif(APPLE)
 
     set_target_properties(proxyres PROPERTIES LINK_FLAGS -Wl,-F/Library/Frameworks)
 elseif(UNIX)
-    find_package(PkgConfig REQUIRED)
-
     pkg_check_modules(deps REQUIRED IMPORTED_TARGET glib-2.0)
     target_link_libraries(proxyres PkgConfig::deps)
 
-    pkg_check_modules(GConf REQUIRED gconf-2.0)
-    # Don't link libraries at compile time since we dynamically load them at runtime
-    target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
+    if (GConf_FOUND)
+        # Don't link libraries at compile time since we dynamically load them at runtime
+        target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
+        target_compile_definitions(proxyres PRIVATE HAVE_GCONF)
+    endif()
 
     pkg_search_module(JSCoreGTK REQUIRED javascriptcoregtk-4.1 javascriptcoregtk-4.0 javascriptcoregtk-3.0 javascriptcoregtk-1.0)
     # Don't link libraries at compile time since we dynamically load them at runtime

@@ -11,7 +11,9 @@
 #if defined(__APPLE__)
 #  include "config_mac.h"
 #elif defined(__linux__)
-#  include "config_gnome2.h"
+#  ifdef HAVE_GCONF
+#    include "config_gnome2.h"
+#  endif
 #  include "config_gnome3.h"
 #  include "config_kde.h"
 #elif defined(_WIN32)
@@ -102,10 +104,12 @@ bool proxy_config_global_init(void) {
         if (proxy_config_gnome3_global_init())
             g_proxy_config.proxy_config_i = proxy_config_gnome3_get_interface();
         break;
+#  ifdef HAVE_GCONF
     case DESKTOP_ENV_GNOME2:
         if (proxy_config_gnome2_global_init())
             g_proxy_config.proxy_config_i = proxy_config_gnome2_get_interface();
         break;
+#  endif
     case DESKTOP_ENV_KDE5:
     case DESKTOP_ENV_KDE4:
     case DESKTOP_ENV_KDE3:
