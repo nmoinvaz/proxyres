@@ -291,7 +291,7 @@ elseif(UNIX)
     # Don't link libraries at compile time since we dynamically load them at runtime
     target_include_directories(proxyres PRIVATE ${GConf_INCLUDE_DIRS})
 
-    pkg_search_module(JSCoreGTK REQUIRED javascriptcoregtk-4.0 javascriptcoregtk-3.0 javascriptcoregtk-1.0)
+    pkg_search_module(JSCoreGTK REQUIRED javascriptcoregtk-4.1 javascriptcoregtk-4.0 javascriptcoregtk-3.0 javascriptcoregtk-1.0)
     # Don't link libraries at compile time since we dynamically load them at runtime
     target_include_directories(proxyres PRIVATE ${JSCoreGTK_INCLUDE_DIRS})
 

@@ -31,7 +31,14 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y llvm-14 ninja-build libgconf2-dev libjavascriptcoregtk-4.0-dev
+        sudo apt install -y ninja-build libgconf2-dev
+
+        major_version=$(lsb_release -rs | cut -d'.' -f1)
+        if [ "$major_version" -ge "24" ]; then
+          sudo apt install -y llvm-15 libjavascriptcoregtk-4.1-dev
+        else
+          sudo apt install -y llvm-14 libjavascriptcoregtk-4.0-dev
+        fi
 
     - name: Checkout repository
       uses: actions/checkout@v4
