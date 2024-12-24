@@ -518,6 +518,9 @@ bool proxy_execute_jscore_global_cleanup(void) {
         dlclose(g_proxy_execute_jscore.module);
 
     memset(&g_proxy_execute_jscore, 0, sizeof(g_proxy_execute_jscore));
+
+    static const pthread_once_t proxy_execute_jscore_init_flag = PTHREAD_ONCE_INIT;
+    memcpy(&g_proxy_execute_jscore_init_flag, &proxy_execute_jscore_init_flag, sizeof(proxy_execute_jscore_init_flag));
     return true;
 }
 
