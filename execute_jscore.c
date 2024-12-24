@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <dlfcn.h>
 #ifndef __APPLE__
@@ -59,7 +60,8 @@ typedef struct g_proxy_execute_jscore_s {
     void (*JSGarbageCollect)(JSContextRef ctx);
 } g_proxy_execute_jscore_s;
 
-g_proxy_execute_jscore_s g_proxy_execute_jscore;
+static g_proxy_execute_jscore_s g_proxy_execute_jscore;
+static pthread_once_t g_proxy_execute_jscore_init_flag = PTHREAD_ONCE_INIT;
 
 typedef struct proxy_execute_jscore_s {
     // Execute error
@@ -137,6 +139,136 @@ static void js_print_exception(JSContextRef ctx, JSValueRef exception) {
         LOG_ERROR("Unable to print unknown exception object\n");
         return;
     }
+}
+
+void proxy_execute_jscore_delayed_init(void) {
+#ifdef __APPLE__
+    g_proxy_execute_jscore.module = dlopen(
+        "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
+#else
+    const char *library_names[] = {"libjavascriptcoregtk-4.1.so.0", "libjavascriptcoregtk-4.0.so.18",
+                                   "libjavascriptcoregtk-3.0.so.0", "libjavascriptcoregtk-1.0.so.0"};
+    const size_t library_names_size = sizeof(library_names) / sizeof(library_names[0]);
+
+    // Use existing JavaScriptCoreGTK if already loaded
+    struct link_map *map = NULL;
+    void *current_process = dlopen(0, RTLD_LAZY);
+    if (!current_process)
+        return;
+    if (dlinfo(current_process, RTLD_DI_LINKMAP, &map) == 0) {
+        while (map && !g_proxy_execute_jscore.module) {
+            for (size_t i = 0; i < library_names_size; i++) {
+                if (strstr(map->l_name, library_names[i])) {
+                    g_proxy_execute_jscore.module = dlopen(map->l_name, RTLD_NOLOAD | RTLD_LAZY | RTLD_LOCAL);
+                    break;
+                }
+            }
+            map = map->l_next;
+        }
+    }
+    dlclose(current_process);
+
+    // Load the first available version of the JavaScriptCoreGTK
+    for (size_t i = 0; !g_proxy_execute_jscore.module && i < library_names_size; i++) {
+        g_proxy_execute_jscore.module = dlopen(library_names[i], RTLD_LAZY | RTLD_LOCAL);
+    }
+#endif
+
+    if (!g_proxy_execute_jscore.module)
+        return;
+
+    // Class functions
+    g_proxy_execute_jscore.JSClassCreate = dlsym(g_proxy_execute_jscore.module, "JSClassCreate");
+    if (!g_proxy_execute_jscore.JSClassCreate)
+        goto jscore_init_error;
+    // Object functions
+    g_proxy_execute_jscore.JSObjectMake = dlsym(g_proxy_execute_jscore.module, "JSObjectMake");
+    if (!g_proxy_execute_jscore.JSObjectMake)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback =
+        dlsym(g_proxy_execute_jscore.module, "JSObjectMakeFunctionWithCallback");
+    if (!g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSObjectGetProperty = dlsym(g_proxy_execute_jscore.module, "JSObjectGetProperty");
+    if (!g_proxy_execute_jscore.JSObjectGetProperty)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSObjectSetProperty = dlsym(g_proxy_execute_jscore.module, "JSObjectSetProperty");
+    if (!g_proxy_execute_jscore.JSObjectSetProperty)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSObjectGetPrivate = dlsym(g_proxy_execute_jscore.module, "JSObjectGetPrivate");
+    if (!g_proxy_execute_jscore.JSObjectGetPrivate)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSObjectSetPrivate = dlsym(g_proxy_execute_jscore.module, "JSObjectSetPrivate");
+    if (!g_proxy_execute_jscore.JSObjectSetPrivate)
+        goto jscore_init_error;
+    // Context functions
+    g_proxy_execute_jscore.JSContextGetGlobalObject = dlsym(g_proxy_execute_jscore.module, "JSContextGetGlobalObject");
+    if (!g_proxy_execute_jscore.JSContextGetGlobalObject)
+        goto jscore_init_error;
+    // Value functions
+    g_proxy_execute_jscore.JSValueIsString = dlsym(g_proxy_execute_jscore.module, "JSValueIsString");
+    if (!g_proxy_execute_jscore.JSValueIsString)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueIsNumber = dlsym(g_proxy_execute_jscore.module, "JSValueIsNumber");
+    if (!g_proxy_execute_jscore.JSValueIsNumber)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueToObject = dlsym(g_proxy_execute_jscore.module, "JSValueToObject");
+    if (!g_proxy_execute_jscore.JSValueToObject)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueToStringCopy = dlsym(g_proxy_execute_jscore.module, "JSValueToStringCopy");
+    if (!g_proxy_execute_jscore.JSValueToStringCopy)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueToNumber = dlsym(g_proxy_execute_jscore.module, "JSValueToNumber");
+    if (!g_proxy_execute_jscore.JSValueToNumber)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueMakeNull = dlsym(g_proxy_execute_jscore.module, "JSValueMakeNull");
+    if (!g_proxy_execute_jscore.JSValueMakeNull)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueMakeBoolean = dlsym(g_proxy_execute_jscore.module, "JSValueMakeBoolean");
+    if (!g_proxy_execute_jscore.JSValueMakeBoolean)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSValueMakeString = dlsym(g_proxy_execute_jscore.module, "JSValueMakeString");
+    if (!g_proxy_execute_jscore.JSValueMakeString)
+        goto jscore_init_error;
+    // String functions
+    g_proxy_execute_jscore.JSStringCreateWithUTF8CString =
+        dlsym(g_proxy_execute_jscore.module, "JSStringCreateWithUTF8CString");
+    if (!g_proxy_execute_jscore.JSStringCreateWithUTF8CString)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSStringGetUTF8CString = dlsym(g_proxy_execute_jscore.module, "JSStringGetUTF8CString");
+    if (!g_proxy_execute_jscore.JSStringGetUTF8CString)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
+        dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
+    if (!g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
+        dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
+    if (!g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSStringRelease = dlsym(g_proxy_execute_jscore.module, "JSStringRelease");
+    if (!g_proxy_execute_jscore.JSStringRelease)
+        goto jscore_init_error;
+    // Global context functions
+    g_proxy_execute_jscore.JSGlobalContextCreate = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextCreate");
+    if (!g_proxy_execute_jscore.JSGlobalContextCreate)
+        goto jscore_init_error;
+    g_proxy_execute_jscore.JSGlobalContextRelease = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextRelease");
+    if (!g_proxy_execute_jscore.JSGlobalContextRelease)
+        goto jscore_init_error;
+    // Execute functions
+    g_proxy_execute_jscore.JSEvaluateScript = dlsym(g_proxy_execute_jscore.module, "JSEvaluateScript");
+    if (!g_proxy_execute_jscore.JSEvaluateScript)
+        goto jscore_init_error;
+    // Garbage collection functions
+    g_proxy_execute_jscore.JSGarbageCollect = dlsym(g_proxy_execute_jscore.module, "JSGarbageCollect");
+    if (!g_proxy_execute_jscore.JSGarbageCollect)
+        goto jscore_init_error;
+
+    return;
+
+jscore_init_error:
+    proxy_execute_jscore_global_cleanup();
 }
 
 static JSValueRef proxy_execute_jscore_dns_resolve(JSContextRef ctx, JSObjectRef function, JSObjectRef object,
@@ -354,6 +486,9 @@ int32_t proxy_execute_jscore_get_error(void *ctx) {
 }
 
 void *proxy_execute_jscore_create(void) {
+    pthread_once(&g_proxy_execute_jscore_init_flag, proxy_execute_jscore_delayed_init);
+    if (!g_proxy_execute_jscore.module)
+        return NULL;
     proxy_execute_jscore_s *proxy_execute = (proxy_execute_jscore_s *)calloc(1, sizeof(proxy_execute_jscore_s));
     return proxy_execute;
 }
@@ -373,136 +508,9 @@ bool proxy_execute_jscore_delete(void **ctx) {
 /*********************************************************************/
 
 bool proxy_execute_jscore_global_init(void) {
-    if (g_proxy_execute_jscore.module)
-        return true;
-#ifdef __APPLE__
-    g_proxy_execute_jscore.module = dlopen(
-        "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/JavaScriptCore", RTLD_LAZY | RTLD_LOCAL);
-#else
-    const char *library_names[] = {"libjavascriptcoregtk-4.1.so.0", "libjavascriptcoregtk-4.0.so.18",
-                                   "libjavascriptcoregtk-3.0.so.0", "libjavascriptcoregtk-1.0.so.0"};
-    const size_t library_names_size = sizeof(library_names) / sizeof(library_names[0]);
-
-    // Use existing JavaScriptCoreGTK if already loaded
-    struct link_map *map = NULL;
-    void *current_process = dlopen(0, RTLD_LAZY);
-    if (!current_process)
-        return false;
-    if (dlinfo(current_process, RTLD_DI_LINKMAP, &map) == 0) {
-        while (map && !g_proxy_execute_jscore.module) {
-            for (size_t i = 0; i < library_names_size; i++) {
-                if (strstr(map->l_name, library_names[i])) {
-                    g_proxy_execute_jscore.module = dlopen(map->l_name, RTLD_NOLOAD | RTLD_LAZY | RTLD_LOCAL);
-                    break;
-                }
-            }
-            map = map->l_next;
-        }
-    }
-    dlclose(current_process);
-
-    // Load the first available version of the JavaScriptCoreGTK
-    for (size_t i = 0; !g_proxy_execute_jscore.module && i < library_names_size; i++) {
-        g_proxy_execute_jscore.module = dlopen(library_names[i], RTLD_LAZY | RTLD_LOCAL);
-    }
-#endif
-
-    if (!g_proxy_execute_jscore.module)
-        return false;
-
-    // Class functions
-    g_proxy_execute_jscore.JSClassCreate = dlsym(g_proxy_execute_jscore.module, "JSClassCreate");
-    if (!g_proxy_execute_jscore.JSClassCreate)
-        goto jscore_init_error;
-    // Object functions
-    g_proxy_execute_jscore.JSObjectMake = dlsym(g_proxy_execute_jscore.module, "JSObjectMake");
-    if (!g_proxy_execute_jscore.JSObjectMake)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback =
-        dlsym(g_proxy_execute_jscore.module, "JSObjectMakeFunctionWithCallback");
-    if (!g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectGetProperty = dlsym(g_proxy_execute_jscore.module, "JSObjectGetProperty");
-    if (!g_proxy_execute_jscore.JSObjectGetProperty)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectSetProperty = dlsym(g_proxy_execute_jscore.module, "JSObjectSetProperty");
-    if (!g_proxy_execute_jscore.JSObjectSetProperty)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectGetPrivate = dlsym(g_proxy_execute_jscore.module, "JSObjectGetPrivate");
-    if (!g_proxy_execute_jscore.JSObjectGetPrivate)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectSetPrivate = dlsym(g_proxy_execute_jscore.module, "JSObjectSetPrivate");
-    if (!g_proxy_execute_jscore.JSObjectSetPrivate)
-        goto jscore_init_error;
-    // Context functions
-    g_proxy_execute_jscore.JSContextGetGlobalObject = dlsym(g_proxy_execute_jscore.module, "JSContextGetGlobalObject");
-    if (!g_proxy_execute_jscore.JSContextGetGlobalObject)
-        goto jscore_init_error;
-    // Value functions
-    g_proxy_execute_jscore.JSValueIsString = dlsym(g_proxy_execute_jscore.module, "JSValueIsString");
-    if (!g_proxy_execute_jscore.JSValueIsString)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueIsNumber = dlsym(g_proxy_execute_jscore.module, "JSValueIsNumber");
-    if (!g_proxy_execute_jscore.JSValueIsNumber)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueToObject = dlsym(g_proxy_execute_jscore.module, "JSValueToObject");
-    if (!g_proxy_execute_jscore.JSValueToObject)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueToStringCopy = dlsym(g_proxy_execute_jscore.module, "JSValueToStringCopy");
-    if (!g_proxy_execute_jscore.JSValueToStringCopy)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueToNumber = dlsym(g_proxy_execute_jscore.module, "JSValueToNumber");
-    if (!g_proxy_execute_jscore.JSValueToNumber)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueMakeNull = dlsym(g_proxy_execute_jscore.module, "JSValueMakeNull");
-    if (!g_proxy_execute_jscore.JSValueMakeNull)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueMakeBoolean = dlsym(g_proxy_execute_jscore.module, "JSValueMakeBoolean");
-    if (!g_proxy_execute_jscore.JSValueMakeBoolean)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueMakeString = dlsym(g_proxy_execute_jscore.module, "JSValueMakeString");
-    if (!g_proxy_execute_jscore.JSValueMakeString)
-        goto jscore_init_error;
-    // String functions
-    g_proxy_execute_jscore.JSStringCreateWithUTF8CString =
-        dlsym(g_proxy_execute_jscore.module, "JSStringCreateWithUTF8CString");
-    if (!g_proxy_execute_jscore.JSStringCreateWithUTF8CString)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringGetUTF8CString = dlsym(g_proxy_execute_jscore.module, "JSStringGetUTF8CString");
-    if (!g_proxy_execute_jscore.JSStringGetUTF8CString)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
-        dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
-    if (!g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
-        dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
-    if (!g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringRelease = dlsym(g_proxy_execute_jscore.module, "JSStringRelease");
-    if (!g_proxy_execute_jscore.JSStringRelease)
-        goto jscore_init_error;
-    // Global context functions
-    g_proxy_execute_jscore.JSGlobalContextCreate = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextCreate");
-    if (!g_proxy_execute_jscore.JSGlobalContextCreate)
-        goto jscore_init_error;
-    g_proxy_execute_jscore.JSGlobalContextRelease = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextRelease");
-    if (!g_proxy_execute_jscore.JSGlobalContextRelease)
-        goto jscore_init_error;
-    // Execute functions
-    g_proxy_execute_jscore.JSEvaluateScript = dlsym(g_proxy_execute_jscore.module, "JSEvaluateScript");
-    if (!g_proxy_execute_jscore.JSEvaluateScript)
-        goto jscore_init_error;
-    // Garbage collection functions
-    g_proxy_execute_jscore.JSGarbageCollect = dlsym(g_proxy_execute_jscore.module, "JSGarbageCollect");
-    if (!g_proxy_execute_jscore.JSGarbageCollect)
-        goto jscore_init_error;
-
+    // JSCoreGTK will be initialized with a delay to avoid conflicts with the
+    // loaded JSCoreGTK in a user application after this function.
     return true;
-
-jscore_init_error:
-    proxy_execute_jscore_global_cleanup();
-    return false;
 }
 
 bool proxy_execute_jscore_global_cleanup(void) {
