@@ -10,7 +10,12 @@
 #    include "execute_wsh.h"
 #  endif
 #else
-#  include "execute_jscore.h"
+#  ifdef HAVE_JSC
+#    include "execute_jsc.h"
+#  endif
+#  ifdef HAVE_JSCORE
+#    include "execute_jscore.h"
+#  endif
 #endif
 
 typedef struct g_proxy_execute_s {
@@ -64,8 +69,14 @@ bool proxy_execute_global_init(void) {
         g_proxy_execute.proxy_execute_i = proxy_execute_wsh_get_interface();
 #  endif
 #else
-    if (proxy_execute_jscore_global_init())
+#  ifdef HAVE_JSC
+    if (proxy_execute_jsc_global_init())
+        g_proxy_execute.proxy_execute_i = proxy_execute_jsc_get_interface();
+#  endif
+#  ifdef HAVE_JSCORE
+    if (!g_proxy_execute.proxy_execute_i && proxy_execute_jscore_global_init())
         g_proxy_execute.proxy_execute_i = proxy_execute_jscore_get_interface();
+#  endif
 #endif
     if (!g_proxy_execute.proxy_execute_i)
         return false;

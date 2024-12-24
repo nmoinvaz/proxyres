@@ -25,7 +25,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
-            packages: llvm-14 libjavascriptcoregtk-4.0-dev libgconf2-dev
+            packages: llvm-14 libjavascriptcoregtk-4.1-dev libgconf2-dev
             gcov-exec: llvm-cov-14 gcov
             codecov: ubuntu
 
@@ -34,7 +34,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON
-            packages: llvm-15 libjavascriptcoregtk-4.1-dev gsettings-desktop-schemas
+            packages: llvm-15 libjavascriptcoregtk-6.0-dev gsettings-desktop-schemas
             gcov-exec: llvm-cov-15 gcov
             codecov: ubuntu
 
@@ -43,7 +43,7 @@ jobs:
             compiler: clang
             cxx-compiler: clang++
             cmake-args: -G Ninja -D PROXYRES_CODE_COVERAGE=ON -D PROXYRES_CURL=ON
-            packages: llvm-15 libjavascriptcoregtk-4.1-dev gsettings-desktop-schemas
+            packages: llvm-15 libjavascriptcoregtk-6.0-dev gsettings-desktop-schemas
             gcov-exec: llvm-cov-15 gcov
             codecov: ubuntu_curl
 

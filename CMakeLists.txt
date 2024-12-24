@@ -120,6 +120,7 @@ elseif(UNIX)
     if (GConf_FOUND)
         list(APPEND PROXYRES_SRCS config_gnome2.c config_gnome2.h)
     endif()
+
     list(APPEND PROXYRES_SRCS
         config_env.c
         config_env.h
@@ -128,8 +129,8 @@ elseif(UNIX)
         config_kde.c
         config_kde.h
         event_pthread.c
-        execute_jscore.c
-        execute_jscore.h
+        execute_jsc.c
+        execute_jsc.h
         mutex_pthread.c
         net_adapter_linux.c
         resolver_gnome3.c
@@ -186,7 +187,7 @@ if(PROXYRES_CODE_COVERAGE AND NOT MSVC)
 endif()
 
 add_library(proxyres ${PROXYRES_SRCS})
-set_property(TARGET proxyres PROPERTY C_STANDARD 99)
+set_property(TARGET proxyres PROPERTY C_STANDARD 11)
 target_include_directories(proxyres PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include/proxyres)
@@ -284,6 +285,8 @@ elseif(APPLE)
     target_link_libraries(proxyres ${CMAKE_THREAD_LIBS_INIT})
 
     set_target_properties(proxyres PROPERTIES LINK_FLAGS -Wl,-F/Library/Frameworks)
+
+    target_compile_definitions(proxyres PRIVATE HAVE_JSCORE)
 elseif(UNIX)
     pkg_check_modules(deps REQUIRED IMPORTED_TARGET glib-2.0)
     target_link_libraries(proxyres PkgConfig::deps)
@@ -294,9 +297,18 @@ elseif(UNIX)
         target_compile_definitions(proxyres PRIVATE HAVE_GCONF)
     endif()
 
-    pkg_search_module(JSCoreGTK REQUIRED javascriptcoregtk-4.1 javascriptcoregtk-4.0 javascriptcoregtk-3.0 javascriptcoregtk-1.0)
-    # Don't link libraries at compile time since we dynamically load them at runtime
-    target_include_directories(proxyres PRIVATE ${JSCoreGTK_INCLUDE_DIRS})
+    pkg_search_module(JSCoreGTK REQUIRED javascriptcoregtk-6.0 javascriptcoregtk-4.1 javascriptcoregtk-4.0)
+    if(JSCoreGTK_FOUND)
+        # Don't link libraries at compile time since we dynamically load them at runtime
+        target_include_directories(proxyres PRIVATE ${JSCoreGTK_INCLUDE_DIRS})
+        target_compile_definitions(proxyres PRIVATE HAVE_JSC)
+
+        pkg_check_modules(GObject REQUIRED gobject-2.0)
+        if(GObject_FOUND)
+            target_include_directories(proxyres PRIVATE ${GObject_INCLUDE_DIRS})
+            target_link_libraries(proxyres ${GObject_LIBRARIES})
+        endif()
+    endif()
 
     find_package(Threads REQUIRED)
     target_compile_definitions(proxyres PRIVATE HAVE_PTHREADS)
