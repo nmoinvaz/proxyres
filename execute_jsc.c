@@ -27,6 +27,7 @@ typedef struct g_proxy_execute_jsc_s {
     JSCValue *(*jsc_context_get_global_object)(JSCContext *context);
     JSCValue *(*jsc_context_evaluate)(JSCContext *context, const char *code, gssize length);
     JSCException *(*jsc_context_get_exception)(JSCContext *context);
+    void (*jsc_context_set_value)(JSCContext *context, const char *name, JSCValue *value);
     // Value functions
     gboolean (*jsc_value_is_string)(JSCValue *value);
     gboolean (*jsc_value_is_number)(JSCValue *value);
@@ -36,7 +37,6 @@ typedef struct g_proxy_execute_jsc_s {
     char *(*jsc_value_to_string)(JSCValue *value);
     JSCValue *(*jsc_value_new_function)(JSCContext *context, const char *name, GCallback callback, gpointer user_data,
                                         GDestroyNotify destroy_notify, GType return_type, guint n_params, ...);
-    void (*jsc_value_object_set_property)(JSCValue *value, const char *name, JSCValue *property);
     JSCValue *(*jsc_value_object_get_property)(JSCValue *value, const char *name);
     // Exception functions
     char *(*jsc_exception_report)(JSCException *exception);
@@ -104,55 +104,53 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
         goto jscgtk_execute_cleanup;
     }
 
+    // Array of JavaScript function names and corresponding callbacks
+    static struct {
+        const char *name;
+        GCallback callback;
+        GType return_type;
+        gint param_count;
+        JSCValue *value;
+    } functions[] = {{"dnsResolve", G_CALLBACK(proxy_execute_jsc_dns_resolve), G_TYPE_STRING, 1},
+                     {"dnsResolveEx", G_CALLBACK(proxy_execute_jsc_dns_resolve_ex), G_TYPE_STRING, 1},
+                     {"myIpAddress", G_CALLBACK(proxy_execute_jsc_my_ip_address), G_TYPE_STRING, 0},
+                     {"myIpAddressEx", G_CALLBACK(proxy_execute_jsc_my_ip_address_ex), G_TYPE_STRING, 0}};
+
     // Register native functions with JavaScript engine
-    JSCValue *global_object = g_proxy_execute_jsc.jsc_context_get_global_object(global);
-    JSCValue *function = g_proxy_execute_jsc.jsc_value_new_function(
-        global, "dnsResolve", G_CALLBACK(proxy_execute_jsc_dns_resolve), NULL, NULL, G_TYPE_STRING, 1, G_TYPE_STRING);
-    if (!function) {
-        LOG_ERROR("Unable to hook native function for %s\n", "dnsResolve");
-        goto jscgtk_execute_cleanup;
+    for (uint32_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
+        functions[i].value = g_proxy_execute_jsc.jsc_value_new_function(
+            global, functions[i].name, functions[i].callback, NULL, NULL, functions[i].return_type,
+            functions[i].param_count, G_TYPE_STRING);
+
+        if (!functions[i].value) {
+            LOG_ERROR("Unable to hook native function for %s\n", functions[i].name);
+            goto jscgtk_execute_cleanup;
+        }
+
+        g_proxy_execute_jsc.jsc_context_set_value(global, functions[i].name, functions[i].value);
     }
-    g_proxy_execute_jsc.jsc_value_object_set_property(global_object, "dnsResolve", function);
-    function =
-        g_proxy_execute_jsc.jsc_value_new_function(global, "dnsResolveEx", G_CALLBACK(proxy_execute_jsc_dns_resolve_ex),
-                                                   NULL, NULL, G_TYPE_STRING, 1, G_TYPE_STRING);
-    if (!function) {
-        LOG_ERROR("Unable to hook native function for %s\n", "dnsResolveEx");
-        goto jscgtk_execute_cleanup;
-    }
-    g_proxy_execute_jsc.jsc_value_object_set_property(global_object, "dnsResolveEx", function);
-    function = g_proxy_execute_jsc.jsc_value_new_function(
-        global, "myIpAddress", G_CALLBACK(proxy_execute_jsc_my_ip_address), NULL, NULL, G_TYPE_STRING, 0);
-    if (!function) {
-        LOG_ERROR("Unable to hook native function for %s\n", "myIpAddress");
-        goto jscgtk_execute_cleanup;
-    }
-    g_proxy_execute_jsc.jsc_value_object_set_property(global_object, "myIpAddress", function);
-    function = g_proxy_execute_jsc.jsc_value_new_function(
-        global, "myIpAddressEx", G_CALLBACK(proxy_execute_jsc_my_ip_address_ex), NULL, NULL, G_TYPE_STRING, 0);
-    if (!function) {
-        LOG_ERROR("Unable to hook native function for %s\n", "myIpAddressEx");
-        goto jscgtk_execute_cleanup;
-    }
-    g_proxy_execute_jsc.jsc_value_object_set_property(global_object, "myIpAddressEx", function);
 
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
-    g_proxy_execute_jsc.jsc_context_evaluate(global, MOZILLA_PAC_JAVASCRIPT, -1);
+    JSCValue *result = g_proxy_execute_jsc.jsc_context_evaluate(global, MOZILLA_PAC_JAVASCRIPT, -1);
     exception = g_proxy_execute_jsc.jsc_context_get_exception(global);
     if (exception) {
         LOG_ERROR("Unable to execute Mozilla's JavaScript PAC utilities\n");
         js_print_exception(global, exception);
         goto jscgtk_execute_cleanup;
     }
+    if (result)
+        g_object_unref(result);
 
     // Load PAC script
-    g_proxy_execute_jsc.jsc_context_evaluate(global, script, -1);
+    result = g_proxy_execute_jsc.jsc_context_evaluate(global, script, -1);
     exception = g_proxy_execute_jsc.jsc_context_get_exception(global);
     if (exception) {
         LOG_ERROR("Unable to execute PAC script\n");
         js_print_exception(global, exception);
         goto jscgtk_execute_cleanup;
     }
+    if (result)
+        g_object_unref(result);
 
     // Construct the call FindProxyForURL
     char *host = get_url_host(url);
@@ -160,7 +158,7 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     free(host);
 
     // Execute the call to FindProxyForURL
-    JSCValue *proxy_value = g_proxy_execute_jsc.jsc_context_evaluate(global, find_proxy, -1);
+    result = g_proxy_execute_jsc.jsc_context_evaluate(global, find_proxy, -1);
     exception = g_proxy_execute_jsc.jsc_context_get_exception(global);
     if (exception) {
         LOG_ERROR("Unable to execute FindProxyForURL\n");
@@ -168,18 +166,24 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
         goto jscgtk_execute_cleanup;
     }
 
-    if (!g_proxy_execute_jsc.jsc_value_is_string(proxy_value)) {
+    if (!g_proxy_execute_jsc.jsc_value_is_string(result)) {
         LOG_ERROR("Incorrect return type from FindProxyForURL\n");
         goto jscgtk_execute_cleanup;
     }
 
     // Get the result of the call to FindProxyForURL
-    if (proxy_value) {
-        proxy_execute->list = g_proxy_execute_jsc.jsc_value_to_string(proxy_value);
+    if (result) {
+        proxy_execute->list = g_proxy_execute_jsc.jsc_value_to_string(result);
+        g_object_unref(result);
         is_ok = true;
     }
 
 jscgtk_execute_cleanup:
+
+    for (uint32_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
+        if (functions[i].value)
+            g_object_unref(functions[i].value);
+    }
 
     if (global)
         g_object_unref(global);
@@ -245,6 +249,9 @@ void proxy_execute_jsc_delayed_init(void) {
     g_proxy_execute_jsc.jsc_context_get_exception = dlsym(g_proxy_execute_jsc.module, "jsc_context_get_exception");
     if (!g_proxy_execute_jsc.jsc_context_get_exception)
         goto jsc_init_error;
+    g_proxy_execute_jsc.jsc_context_set_value = dlsym(g_proxy_execute_jsc.module, "jsc_context_set_value");
+    if (!g_proxy_execute_jsc.jsc_context_set_value)
+        goto jsc_init_error;
     // Value functions
     g_proxy_execute_jsc.jsc_value_is_string = dlsym(g_proxy_execute_jsc.module, "jsc_value_is_string");
     if (!g_proxy_execute_jsc.jsc_value_is_string)
@@ -270,10 +277,6 @@ void proxy_execute_jsc_delayed_init(void) {
     g_proxy_execute_jsc.jsc_value_object_get_property =
         dlsym(g_proxy_execute_jsc.module, "jsc_value_object_get_property");
     if (!g_proxy_execute_jsc.jsc_value_object_get_property)
-        goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_object_set_property =
-        dlsym(g_proxy_execute_jsc.module, "jsc_value_object_set_property");
-    if (!g_proxy_execute_jsc.jsc_value_object_set_property)
         goto jsc_init_error;
     // Exception functions
     g_proxy_execute_jsc.jsc_exception_report = dlsym(g_proxy_execute_jsc.module, "jsc_exception_report");
