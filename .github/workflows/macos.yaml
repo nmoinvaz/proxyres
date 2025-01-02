@@ -2,6 +2,9 @@ name: Build - macOS
 on: [workflow_dispatch, push, pull_request]
 env:
   TERM: xterm-256color
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
