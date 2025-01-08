@@ -22,6 +22,8 @@
 typedef struct g_proxy_execute_jsc_s {
     // JSCoreGTK module
     void *module;
+    // GObject functions
+    void (*g_object_unref)(gpointer object);
     // Context functions
     JSCContext *(*jsc_context_new)(void);
     JSCValue *(*jsc_context_get_global_object)(JSCContext *context);
@@ -92,6 +94,7 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     proxy_execute_jsc_s *proxy_execute = (proxy_execute_jsc_s *)ctx;
     JSCContext *global = NULL;
     JSCException *exception = NULL;
+    JSCValue *result = NULL;
     char find_proxy[4096];
     bool is_ok = false;
 
@@ -131,17 +134,17 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     }
 
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
-    JSCValue *result = g_proxy_execute_jsc.jsc_context_evaluate(global, MOZILLA_PAC_JAVASCRIPT, -1);
+    result = g_proxy_execute_jsc.jsc_context_evaluate(global, MOZILLA_PAC_JAVASCRIPT, -1);
     exception = g_proxy_execute_jsc.jsc_context_get_exception(global);
     if (exception) {
         LOG_ERROR("Unable to execute Mozilla's JavaScript PAC utilities\n");
         js_print_exception(global, exception);
         goto jscgtk_execute_cleanup;
     }
-    if (result)
-        g_object_unref(result);
 
     // Load PAC script
+    if (result)
+        g_proxy_execute_jsc.g_object_unref(result);
     result = g_proxy_execute_jsc.jsc_context_evaluate(global, script, -1);
     exception = g_proxy_execute_jsc.jsc_context_get_exception(global);
     if (exception) {
@@ -149,8 +152,6 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
         js_print_exception(global, exception);
         goto jscgtk_execute_cleanup;
     }
-    if (result)
-        g_object_unref(result);
 
     // Construct the call FindProxyForURL
     char *host = get_url_host(url);
@@ -158,6 +159,8 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     free(host);
 
     // Execute the call to FindProxyForURL
+    if (result)
+        g_proxy_execute_jsc.g_object_unref(result);
     result = g_proxy_execute_jsc.jsc_context_evaluate(global, find_proxy, -1);
     exception = g_proxy_execute_jsc.jsc_context_get_exception(global);
     if (exception) {
@@ -172,13 +175,15 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     }
 
     // Get the result of the call to FindProxyForURL
-    if (result) {
+    if (result && g_proxy_execute_jsc.jsc_value_is_string(result)) {
         proxy_execute->list = g_proxy_execute_jsc.jsc_value_to_string(result);
-        g_object_unref(result);
         is_ok = true;
     }
 
 jscgtk_execute_cleanup:
+
+    if (result)
+        g_proxy_execute_jsc.g_object_unref(result);
 
     for (uint32_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
         if (functions[i].value)
@@ -234,6 +239,11 @@ void proxy_execute_jsc_delayed_init(void) {
 
     if (!g_proxy_execute_jsc.module)
         return;
+
+    // GObject functions (loaded as a dependency of the module)
+    g_proxy_execute_jsc.g_object_unref = dlsym(g_proxy_execute_jsc.module, "g_object_unref");
+    if (!g_proxy_execute_jsc.g_object_unref)
+        goto jsc_init_error;
 
     // Context functions
     g_proxy_execute_jsc.jsc_context_new = dlsym(g_proxy_execute_jsc.module, "jsc_context_new");
