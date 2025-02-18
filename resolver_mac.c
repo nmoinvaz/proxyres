@@ -65,7 +65,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
         size_t list_len = 0;
 
         proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-
+        LOG_INFO("proxylist count: %d\n", proxy_count);
         // Enumerate through each proxy in the array
         for (size_t i = 0; proxy_resolver->list && i < proxy_count && list_len < max_list; i++) {
             CFDictionaryRef proxy = CFArrayGetValueAtIndex(proxy_array, i);
@@ -80,6 +80,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
                 LOG_WARN("Unknown proxy type encountered\n");
                 continue;
             }
+            LOG_INFO("proxy type: %s\n", scheme);
 
             if (!CFEqual(proxy_type, kCFProxyTypeNone) && list_len < max_list) {
                 // Copy proxy host
@@ -98,6 +99,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
                 }
                 // Copy proxy port
                 CFNumberRef port = (CFNumberRef)CFDictionaryGetValue(proxy, kCFProxyPortNumberKey);
+                LOG_INFO("port: %d\n", port);
                 if (port && list_len < max_list) {
                     int32_t port_number = 0;
                     CFNumberGetValue(port, kCFNumberSInt32Type, &port_number);
@@ -119,6 +121,8 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
             proxy_resolver->list = NULL;
         } else if (!proxy_resolver->list) {
             proxy_resolver->error = ENOMEM;
+        } else {
+            LOG_INFO("proxy list: %s\n", proxy_resolver->list);
         }
     }
 
@@ -142,7 +146,7 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         LOG_ERROR("Auto configuration url not specified");
         goto mac_done;
     }
-
+    LOG_INFO("Auto configuration url: %s\n", auto_config_url);
     url_ref = CFURLCreateWithBytes(NULL, (const UInt8 *)auto_config_url, strlen(auto_config_url), kCFStringEncodingUTF8,
                                    NULL);
 
