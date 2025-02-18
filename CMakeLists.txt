@@ -19,6 +19,7 @@ project(proxyres)
 
 set(PROXYRES_SRCS
     include/proxyres/config.h
+    include/proxyres/log.h
     include/proxyres/proxyres.h
     include/proxyres/resolver.h)
 if(PROXYRES_EXECUTE)
@@ -31,6 +32,7 @@ list(APPEND PROXYRES_SRCS
     config.c
     event.h
     log.h
+    log.c
     mutex.h
     net_util.c
     net_util.h
