@@ -15,12 +15,7 @@ void log_debug(const char *fmt, ...);
     log_error(fmt, ##__VA_ARGS__);
 #define LOG_WARN(fmt, ...) \
     log_warn(fmt, ##__VA_ARGS__);
-#ifdef _DEBUG
-#  define LOG_INFO(fmt, ...) \
+#define LOG_INFO(fmt, ...) \
     log_info(fmt, ##__VA_ARGS__);
-#  define LOG_DEBUG(fmt, ...) \
+#define LOG_DEBUG(fmt, ...) \
     log_debug(fmt, ##__VA_ARGS__);
-#else
-#  define LOG_INFO(fmt, ...)
-#  define LOG_DEBUG(fmt, ...)
-#endif

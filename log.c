@@ -2,10 +2,10 @@
 // Define function pointers
 #include "log.h"
 
-void (*log_error_func)(const char *fmt, ...);
-void (*log_warn_func)(const char *fmt, ...);
-void (*log_info_func)(const char *fmt, ...);
-void (*log_debug_func)(const char *fmt, ...);
+static void (*log_error_func)(const char *fmt, ...);
+static void (*log_warn_func)(const char *fmt, ...);
+static void (*log_info_func)(const char *fmt, ...);
+static void (*log_debug_func)(const char *fmt, ...);
 
 void set_log_error(void (*func)(const char* fmt, ...)) {
     log_error_func = func;
