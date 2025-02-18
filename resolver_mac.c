@@ -100,10 +100,10 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
                 }
                 // Copy proxy port
                 CFNumberRef port = (CFNumberRef)CFDictionaryGetValue(proxy, kCFProxyPortNumberKey);
-                LOG_INFO("port: %d\n", port);
                 if (port && list_len < max_list) {
                     int32_t port_number = 0;
                     CFNumberGetValue(port, kCFNumberSInt32Type, &port_number);
+                    LOG_INFO("port: %d\n", port_number);
                     list_len +=
                         snprintf(proxy_resolver->list + list_len, max_list - list_len, ":%" PRId32, port_number);
                 }
