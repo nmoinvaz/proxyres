@@ -146,7 +146,7 @@ bool proxy_resolver_get_proxies_for_url(void *ctx, const char *url) {
 const char *proxy_resolver_get_list(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
-        return false;
+        return NULL;
     if (proxy_resolver->list)
         return proxy_resolver->list;
     return g_proxy_resolver.proxy_resolver_i->get_list(proxy_resolver->base);
@@ -155,7 +155,7 @@ const char *proxy_resolver_get_list(void *ctx) {
 char *proxy_resolver_get_next_proxy(void *ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)ctx;
     if (!proxy_resolver || !g_proxy_resolver.proxy_resolver_i)
-        return false;
+        return NULL;
     if (!proxy_resolver->listp)
         return NULL;
 
