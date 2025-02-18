@@ -23,66 +23,42 @@ void set_log_debug(void (*func)(const char* fmt, ...)) {
     log_debug_func = func;
 }
 
-void default_log_error(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf("ERROR - ");
-    vprintf(fmt, args);
-    printf("\n");
-    va_end(args);
-}
-
-void default_log_warn(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf("WARNING - ");
-    vprintf(fmt, args);
-    printf("\n");
-    va_end(args);
-}
-
-void default_log_info(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf("INFO - ");
-    vprintf(fmt, args);
-    printf("\n");
-    va_end(args);
-}
-
-void default_log_debug(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf("DEBUG - ");
-    vprintf(fmt, args);
-    printf("\n");
-    va_end(args);
-}
-
 void log_error(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
     if (log_error_func)
-        log_error_func(fmt);
+        log_error_func(fmt, args);
     else
-        default_log_error(fmt);
+        vprintf(fmt, args);
+    va_end(args);
 }
 void log_warn(const char *fmt, ...)
 {
+    va_list args;
+    va_start(args, fmt);
     if (log_warn_func)
-        log_warn_func(fmt);
+        log_warn_func(fmt, args);
     else
-        default_log_warn(fmt);
+        vprintf(fmt, args);
+    va_end(args);
 }
 void log_info(const char *fmt, ...)
 {
+    va_list args;
+    va_start(args, fmt);
     if (log_info_func)
-        log_info_func(fmt);
+        log_info_func(fmt, args);
     else
-        default_log_info(fmt);
+        vprintf(fmt, args);
+    va_end(args);
 }
 void log_debug(const char *fmt, ...)
 {
+    va_list args;
+    va_start(args, fmt);
     if (log_debug_func)
-        log_debug_func(fmt);
+        log_debug_func(fmt, args);
     else
-        default_log_debug(fmt);
+        vprintf(fmt, args);
+    va_end(args);
 }

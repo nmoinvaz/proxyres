@@ -58,6 +58,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
     if (error) {
         // Get error code
         proxy_resolver->error = CFErrorGetCode(error);
+        LOG_WARN("Error code: %" PRId64 "\n", proxy_resolver->error);
     } else {
         // Convert proxy array into PAC file return format
         const size_t proxy_count = CFArrayGetCount(proxy_array);
@@ -65,7 +66,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
         size_t list_len = 0;
 
         proxy_resolver->list = (char *)calloc(max_list, sizeof(char));
-        LOG_INFO("proxylist count: %d\n", proxy_count);
+        LOG_INFO("proxylist count: %" PRId64 "\n", proxy_count);
         // Enumerate through each proxy in the array
         for (size_t i = 0; proxy_resolver->list && i < proxy_count && list_len < max_list; i++) {
             CFDictionaryRef proxy = CFArrayGetValueAtIndex(proxy_array, i);

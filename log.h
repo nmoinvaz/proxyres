@@ -11,11 +11,7 @@ void log_warn(const char *fmt, ...);
 void log_info(const char *fmt, ...);
 void log_debug(const char *fmt, ...);
 
-#define LOG_ERROR(fmt, ...) \
-    log_error(fmt, ##__VA_ARGS__);
-#define LOG_WARN(fmt, ...) \
-    log_warn(fmt, ##__VA_ARGS__);
-#define LOG_INFO(fmt, ...) \
-    log_info(fmt, ##__VA_ARGS__);
-#define LOG_DEBUG(fmt, ...) \
-    log_debug(fmt, ##__VA_ARGS__);
+#define LOG_ERROR log_error
+#define LOG_WARN log_warn
+#define LOG_INFO log_info
+#define LOG_DEBUG log_debug
