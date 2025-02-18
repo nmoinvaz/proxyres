@@ -2,24 +2,24 @@
 // Define function pointers
 #include "log.h"
 
-static void (*log_error_func)(const char *fmt, ...);
-static void (*log_warn_func)(const char *fmt, ...);
-static void (*log_info_func)(const char *fmt, ...);
-static void (*log_debug_func)(const char *fmt, ...);
+static void (*log_error_func)(const char *fmt, va_list args);
+static void (*log_warn_func)(const char *fmt, va_list args);
+static void (*log_info_func)(const char *fmt, va_list args);
+static void (*log_debug_func)(const char *fmt, va_list args);
 
-void set_log_error(void (*func)(const char* fmt, ...)) {
+void set_log_error(void (*func)(const char* fmt, va_list args)) {
     log_error_func = func;
 }
 
-void set_log_warn(void (*func)(const char* fmt, ...)) {
+void set_log_warn(void (*func)(const char* fmt, va_list args)) {
     log_warn_func = func;
 }
 
-void set_log_info(void (*func)(const char* fmt, ...)) {
+void set_log_info(void (*func)(const char* fmt, va_list args)) {
     log_info_func = func;
 }
 
-void set_log_debug(void (*func)(const char* fmt, ...)) {
+void set_log_debug(void (*func)(const char* fmt, va_list args)) {
     log_debug_func = func;
 }
 
