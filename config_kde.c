@@ -56,7 +56,7 @@ char *proxy_config_kde_get_proxy(const char *scheme) {
         return NULL;
 
     // Check if scheme is actually a url
-    char *host = strchr(scheme, ':');
+    const char *host = strchr(scheme, ':');
     if (host) {
         scheme_len = (host - scheme);
         strncat(key, scheme, scheme_len);
@@ -166,7 +166,3 @@ proxy_config_i_s *proxy_config_kde_get_interface(void) {
         proxy_config_kde_get_bypass_list,   proxy_config_kde_global_init,         proxy_config_kde_global_cleanup};
     return &proxy_config_kde_i;
 }
-
-#ifdef __cplusplus
-}
-#endif

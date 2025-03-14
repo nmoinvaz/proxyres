@@ -21,6 +21,7 @@
 #include "log.h"
 #include "net_util.h"
 #include "util.h"
+#include "wpad_dns.h"
 
 #ifdef _WIN32
 #  define socketerr WSAGetLastError()
@@ -61,7 +62,7 @@ char *wpad_dns(const char *fqdn) {
 
     // Enumerate through each part of the FQDN
     const char *name = fqdn;
-    char *next_part;
+    const char *next_part;
     do {
         next_part = strchr(name, '.');
         if (!next_part)

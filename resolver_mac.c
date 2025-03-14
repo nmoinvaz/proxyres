@@ -68,7 +68,7 @@ static void proxy_resolver_mac_auto_config_result_callback(void *client, CFArray
 
         // Enumerate through each proxy in the array
         for (size_t i = 0; proxy_resolver->list && i < proxy_count && list_len < max_list; i++) {
-            CFDictionaryRef proxy = CFArrayGetValueAtIndex(proxy_array, i);
+            const CFDictionaryRef proxy = (CFDictionaryRef)CFArrayGetValueAtIndex(proxy_array, i);
             CFStringRef proxy_type = (CFStringRef)CFDictionaryGetValue(proxy, kCFProxyTypeKey);
 
             // Copy type of connection
@@ -132,6 +132,8 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
     CFURLRef url_ref = NULL;
     char *auto_config_url = NULL;
     bool is_ok = false;
+    CFStreamClientContext context = {0};
+    CFRunLoopSourceRef run_loop = NULL;
 
     if (!proxy_resolver || !url)
         return false;
@@ -160,10 +162,10 @@ bool proxy_resolver_mac_get_proxies_for_url(void *ctx, const char *url) {
         goto mac_done;
     }
 
-    CFStreamClientContext context = {0, proxy_resolver, NULL, NULL, NULL};
+    context.info = proxy_resolver;
 
-    CFRunLoopSourceRef run_loop = CFNetworkExecuteProxyAutoConfigurationURL(
-        url_ref, target_url_ref, proxy_resolver_mac_auto_config_result_callback, &context);
+    run_loop = CFNetworkExecuteProxyAutoConfigurationURL(url_ref, target_url_ref,
+                                                         proxy_resolver_mac_auto_config_result_callback, &context);
     if (!run_loop) {
         proxy_resolver->error = ELOOP;
         LOG_ERROR("Failed to execute pac url (%" PRId64 ")\n", proxy_resolver->error);

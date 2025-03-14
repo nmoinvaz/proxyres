@@ -114,7 +114,7 @@ char *str_sep_dup(const char **strp, const char *delim) {
         return NULL;
 
     // Find end of current token, start of next token
-    char *end = strstr(token, delim);
+    const char *end = strstr(token, delim);
 
     // Calculate current token length
     size_t token_length;
@@ -126,7 +126,7 @@ char *str_sep_dup(const char **strp, const char *delim) {
     }
 
     // Copy token
-    char *token_dup = calloc(token_length + 1, sizeof(char));
+    char *token_dup = (char *)calloc(token_length + 1, sizeof(char));
     if (!token_dup)
         return NULL;
     strncat(token_dup, token, token_length);

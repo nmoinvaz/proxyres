@@ -134,7 +134,7 @@ char *proxy_config_gnome3_get_bypass_list(void) {
 
         if (max_value > 0) {
             // Allocate space for the bypass list
-            bypass_list = calloc(max_value, sizeof(char));
+            bypass_list = (char *)calloc(max_value, sizeof(char));
             if (bypass_list) {
                 // Enumerate hosts and copy them to the bypass list
                 for (int32_t i = 0; hosts[i]; i++) {
@@ -162,30 +162,36 @@ bool proxy_config_gnome3_global_init(void) {
         goto gnome3_init_error;
 
     // Glib functions
-    g_proxy_config_gnome3.g_free = dlsym(g_proxy_config_gnome3.glib_module, "g_free");
+    g_proxy_config_gnome3.g_free = (void (*)(gpointer))dlsym(g_proxy_config_gnome3.glib_module, "g_free");
     if (!g_proxy_config_gnome3.g_free)
         goto gnome3_init_error;
-    g_proxy_config_gnome3.g_strfreev = dlsym(g_proxy_config_gnome3.glib_module, "g_strfreev");
+    g_proxy_config_gnome3.g_strfreev = (void (*)(gchar **))dlsym(g_proxy_config_gnome3.glib_module, "g_strfreev");
     if (!g_proxy_config_gnome3.g_strfreev)
         goto gnome3_init_error;
 
     // GIO functions
-    g_proxy_config_gnome3.g_object_unref = dlsym(g_proxy_config_gnome3.gio_module, "g_object_unref");
+    g_proxy_config_gnome3.g_object_unref =
+        (void (*)(gpointer))dlsym(g_proxy_config_gnome3.gio_module, "g_object_unref");
     if (!g_proxy_config_gnome3.g_object_unref)
         goto gnome3_init_error;
-    g_proxy_config_gnome3.g_settings_new = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_new");
+    g_proxy_config_gnome3.g_settings_new =
+        (GSettings * (*)(const gchar *)) dlsym(g_proxy_config_gnome3.gio_module, "g_settings_new");
     if (!g_proxy_config_gnome3.g_settings_new)
         goto gnome3_init_error;
-    g_proxy_config_gnome3.g_settings_get_string = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_string");
+    g_proxy_config_gnome3.g_settings_get_string =
+        (gchar * (*)(GSettings *, const gchar *)) dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_string");
     if (!g_proxy_config_gnome3.g_settings_get_string)
         goto gnome3_init_error;
-    g_proxy_config_gnome3.g_settings_get_int = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_int");
+    g_proxy_config_gnome3.g_settings_get_int =
+        (gint(*)(GSettings *, const gchar *))dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_int");
     if (!g_proxy_config_gnome3.g_settings_get_int)
         goto gnome3_init_error;
-    g_proxy_config_gnome3.g_settings_get_strv = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_strv");
+    g_proxy_config_gnome3.g_settings_get_strv =
+        (gchar * *(*)(GSettings *, const gchar *)) dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_strv");
     if (!g_proxy_config_gnome3.g_settings_get_strv)
         goto gnome3_init_error;
-    g_proxy_config_gnome3.g_settings_get_boolean = dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_boolean");
+    g_proxy_config_gnome3.g_settings_get_boolean =
+        (gboolean(*)(GSettings *, const gchar *))dlsym(g_proxy_config_gnome3.gio_module, "g_settings_get_boolean");
     if (!g_proxy_config_gnome3.g_settings_get_boolean)
         goto gnome3_init_error;
     return true;

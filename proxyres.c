@@ -7,6 +7,7 @@
 #  include "execute.h"
 #endif
 #include "log.h"
+#include "proxyres.h"
 #include "resolver.h"
 
 bool proxyres_global_init(void) {

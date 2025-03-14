@@ -16,6 +16,7 @@
 #include "net_util.h"
 #include "util.h"
 
+#include "execute_wsh.h"
 #include "execute_wsh_site.h"
 
 typedef struct proxy_execute_wsh_s {

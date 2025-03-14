@@ -90,7 +90,7 @@ static threadpool_job_s *threadpool_dequeue_job(threadpool_s *threadpool) {
 }
 
 static void __cdecl threadpool_do_work(void *arg) {
-    threadpool_s *threadpool = arg;
+    threadpool_s *threadpool = (threadpool_s *)arg;
 
     LOG_DEBUG("threadpool - worker 0x%" PRIx32 " - started\n", GetCurrentThreadId());
 
@@ -152,7 +152,7 @@ static void threadpool_create_thread_on_demand(threadpool_s *threadpool) {
     if (handle == (uintptr_t)-1)
         return;
 
-    threadpool_thread_s *thread = calloc(1, sizeof(threadpool_thread_s));
+    threadpool_thread_s *thread = (threadpool_thread_s *)calloc(1, sizeof(threadpool_thread_s));
     thread->handle = handle;
     thread->next = threadpool->threads;
 

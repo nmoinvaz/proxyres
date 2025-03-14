@@ -37,7 +37,7 @@ bool net_adapter_enum(void *user_data, net_adapter_cb callback) {
     }
 
     buffer_size += 32;  // Prevent GetAdaptersAddresses overflow by 1 byte
-    buffer = calloc(buffer_size, sizeof(uint8_t));
+    buffer = (uint8_t *)calloc(buffer_size, sizeof(uint8_t));
     required_size = buffer_size;
 
     error = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_INCLUDE_GATEWAYS, 0,

@@ -35,7 +35,7 @@ char *wpad_dhcp_adapter_win(uint8_t bind_ip[4], net_adapter_s *adapter, int32_t 
     }
 
     // Copy wpad url from buffer
-    char *wpad = calloc(wpad_params.nBytesData + 1, sizeof(char));
+    char *wpad = (char *)calloc(wpad_params.nBytesData + 1, sizeof(char));
     if (!wpad)
         return NULL;
     strncat(wpad, (char *)wpad_params.Data, wpad_params.nBytesData);

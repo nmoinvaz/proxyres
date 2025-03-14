@@ -18,6 +18,10 @@
 #  endif
 #endif
 
+#ifdef __cplusplus
+#  define delete f_delete
+#endif
+
 typedef struct g_proxy_execute_s {
     // Library reference count
     int32_t ref_count;

@@ -9,7 +9,11 @@ typedef struct proxy_resolver_i_s {
     bool (*cancel)(void *ctx);
 
     void *(*create)(void);
+#ifdef __cplusplus
+    bool (*f_delete)(void **ctx);
+#else
     bool (*delete)(void **ctx);
+#endif
 
     bool is_async;
     bool uses_system_config;
