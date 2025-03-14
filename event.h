@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Sets an event to signalled state.
 bool event_set(void *ctx);
 
@@ -11,3 +15,7 @@ void *event_create(void);
 
 // Delete an event.
 bool event_delete(void **ctx);
+
+#ifdef __cplusplus
+}
+#endif

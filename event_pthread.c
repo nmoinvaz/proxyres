@@ -5,6 +5,8 @@
 
 #include <pthread.h>
 
+#include "event.h"
+
 typedef struct event_s {
     pthread_cond_t cond;
     pthread_mutex_t mutex;

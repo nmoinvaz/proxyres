@@ -7,7 +7,11 @@ typedef struct proxy_execute_i_s {
     int32_t (*get_error)(void *ctx);
 
     void *(*create)(void);
+#ifdef __cplusplus
+    bool (*f_delete)(void **ctx);
+#else
     bool (*delete)(void **ctx);
+#endif
 
     bool (*global_init)(void);
     bool (*global_cleanup)(void);

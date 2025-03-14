@@ -5,6 +5,8 @@
 
 #include <windows.h>
 
+#include "event.h"
+
 typedef struct event_s {
     HANDLE handle;
 } event_s;

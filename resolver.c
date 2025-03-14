@@ -33,6 +33,10 @@
 #include "threadpool.h"
 #include "util.h"
 
+#ifdef __cplusplus
+#  define delete f_delete
+#endif
+
 typedef struct g_proxy_resolver_s {
     // Library reference count
     int32_t ref_count;
@@ -204,7 +208,7 @@ bool proxy_resolver_cancel(void *ctx) {
 void *proxy_resolver_create(void) {
     if (!g_proxy_resolver.proxy_resolver_i)
         return NULL;
-    proxy_resolver_s *proxy_resolver = calloc(1, sizeof(proxy_resolver_s));
+    proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)calloc(1, sizeof(proxy_resolver_s));
     if (!proxy_resolver)
         return NULL;
     proxy_resolver->base = g_proxy_resolver.proxy_resolver_i->create();
@@ -223,7 +227,7 @@ bool proxy_resolver_delete(void **ctx) {
     proxy_resolver_s *proxy_resolver = (proxy_resolver_s *)*ctx;
     free(proxy_resolver->url);
     free(proxy_resolver->list);
-    g_proxy_resolver.proxy_resolver_i->delete (&proxy_resolver->base);
+    g_proxy_resolver.proxy_resolver_i->delete(&proxy_resolver->base);
     free(proxy_resolver);
     *ctx = NULL;
     return true;
@@ -249,9 +253,9 @@ bool proxy_resolver_global_init(void) {
     if (proxy_resolver_mac_global_init())
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_mac_get_interface();
 #elif defined(__linux__)
-        /* Does not work for manually specified proxy auto-config urls
-        if (proxy_resolver_gnome3_global_init())
-            g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
+    /* Does not work for manually specified proxy auto-config urls
+    if (proxy_resolver_gnome3_global_init())
+        g_proxy_resolver.proxy_resolver_i = proxy_resolver_gnome3_get_interface();*/
 #  ifdef PROXYRES_EXECUTE
     if (!g_proxy_resolver.proxy_resolver_i)
         g_proxy_resolver.proxy_resolver_i = proxy_resolver_posix_get_interface();

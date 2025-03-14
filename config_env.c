@@ -103,7 +103,3 @@ proxy_config_i_s *proxy_config_env_get_interface(void) {
         proxy_config_env_get_bypass_list,   proxy_config_env_global_init,         proxy_config_env_global_cleanup};
     return &proxy_config_env_i;
 }
-
-#ifdef __cplusplus
-}
-#endif

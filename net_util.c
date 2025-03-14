@@ -18,6 +18,7 @@
 #endif
 
 #include "net_adapter.h"
+#include "net_util.h"
 #include "util.h"
 
 typedef struct address_list {

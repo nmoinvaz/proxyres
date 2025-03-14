@@ -22,6 +22,7 @@
 #include "log.h"
 #include "net_adapter.h"
 #include "util.h"
+#include "wpad_dhcp_posix.h"
 
 #ifdef _WIN32
 #  define socketerr WSAGetLastError()
@@ -118,7 +119,7 @@ static uint8_t *dhcp_get_option(dhcp_msg *reply, uint8_t type, uint8_t *length) 
         // Check if option type matches
         if (opt_type == type) {
             // Allocate buffer to return option value
-            uint8_t *value = calloc(opt_length + 1, sizeof(char));
+            uint8_t *value = (uint8_t *)calloc(opt_length + 1, sizeof(uint8_t));
             if (value)
                 memcpy(value, opts, opt_length);
 

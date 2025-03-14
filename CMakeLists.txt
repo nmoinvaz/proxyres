@@ -5,6 +5,7 @@ include(CheckIncludeFile)
 option(PROXYRES_CURL "Enable support for downloading PAC scripts using curl." OFF)
 option(PROXYRES_EXECUTE "Enable support for PAC script execution." ON)
 
+option(PROXYRES_USE_CXX "Use the C++ compiler to compile proxyres." OFF)
 option(PROXYRES_BUILD_CLI "Build command line utility." ON)
 option(PROXYRES_BUILD_TESTS "Build Googletest unit tests project." ON)
 
@@ -15,78 +16,89 @@ if(UNIX AND NOT APPLE AND NOT PROXYRES_EXECUTE)
     set(PROXYRES_EXECUTE ON)
 endif()
 
-project(proxyres)
+project(proxyres C CXX)
 
-set(PROXYRES_SRCS
+if(CMAKE_C_COMPILER_ID MATCHES "MSVC|Intel")
+    set(PROXYRES_USE_CXX ON)
+endif()
+
+set(PROXYRES_HDRS
     include/proxyres/config.h
     include/proxyres/proxyres.h
     include/proxyres/resolver.h)
 if(PROXYRES_EXECUTE)
-    list(APPEND PROXYRES_SRCS
+    list(APPEND PROXYRES_HDRS
         include/proxyres/execute.h)
 endif()
 
-list(APPEND PROXYRES_SRCS
+list(APPEND PROXYRES_HDRS
     config_i.h
-    config.c
     event.h
     log.h
     mutex.h
-    net_util.c
     net_util.h
-    proxyres.c
     resolver_i.h
-    resolver.c
     threadpool.h
-    util.c
     util.h)
+list(APPEND PROXYRES_SRCS
+    config.c
+    net_util.c
+    proxyres.c
+    resolver.c
+    util.c)
 if(PROXYRES_EXECUTE)
-    list(APPEND PROXYRES_SRCS
+    list(APPEND PROXYRES_HDRS
         execute_i.h
-        execute.c
         fetch.h
         mozilla_js.h
-        net_adapter.c
         net_adapter.h
-        resolver_posix.c
         resolver_posix.h
-        wpad_dhcp_posix.c
         wpad_dhcp_posix.h
-        wpad_dhcp.c
         wpad_dhcp.h
-        wpad_dns.c
         wpad_dns.h)
+    list(APPEND PROXYRES_SRCS
+        execute.c
+        net_adapter.c
+        resolver_posix.c
+        wpad_dhcp_posix.c
+        wpad_dhcp.c
+        wpad_dns.c)
 endif()
 if(WIN32)
+    list(APPEND PROXYRES_HDRS
+        config_win.h
+        util_win.h)
     list(APPEND PROXYRES_SRCS
         config_win.c
-        config_win.h
         event_win.c
         mutex_win.c
         net_adapter_win.c
-        util_win.c
-        util_win.h)
+        util_win.c)
     if(PROXYRES_EXECUTE)
-        list(APPEND PROXYRES_SRCS
-            wpad_dhcp_win.c
+        list(APPEND PROXYRES_HDRS
             wpad_dhcp_win.h)
+        list(APPEND PROXYRES_SRCS
+            wpad_dhcp_win.c)
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-        list(APPEND PROXYRES_SRCS
-            resolver_winrt.c
+        list(APPEND PROXYRES_HDRS
             resolver_winrt.h)
+        list(APPEND PROXYRES_C_SRCS
+            resolver_winrt.c)
     else()
+        list(APPEND PROXYRES_HDRS
+            resolver_win8.h
+            resolver_winxp.h)
         list(APPEND PROXYRES_SRCS
             resolver_win8.c
-            resolver_win8.h
-            resolver_winxp.c
-            resolver_winxp.h)
+            resolver_winxp.c)
         if(PROXYRES_EXECUTE)
-            list(APPEND PROXYRES_SRCS
+            list(APPEND PROXYRES_HDRS
                 execute_wsh_dispatch.h
                 execute_wsh_site.h
-                execute_wsh.c
                 execute_wsh.h)
+            list(APPEND PROXYRES_C_SRCS
+                execute_wsh.c)
         endif()
     endif()
 
@@ -98,46 +110,50 @@ if(WIN32)
             threadpool_winxp.c)
     endif()
 elseif(APPLE)
+    list(APPEND PROXYRES_HDRS
+        config_mac.h
+        resolver_mac.h)
     list(APPEND PROXYRES_SRCS
         config_mac.c
-        config_mac.h
         event_pthread.c
         mutex_pthread.c
         resolver_mac.c
-        resolver_mac.h
         threadpool_pthread.c)
     if(PROXYRES_EXECUTE)
+        list(APPEND PROXYRES_HDRS
+            execute_jscore.h
+            wpad_dhcp_mac.h)
         list(APPEND PROXYRES_SRCS
             execute_jscore.c
-            execute_jscore.h
             net_adapter_mac.c
-            wpad_dhcp_mac.c
-            wpad_dhcp_mac.h)
+            wpad_dhcp_mac.c)
     endif()
 elseif(UNIX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GConf gconf-2.0)
     if (GConf_FOUND)
-        list(APPEND PROXYRES_SRCS config_gnome2.c config_gnome2.h)
+        list(APPEND PROXYRES_HDRS config_gnome2.h)
+        list(APPEND PROXYRES_SRCS config_gnome2.c)
     endif()
 
+    list(APPEND PROXYRES_HDRS
+        config_env.h
+        config_gnome3.h
+        config_kde.h
+        execute_jsc.h
+        resolver_gnome3.h
+        util_linux.h)
     list(APPEND PROXYRES_SRCS
         config_env.c
-        config_env.h
         config_gnome3.c
-        config_gnome3.h
         config_kde.c
-        config_kde.h
         event_pthread.c
         execute_jsc.c
-        execute_jsc.h
         mutex_pthread.c
         net_adapter_linux.c
         resolver_gnome3.c
-        resolver_gnome3.h
         threadpool_pthread.c
-        util_linux.c
-        util_linux.h)
+        util_linux.c)
 endif()
 
 if(WIN32)
@@ -186,8 +202,19 @@ if(PROXYRES_CODE_COVERAGE AND NOT MSVC)
     endif()
 endif()
 
-add_library(proxyres ${PROXYRES_SRCS})
-set_property(TARGET proxyres PROPERTY C_STANDARD 11)
+if(PROXYRES_USE_CXX)
+    message(STATUS "Use the C++ compiler to compile (PROXYRES_USE_CXX=ON)")
+    set_source_files_properties(${PROXYRES_SRCS} PROPERTIES LANGUAGE CXX)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang")
+        list(APPEND CMAKE_CXX_FLAGS -Wno-deprecated)
+    endif()
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+        set(CMAKE_CXX_FLAGS "-Kc++ ${CMAKE_CXX_FLAGS}")
+    endif()
+endif()
+
+add_library(proxyres ${PROXYRES_HDRS} ${PROXYRES_SRCS} ${PROXYRES_C_SRCS})
+set_property(TARGET proxyres PROPERTY C_STANDARD 11 CXX_STANDARD 11)
 target_include_directories(proxyres PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include/proxyres)

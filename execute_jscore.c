@@ -250,6 +250,12 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     JSValueRef exception = NULL;
     char find_proxy[4096];
     bool is_ok = false;
+    JSStringRef utils_javascript = NULL;
+    JSStringRef script_string = NULL;
+    char *host = NULL;
+    JSStringRef proxy_string = NULL;
+    JSValueRef proxy_value = NULL;
+    JSStringRef find_proxy_string = NULL;
 
     if (!proxy_execute)
         goto jscoregtk_execute_cleanup;
@@ -271,7 +277,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
         goto jscoregtk_execute_cleanup;
 
     // Load Mozilla's JavaScript PAC utilities to help process PAC files
-    JSStringRef utils_javascript = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(MOZILLA_PAC_JAVASCRIPT);
+    utils_javascript = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(MOZILLA_PAC_JAVASCRIPT);
     if (!utils_javascript) {
         LOG_ERROR("Unable to load Mozilla's JavaScript PAC utilities\n");
         goto jscoregtk_execute_cleanup;
@@ -285,7 +291,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     }
 
     // Load PAC script
-    JSStringRef script_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(script);
+    script_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(script);
     g_proxy_execute_jscore.JSEvaluateScript(global, script_string, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(script_string);
     if (exception) {
@@ -295,16 +301,15 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     }
 
     // Construct the call FindProxyForURL
-    char *host = get_url_host(url);
+    host = get_url_host(url);
     snprintf(find_proxy, sizeof(find_proxy), "FindProxyForURL(\"%s\", \"%s\");", url, host ? host : url);
     free(host);
 
     // Execute the call to FindProxyForURL
-    JSStringRef find_proxy_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(find_proxy);
+    find_proxy_string = g_proxy_execute_jscore.JSStringCreateWithUTF8CString(find_proxy);
     if (!find_proxy_string)
         goto jscoregtk_execute_cleanup;
-    JSValueRef proxy_value =
-        g_proxy_execute_jscore.JSEvaluateScript(global, find_proxy_string, NULL, NULL, 1, &exception);
+    proxy_value = g_proxy_execute_jscore.JSEvaluateScript(global, find_proxy_string, NULL, NULL, 1, &exception);
     g_proxy_execute_jscore.JSStringRelease(find_proxy_string);
     if (exception) {
         LOG_ERROR("Unable to execute FindProxyForURL\n");
@@ -318,7 +323,7 @@ bool proxy_execute_jscore_get_proxies_for_url(void *ctx, const char *script, con
     }
 
     // Get the result of the call to FindProxyForURL
-    JSStringRef proxy_string = g_proxy_execute_jscore.JSValueToStringCopy(global, proxy_value, NULL);
+    proxy_string = g_proxy_execute_jscore.JSValueToStringCopy(global, proxy_value, NULL);
     if (proxy_string) {
         proxy_execute->list = js_string_dup_to_utf8(proxy_string);
         g_proxy_execute_jscore.JSStringRelease(proxy_string);
@@ -383,70 +388,89 @@ void proxy_execute_jscore_delayed_init(void) {
 
     // Object functions
     g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback =
-        dlsym(g_proxy_execute_jscore.module, "JSObjectMakeFunctionWithCallback");
+        (JSObjectRef(*)(JSContextRef, JSStringRef, JSObjectCallAsFunctionCallback))dlsym(
+            g_proxy_execute_jscore.module, "JSObjectMakeFunctionWithCallback");
     if (!g_proxy_execute_jscore.JSObjectMakeFunctionWithCallback)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectGetProperty = dlsym(g_proxy_execute_jscore.module, "JSObjectGetProperty");
+    g_proxy_execute_jscore.JSObjectGetProperty =
+        (JSValueRef(*)(JSContextRef, JSObjectRef, JSStringRef, JSValueRef *))dlsym(g_proxy_execute_jscore.module,
+                                                                                   "JSObjectGetProperty");
     if (!g_proxy_execute_jscore.JSObjectGetProperty)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSObjectSetProperty = dlsym(g_proxy_execute_jscore.module, "JSObjectSetProperty");
+    g_proxy_execute_jscore.JSObjectSetProperty =
+        (void (*)(JSContextRef, JSObjectRef, JSStringRef, JSValueRef, JSPropertyAttributes, JSValueRef *))dlsym(
+            g_proxy_execute_jscore.module, "JSObjectSetProperty");
     if (!g_proxy_execute_jscore.JSObjectSetProperty)
         goto jscore_init_error;
     // Context functions
-    g_proxy_execute_jscore.JSContextGetGlobalObject = dlsym(g_proxy_execute_jscore.module, "JSContextGetGlobalObject");
+    g_proxy_execute_jscore.JSContextGetGlobalObject =
+        (JSObjectRef(*)(JSContextRef))dlsym(g_proxy_execute_jscore.module, "JSContextGetGlobalObject");
     if (!g_proxy_execute_jscore.JSContextGetGlobalObject)
         goto jscore_init_error;
     // Value functions
-    g_proxy_execute_jscore.JSValueIsString = dlsym(g_proxy_execute_jscore.module, "JSValueIsString");
+    g_proxy_execute_jscore.JSValueIsString =
+        (bool (*)(JSContextRef, JSValueRef))dlsym(g_proxy_execute_jscore.module, "JSValueIsString");
     if (!g_proxy_execute_jscore.JSValueIsString)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueIsNumber = dlsym(g_proxy_execute_jscore.module, "JSValueIsNumber");
+    g_proxy_execute_jscore.JSValueIsNumber =
+        (double (*)(JSContextRef, JSValueRef))dlsym(g_proxy_execute_jscore.module, "JSValueIsNumber");
     if (!g_proxy_execute_jscore.JSValueIsNumber)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueToObject = dlsym(g_proxy_execute_jscore.module, "JSValueToObject");
+    g_proxy_execute_jscore.JSValueToObject =
+        (JSObjectRef(*)(JSContextRef, JSValueRef, JSValueRef *))dlsym(g_proxy_execute_jscore.module, "JSValueToObject");
     if (!g_proxy_execute_jscore.JSValueToObject)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueToStringCopy = dlsym(g_proxy_execute_jscore.module, "JSValueToStringCopy");
+    g_proxy_execute_jscore.JSValueToStringCopy = (JSStringRef(*)(JSContextRef, JSValueRef, JSValueRef *))dlsym(
+        g_proxy_execute_jscore.module, "JSValueToStringCopy");
     if (!g_proxy_execute_jscore.JSValueToStringCopy)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueToNumber = dlsym(g_proxy_execute_jscore.module, "JSValueToNumber");
+    g_proxy_execute_jscore.JSValueToNumber =
+        (double (*)(JSContextRef, JSValueRef, JSValueRef *))dlsym(g_proxy_execute_jscore.module, "JSValueToNumber");
     if (!g_proxy_execute_jscore.JSValueToNumber)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSValueMakeString = dlsym(g_proxy_execute_jscore.module, "JSValueMakeString");
+    g_proxy_execute_jscore.JSValueMakeString =
+        (JSValueRef(*)(JSContextRef, JSStringRef))dlsym(g_proxy_execute_jscore.module, "JSValueMakeString");
     if (!g_proxy_execute_jscore.JSValueMakeString)
         goto jscore_init_error;
     // String functions
     g_proxy_execute_jscore.JSStringCreateWithUTF8CString =
-        dlsym(g_proxy_execute_jscore.module, "JSStringCreateWithUTF8CString");
+        (JSStringRef(*)(const char *))dlsym(g_proxy_execute_jscore.module, "JSStringCreateWithUTF8CString");
     if (!g_proxy_execute_jscore.JSStringCreateWithUTF8CString)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringGetUTF8CString = dlsym(g_proxy_execute_jscore.module, "JSStringGetUTF8CString");
+    g_proxy_execute_jscore.JSStringGetUTF8CString =
+        (size_t (*)(JSStringRef, char *, size_t))dlsym(g_proxy_execute_jscore.module, "JSStringGetUTF8CString");
     if (!g_proxy_execute_jscore.JSStringGetUTF8CString)
         goto jscore_init_error;
     g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
-        dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
+        (size_t (*)(JSStringRef))dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
     if (!g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize)
         goto jscore_init_error;
     g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize =
-        dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
+        (size_t (*)(JSStringRef))dlsym(g_proxy_execute_jscore.module, "JSStringGetMaximumUTF8CStringSize");
     if (!g_proxy_execute_jscore.JSStringGetMaximumUTF8CStringSize)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSStringRelease = dlsym(g_proxy_execute_jscore.module, "JSStringRelease");
+    g_proxy_execute_jscore.JSStringRelease =
+        (void (*)(JSStringRef))dlsym(g_proxy_execute_jscore.module, "JSStringRelease");
     if (!g_proxy_execute_jscore.JSStringRelease)
         goto jscore_init_error;
     // Global context functions
-    g_proxy_execute_jscore.JSGlobalContextCreate = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextCreate");
+    g_proxy_execute_jscore.JSGlobalContextCreate =
+        (JSGlobalContextRef(*)(JSClassRef))dlsym(g_proxy_execute_jscore.module, "JSGlobalContextCreate");
     if (!g_proxy_execute_jscore.JSGlobalContextCreate)
         goto jscore_init_error;
-    g_proxy_execute_jscore.JSGlobalContextRelease = dlsym(g_proxy_execute_jscore.module, "JSGlobalContextRelease");
+    g_proxy_execute_jscore.JSGlobalContextRelease =
+        (void (*)(JSGlobalContextRef))dlsym(g_proxy_execute_jscore.module, "JSGlobalContextRelease");
     if (!g_proxy_execute_jscore.JSGlobalContextRelease)
         goto jscore_init_error;
     // Execute functions
-    g_proxy_execute_jscore.JSEvaluateScript = dlsym(g_proxy_execute_jscore.module, "JSEvaluateScript");
+    g_proxy_execute_jscore.JSEvaluateScript =
+        (JSValueRef(*)(JSContextRef, JSStringRef, JSObjectRef, JSStringRef, int, JSValueRef *))dlsym(
+            g_proxy_execute_jscore.module, "JSEvaluateScript");
     if (!g_proxy_execute_jscore.JSEvaluateScript)
         goto jscore_init_error;
     // Garbage collection functions
-    g_proxy_execute_jscore.JSGarbageCollect = dlsym(g_proxy_execute_jscore.module, "JSGarbageCollect");
+    g_proxy_execute_jscore.JSGarbageCollect =
+        (void (*)(JSContextRef))dlsym(g_proxy_execute_jscore.module, "JSGarbageCollect");
     if (!g_proxy_execute_jscore.JSGarbageCollect)
         goto jscore_init_error;
 

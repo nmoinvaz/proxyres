@@ -6,6 +6,7 @@
 #include <windows.h>
 
 #include "util.h"
+#include "util_win.h"
 
 // Create a wide char string from a UTF-8 string
 wchar_t *utf8_dup_to_wchar(const char *src) {

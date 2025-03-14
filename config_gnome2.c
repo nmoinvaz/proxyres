@@ -147,7 +147,7 @@ char *proxy_config_gnome2_get_bypass_list(void) {
             enum_bypass.max_value++;
 
             // Allocate space for the bypass list
-            bypass_list = calloc(enum_bypass.max_value, sizeof(char));
+            bypass_list = (char *)calloc(enum_bypass.max_value, sizeof(char));
             if (bypass_list) {
                 enum_bypass.value = bypass_list;
 

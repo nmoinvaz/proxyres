@@ -98,6 +98,7 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     JSCValue *result = NULL;
     char find_proxy[4096];
     bool is_ok = false;
+    char *host = NULL;
 
     if (!proxy_execute)
         goto jscgtk_execute_cleanup;
@@ -155,7 +156,7 @@ bool proxy_execute_jsc_get_proxies_for_url(void *ctx, const char *script, const 
     }
 
     // Construct the call FindProxyForURL
-    char *host = get_url_host(url);
+    host = get_url_host(url);
     snprintf(find_proxy, sizeof(find_proxy), "FindProxyForURL(\"%s\", \"%s\");", url, host ? host : url);
     free(host);
 
@@ -245,59 +246,71 @@ void proxy_execute_jsc_delayed_init(void) {
         return;
 
     // GObject functions (loaded as a dependency of the module)
-    g_proxy_execute_jsc.g_object_unref = dlsym(g_proxy_execute_jsc.module, "g_object_unref");
+    g_proxy_execute_jsc.g_object_unref = (void (*)(gpointer))dlsym(g_proxy_execute_jsc.module, "g_object_unref");
     if (!g_proxy_execute_jsc.g_object_unref)
         goto jsc_init_error;
 
     // Context functions
-    g_proxy_execute_jsc.jsc_context_new = dlsym(g_proxy_execute_jsc.module, "jsc_context_new");
+    g_proxy_execute_jsc.jsc_context_new = (JSCContext * (*)()) dlsym(g_proxy_execute_jsc.module, "jsc_context_new");
     if (!g_proxy_execute_jsc.jsc_context_new)
         goto jsc_init_error;
     g_proxy_execute_jsc.jsc_context_get_global_object =
-        dlsym(g_proxy_execute_jsc.module, "jsc_context_get_global_object");
+        (JSCValue * (*)(JSCContext *)) dlsym(g_proxy_execute_jsc.module, "jsc_context_get_global_object");
     if (!g_proxy_execute_jsc.jsc_context_get_global_object)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_context_evaluate = dlsym(g_proxy_execute_jsc.module, "jsc_context_evaluate");
+    g_proxy_execute_jsc.jsc_context_evaluate =
+        (JSCValue * (*)(JSCContext *, const char *, gssize)) dlsym(g_proxy_execute_jsc.module, "jsc_context_evaluate");
     if (!g_proxy_execute_jsc.jsc_context_evaluate)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_context_get_exception = dlsym(g_proxy_execute_jsc.module, "jsc_context_get_exception");
+    g_proxy_execute_jsc.jsc_context_get_exception =
+        (JSCException * (*)(JSCContext *)) dlsym(g_proxy_execute_jsc.module, "jsc_context_get_exception");
     if (!g_proxy_execute_jsc.jsc_context_get_exception)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_context_set_value = dlsym(g_proxy_execute_jsc.module, "jsc_context_set_value");
+    g_proxy_execute_jsc.jsc_context_set_value =
+        (void (*)(JSCContext *, const char *, JSCValue *))dlsym(g_proxy_execute_jsc.module, "jsc_context_set_value");
     if (!g_proxy_execute_jsc.jsc_context_set_value)
         goto jsc_init_error;
     // JS_EXPORT_PRIVATE void jscContextGarbageCollect(JSCContext*, bool sanitizeStack = false) is undocumented, may be
     // unavailable, and is not declared with C language linkage.
     g_proxy_execute_jsc.jsc_context_garbage_collect =
-        dlsym(g_proxy_execute_jsc.module, "_Z24jscContextGarbageCollectP11_JSCContextb");
+        (void (*)(JSCContext *, bool))dlsym(g_proxy_execute_jsc.module, "_Z24jscContextGarbageCollectP11_JSCContextb");
     // Value functions
-    g_proxy_execute_jsc.jsc_value_is_string = dlsym(g_proxy_execute_jsc.module, "jsc_value_is_string");
+    g_proxy_execute_jsc.jsc_value_is_string =
+        (gboolean(*)(JSCValue *))dlsym(g_proxy_execute_jsc.module, "jsc_value_is_string");
     if (!g_proxy_execute_jsc.jsc_value_is_string)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_is_number = dlsym(g_proxy_execute_jsc.module, "jsc_value_is_number");
+    g_proxy_execute_jsc.jsc_value_is_number =
+        (gboolean(*)(JSCValue *))dlsym(g_proxy_execute_jsc.module, "jsc_value_is_number");
     if (!g_proxy_execute_jsc.jsc_value_is_number)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_is_object = dlsym(g_proxy_execute_jsc.module, "jsc_value_is_object");
+    g_proxy_execute_jsc.jsc_value_is_object =
+        (gboolean(*)(JSCValue *))dlsym(g_proxy_execute_jsc.module, "jsc_value_is_object");
     if (!g_proxy_execute_jsc.jsc_value_is_object)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_to_double = dlsym(g_proxy_execute_jsc.module, "jsc_value_to_double");
+    g_proxy_execute_jsc.jsc_value_to_double =
+        (double (*)(JSCValue *))dlsym(g_proxy_execute_jsc.module, "jsc_value_to_double");
     if (!g_proxy_execute_jsc.jsc_value_to_double)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_new_string = dlsym(g_proxy_execute_jsc.module, "jsc_value_new_string");
+    g_proxy_execute_jsc.jsc_value_new_string =
+        (JSCValue * (*)(JSCContext *, const char *)) dlsym(g_proxy_execute_jsc.module, "jsc_value_new_string");
     if (!g_proxy_execute_jsc.jsc_value_new_string)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_to_string = dlsym(g_proxy_execute_jsc.module, "jsc_value_to_string");
+    g_proxy_execute_jsc.jsc_value_to_string =
+        (char *(*)(JSCValue *))dlsym(g_proxy_execute_jsc.module, "jsc_value_to_string");
     if (!g_proxy_execute_jsc.jsc_value_to_string)
         goto jsc_init_error;
-    g_proxy_execute_jsc.jsc_value_new_function = dlsym(g_proxy_execute_jsc.module, "jsc_value_new_function");
+    g_proxy_execute_jsc.jsc_value_new_function =
+        (JSCValue * (*)(JSCContext *, const char *, GCallback, gpointer, GDestroyNotify, GType, guint, ...))
+            dlsym(g_proxy_execute_jsc.module, "jsc_value_new_function");
     if (!g_proxy_execute_jsc.jsc_value_new_function)
         goto jsc_init_error;
     g_proxy_execute_jsc.jsc_value_object_get_property =
-        dlsym(g_proxy_execute_jsc.module, "jsc_value_object_get_property");
+        (JSCValue * (*)(JSCValue *, const char *)) dlsym(g_proxy_execute_jsc.module, "jsc_value_object_get_property");
     if (!g_proxy_execute_jsc.jsc_value_object_get_property)
         goto jsc_init_error;
     // Exception functions
-    g_proxy_execute_jsc.jsc_exception_report = dlsym(g_proxy_execute_jsc.module, "jsc_exception_report");
+    g_proxy_execute_jsc.jsc_exception_report =
+        (char *(*)(JSCException *))dlsym(g_proxy_execute_jsc.module, "jsc_exception_report");
     if (!g_proxy_execute_jsc.jsc_exception_report)
         goto jsc_init_error;
 

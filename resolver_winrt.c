@@ -15,6 +15,7 @@
 #include "log.h"
 #include "resolver.h"
 #include "resolver_i.h"
+#include "resolver_winrt.h"
 #include "resolver_winxp.h"
 #include "util.h"
 #include "util_win.h"
@@ -37,37 +38,37 @@ const IID IID_AsyncOperationCompletedHandler_ProxyConfiguration = {
 // INetworkInformationStatics
 typedef __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics WinRT_INetworkInformationStatics;
 #define WinRT_INetworkInformationStatics_GetProxyConfigurationAsync(this, uri, value) \
-  __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_GetProxyConfigurationAsync(this, uri, value)
+    __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_GetProxyConfigurationAsync(this, uri, value)
 #define WinRT_INetworkInformationStatics_Release(this) \
-  __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_Release(this)
+    __x_ABI_CWindows_CNetworking_CConnectivity_CINetworkInformationStatics_Release(this)
 
 // IUriRuntimeClass
 typedef __x_ABI_CWindows_CFoundation_CIUriRuntimeClass WinRT_IUriRuntimeClass;
 #define WinRT_IUriRuntimeClass_GetAbsoluteUri(this, value) \
-  __x_ABI_CWindows_CFoundation_CIUriRuntimeClass_get_AbsoluteUri(this, value)
+    __x_ABI_CWindows_CFoundation_CIUriRuntimeClass_get_AbsoluteUri(this, value)
 #define WinRT_IUriRuntimeClass_Release(this) __x_ABI_CWindows_CFoundation_CIUriRuntimeClass_Release(this)
 
 // IUriRuntimeClassFactory
 typedef __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory WinRT_IUriRuntimeClassFactory;
 #define WinRT_IUriRuntimeClassFactory_CreateUri(this, uri, instance) \
-  __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory_CreateUri(this, uri, instance)
+    __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory_CreateUri(this, uri, instance)
 #define WinRT_IUriRuntimeClassFactory_Release(this) __x_ABI_CWindows_CFoundation_CIUriRuntimeClassFactory_Release(this)
 
 // IVectorView<Uri>
 typedef __FIVectorView_1_Windows__CFoundation__CUri WinRT_IVectorView_Uri;
 #define WinRT_IVectorView_Uri_GetAt(This, Index, Item) \
-  __FIVectorView_1_Windows__CFoundation__CUri_GetAt(This, Index, Item)
+    __FIVectorView_1_Windows__CFoundation__CUri_GetAt(This, Index, Item)
 #define WinRT_IVectorView_Uri_GetSize(This, Size) __FIVectorView_1_Windows__CFoundation__CUri_get_Size(This, Size)
 #define WinRT_IVectorView_Uri_Release(This)       __FIVectorView_1_Windows__CFoundation__CUri_Release(This)
 
 // IProxyConfiguration
 typedef __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration WinRT_IProxyConfiguration;
 #define WinRT_IProxyConfiguration_GetCanConnectDirectly(This, Value) \
-  __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_CanConnectDirectly(This, Value)
+    __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_CanConnectDirectly(This, Value)
 #define WinRT_IProxyConfiguration_GetProxyUris(This, Value) \
-  __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_ProxyUris(This, Value)
+    __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_get_ProxyUris(This, Value)
 #define WinRT_IProxyConfiguration_Release(This) \
-  __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_Release(This)
+    __x_ABI_CWindows_CNetworking_CConnectivity_CIProxyConfiguration_Release(This)
 
 // IAsyncOperationCompletedHandler<ProxyConfiguration>
 typedef __FIAsyncOperationCompletedHandler_1_Windows__CNetworking__CConnectivity__CProxyConfiguration
@@ -80,12 +81,12 @@ typedef __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfigur
     WinRT_IAsyncOperation_ProxyConfiguration;
 typedef __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfigurationVtbl
     WinRT_IAsyncOperation_ProxyConfigurationVtbl;
-#define WinRT_IAsyncOperation_ProxyConfiguration_PutCompleted(this, handler) \
-  __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_put_Completed(this, handler)
-#define WinRT_IAsyncOperation_ProxyConfiguration_GetResults(this, results) \
-  __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_GetResults(this, results)
-#define WinRT_IAsyncOperation_ProxyConfiguration_Release(this) \
-  __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_Release(this)
+#define WinRT_IAsyncOperation_ProxyConfiguration_PutCompleted(self, handler) \
+    __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_put_Completed(self, handler)
+#define WinRT_IAsyncOperation_ProxyConfiguration_GetResults(self, results) \
+    __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_GetResults(self, results)
+#define WinRT_IAsyncOperation_ProxyConfiguration_Release(self) \
+    __FIAsyncOperation_1_Windows__CNetworking__CConnectivity__CProxyConfiguration_Release(self)
 
 struct async_complete_handler_s;
 
@@ -106,28 +107,28 @@ typedef struct async_complete_handler_s {
     // IAsyncOperation<ProxyConfiguration> instance
     WinRT_IAsyncOperation_ProxyConfiguration *async;
     // Reference count
-    int32_t ref_count;
+    LONG ref_count;
     // Proxy resolver pointer
     proxy_resolver_winrt_s *proxy_resolver;
 } async_complete_handler_s;
 
-#define cast_from_complete_handler_interface(this) \
-  (async_complete_handler_s *)((uint8_t *)this - offsetof(async_complete_handler_s, complete))
+#define cast_from_complete_handler_interface(self) \
+    (async_complete_handler_s *)((uint8_t *)self - offsetof(async_complete_handler_s, complete))
 
 ULONG STDMETHODCALLTYPE
 async_complete_handler_add_ref(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler) {
-    async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
-    return InterlockedIncrement(&this->ref_count);
+    async_complete_handler_s *self = cast_from_complete_handler_interface(handler);
+    return InterlockedIncrement(&self->ref_count);
 }
 
 ULONG STDMETHODCALLTYPE
 async_complete_handler_release(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler) {
-    async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
-    if (InterlockedDecrement(&this->ref_count) == 0) {
-        free(this);
+    async_complete_handler_s *self = cast_from_complete_handler_interface(handler);
+    if (InterlockedDecrement(&self->ref_count) == 0) {
+        free(self);
         return 0;
     }
-    return this->ref_count;
+    return self->ref_count;
 }
 
 HRESULT STDMETHODCALLTYPE async_complete_handler_query_interface(
@@ -145,8 +146,8 @@ HRESULT STDMETHODCALLTYPE async_complete_handler_query_interface(
 HRESULT STDMETHODCALLTYPE
 async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfiguration *handler,
                               WinRT_IAsyncOperation_ProxyConfiguration *async_info, AsyncStatus status) {
-    async_complete_handler_s *this = cast_from_complete_handler_interface(handler);
-    proxy_resolver_winrt_s *proxy_resolver = this->proxy_resolver;
+    async_complete_handler_s *self = cast_from_complete_handler_interface(handler);
+    proxy_resolver_winrt_s *proxy_resolver = self->proxy_resolver;
     WinRT_IProxyConfiguration *results = NULL;
     WinRT_IVectorView_Uri *uri_list = NULL;
 
@@ -158,7 +159,7 @@ async_complete_handler_invoke(WinRT_IAsyncOperationCompletedHandler_ProxyConfigu
         goto winrt_async_done;
     }
 
-    result = WinRT_IAsyncOperation_ProxyConfiguration_GetResults(this->async, &results);
+    result = WinRT_IAsyncOperation_ProxyConfiguration_GetResults(self->async, &results);
     if (FAILED(result)) {
         LOG_ERROR("Failed to get results from async operation (0x%lx)", result);
         goto winrt_async_done;

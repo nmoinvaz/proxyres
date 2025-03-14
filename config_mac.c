@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -48,7 +49,8 @@ char *proxy_config_mac_get_auto_config_url(void) {
     // Check if auto-config url is enabled
     if (get_cf_dictionary_bool(proxy_settings, kCFNetworkProxiesProxyAutoConfigEnable)) {
         // Get the auto-config url
-        CFStringRef auto_config_url = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);
+        const CFStringRef auto_config_url =
+            (CFStringRef)CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesProxyAutoConfigURLString);
         if (auto_config_url) {
             const char *auto_config_url_utf8 = CFStringGetCStringPtr(auto_config_url, kCFStringEncodingUTF8);
             if (auto_config_url_utf8) {
@@ -106,7 +108,7 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
 
     if (get_cf_dictionary_bool(proxy_settings, enable_index)) {
         // Get the proxy url associated with the scheme
-        CFStringRef host = CFDictionaryGetValue(proxy_settings, host_index);
+        const CFStringRef host = (CFStringRef)CFDictionaryGetValue(proxy_settings, host_index);
         if (host) {
             const char *host_utf8 = CFStringGetCStringPtr(host, kCFStringEncodingUTF8);
             if (host_utf8) {
@@ -121,7 +123,7 @@ char *proxy_config_mac_get_proxy(const char *scheme) {
         }
 
         // Get the proxy port associated with the scheme
-        CFNumberRef port = CFDictionaryGetValue(proxy_settings, port_index);
+        const CFNumberRef port = (CFNumberRef)CFDictionaryGetValue(proxy_settings, port_index);
         if (proxy && port) {
             // Append the proxy port to the proxy url
             int64_t port_number = 0;
@@ -162,7 +164,7 @@ char *proxy_config_mac_get_bypass_list(void) {
     // Get exception list
     CFArrayRef exceptions_list = NULL;
 #if !TARGET_OS_IPHONE
-    exceptions_list = CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
+    exceptions_list = (CFArrayRef)CFDictionaryGetValue(proxy_settings, kCFNetworkProxiesExceptionsList);
     if (exceptions_list) {
         exception_count = CFArrayGetCount(exceptions_list);
         bypass_list_count += exception_count;
@@ -187,7 +189,7 @@ char *proxy_config_mac_get_bypass_list(void) {
 
     // Enumerate exception array and copy to comma delimited string
     for (size_t i = 0; exceptions_list && i < exception_count; ++i) {
-        CFStringRef exception = CFArrayGetValueAtIndex(exceptions_list, i);
+        const CFStringRef exception = (CFStringRef)CFArrayGetValueAtIndex(exceptions_list, i);
         if (exception) {
             const char *exception_utf8 = CFStringGetCStringPtr(exception, kCFStringEncodingUTF8);
             if (exception_utf8) {
