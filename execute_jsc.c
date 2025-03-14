@@ -336,11 +336,13 @@ bool proxy_execute_jsc_global_init(void) {
 }
 
 bool proxy_execute_jsc_global_cleanup(void) {
+#if 0  // Do not unload the library, as a thread in its address space may run
     if (g_proxy_execute_jsc.module)
         dlclose(g_proxy_execute_jsc.module);
 
     memset(&g_proxy_execute_jsc, 0, sizeof(g_proxy_execute_jsc));
     g_proxy_execute_jsc_init_flag = PTHREAD_ONCE_INIT;
+#endif
     return true;
 }
 
