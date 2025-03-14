@@ -174,32 +174,38 @@ bool proxy_config_gnome2_global_init(void) {
         goto gnome2_init_error;
 
     // Glib functions
-    g_proxy_config_gnome2.g_free = dlsym(g_proxy_config_gnome2.glib_module, "g_free");
+    g_proxy_config_gnome2.g_free = (void (*)(gpointer))dlsym(g_proxy_config_gnome2.glib_module, "g_free");
     if (!g_proxy_config_gnome2.g_free)
         goto gnome2_init_error;
-    g_proxy_config_gnome2.g_slist_free_full = dlsym(g_proxy_config_gnome2.glib_module, "g_slist_free_full");
+    g_proxy_config_gnome2.g_slist_free_full =
+        (void (*)(GSList *, GDestroyNotify))dlsym(g_proxy_config_gnome2.glib_module, "g_slist_free_full");
     if (!g_proxy_config_gnome2.g_slist_free_full)
         goto gnome2_init_error;
-    g_proxy_config_gnome2.g_slist_foreach = dlsym(g_proxy_config_gnome2.glib_module, "g_slist_foreach");
+    g_proxy_config_gnome2.g_slist_foreach =
+        (void (*)(GSList *, GFunc, gpointer))dlsym(g_proxy_config_gnome2.glib_module, "g_slist_foreach");
     if (!g_proxy_config_gnome2.g_slist_foreach)
         goto gnome2_init_error;
 
     // Gconf functions
     g_proxy_config_gnome2.gconf_engine_get_default =
-        dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_default");
+        (GConfEngine * (*)()) dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_default");
     if (!g_proxy_config_gnome2.gconf_engine_get_default)
         goto gnome2_init_error;
-    g_proxy_config_gnome2.gconf_engine_get_string =
+    g_proxy_config_gnome2.gconf_engine_get_string = (gchar * (*)(GConfEngine *, const gchar *, GError **))
         dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_string");
     if (!g_proxy_config_gnome2.gconf_engine_get_string)
         goto gnome2_init_error;
-    g_proxy_config_gnome2.gconf_engine_get_int = dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_int");
+    g_proxy_config_gnome2.gconf_engine_get_int = (gint(*)(GConfEngine *, const gchar *, GError **))dlsym(
+        g_proxy_config_gnome2.gconf_module, "gconf_engine_get_int");
     if (!g_proxy_config_gnome2.gconf_engine_get_int)
         goto gnome2_init_error;
-    g_proxy_config_gnome2.gconf_engine_get_bool = dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_bool");
+    g_proxy_config_gnome2.gconf_engine_get_bool = (gboolean(*)(GConfEngine *, const gchar *, GError **))dlsym(
+        g_proxy_config_gnome2.gconf_module, "gconf_engine_get_bool");
     if (!g_proxy_config_gnome2.gconf_engine_get_bool)
         goto gnome2_init_error;
-    g_proxy_config_gnome2.gconf_engine_get_list = dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_list");
+    g_proxy_config_gnome2.gconf_engine_get_list =
+        (GSList * (*)(GConfEngine *, const gchar *, GConfValueType, GError **))
+            dlsym(g_proxy_config_gnome2.gconf_module, "gconf_engine_get_list");
     if (!g_proxy_config_gnome2.gconf_engine_get_list)
         goto gnome2_init_error;
 
