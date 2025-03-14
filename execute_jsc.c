@@ -30,6 +30,7 @@ typedef struct g_proxy_execute_jsc_s {
     JSCValue *(*jsc_context_evaluate)(JSCContext *context, const char *code, gssize length);
     JSCException *(*jsc_context_get_exception)(JSCContext *context);
     void (*jsc_context_set_value)(JSCContext *context, const char *name, JSCValue *value);
+    void (*jsc_context_garbage_collect)(JSCContext *, bool sanitize_stack);
     // Value functions
     gboolean (*jsc_value_is_string)(JSCValue *value);
     gboolean (*jsc_value_is_number)(JSCValue *value);
@@ -190,8 +191,11 @@ jscgtk_execute_cleanup:
             g_object_unref(functions[i].value);
     }
 
-    if (global)
+    if (global) {
+        if (g_proxy_execute_jsc.jsc_context_garbage_collect)
+            g_proxy_execute_jsc.jsc_context_garbage_collect(global, false);
         g_object_unref(global);
+    }
 
     return is_ok;
 }
@@ -262,6 +266,10 @@ void proxy_execute_jsc_delayed_init(void) {
     g_proxy_execute_jsc.jsc_context_set_value = dlsym(g_proxy_execute_jsc.module, "jsc_context_set_value");
     if (!g_proxy_execute_jsc.jsc_context_set_value)
         goto jsc_init_error;
+    // JS_EXPORT_PRIVATE void jscContextGarbageCollect(JSCContext*, bool sanitizeStack = false) is undocumented, may be
+    // unavailable, and is not declared with C language linkage.
+    g_proxy_execute_jsc.jsc_context_garbage_collect =
+        dlsym(g_proxy_execute_jsc.module, "_Z24jscContextGarbageCollectP11_JSCContextb");
     // Value functions
     g_proxy_execute_jsc.jsc_value_is_string = dlsym(g_proxy_execute_jsc.module, "jsc_value_is_string");
     if (!g_proxy_execute_jsc.jsc_value_is_string)
